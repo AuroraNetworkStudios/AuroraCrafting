@@ -40,10 +40,13 @@ public class RecipeWrapperBlueprint extends Blueprint {
 
     private void handleShaped(ShapedRecipe recipe) {
         var choiceMap = recipe.getChoiceMap();
-        for (var character : recipe.getShape()) {
-            var choice = choiceMap.get(character.charAt(0));
-            if (choice == null) continue;
-            handleChoice(choice);
+        for (var row : recipe.getShape()) {
+            for (var character : row.toCharArray()) {
+                if (character == ' ') continue;
+                var choice = choiceMap.get(character);
+                if (choice == null) continue;
+                handleChoice(choice);
+            }
         }
     }
 
