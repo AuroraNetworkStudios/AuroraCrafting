@@ -10,9 +10,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.recipe.CraftingBookCategory;
 
 @Getter
-public class ShapedBlueprint extends Blueprint {
-    private CraftingBookCategory vanillaCategory = CraftingBookCategory.MISC;
-    private String vanillaGroup;
+public class ShapedBlueprint extends CraftingBlueprint<ShapedBlueprint> {
 
     public ShapedBlueprint(Workbench workbench, String id) {
         super(workbench, id);
@@ -20,16 +18,6 @@ public class ShapedBlueprint extends Blueprint {
 
     public static ShapedBlueprint shapedBlueprint(Workbench workbench, String id) {
         return new ShapedBlueprint(workbench, id);
-    }
-
-    public ShapedBlueprint vanillaCategory(CraftingBookCategory category) {
-        this.vanillaCategory = category;
-        return this;
-    }
-
-    public ShapedBlueprint vanillaGroup(String group) {
-        this.vanillaGroup = group;
-        return this;
     }
 
     @Override

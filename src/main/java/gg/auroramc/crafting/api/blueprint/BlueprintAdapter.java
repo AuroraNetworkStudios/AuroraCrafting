@@ -1,8 +1,7 @@
 package gg.auroramc.crafting.api.blueprint;
 
-import gg.auroramc.crafting.api.vanilla.ShapedRecipeBuilder;
-import gg.auroramc.crafting.api.vanilla.ShapelessRecipeBuilder;
-import gg.auroramc.crafting.api.vanilla.SmithingRecipeBuilder;
+import gg.auroramc.crafting.api.vanilla.*;
+import org.bukkit.inventory.CookingRecipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.SmithingTransformRecipe;
@@ -10,8 +9,8 @@ import org.bukkit.inventory.SmithingTransformRecipe;
 public class BlueprintAdapter {
     public static ShapelessRecipe adapt(ShapelessBlueprint blueprint) {
         return ShapelessRecipeBuilder.shapelessRecipe(blueprint.getId())
-                .category(blueprint.getVanillaCategory())
-                .group(blueprint.getVanillaGroup())
+                .category(blueprint.getVanillaOptions().category())
+                .group(blueprint.getVanillaOptions().group())
                 .ingredients(blueprint.getIngredientItems())
                 .result(blueprint.getResultItem())
                 .build();
@@ -19,8 +18,8 @@ public class BlueprintAdapter {
 
     public static ShapedRecipe adapt(ShapedBlueprint blueprint) {
         return ShapedRecipeBuilder.shapedRecipe(blueprint.getId())
-                .category(blueprint.getVanillaCategory())
-                .group(blueprint.getVanillaGroup())
+                .category(blueprint.getVanillaOptions().category())
+                .group(blueprint.getVanillaOptions().group())
                 .ingredients(blueprint.getIngredientItems())
                 .result(blueprint.getResultItem())
                 .build();
@@ -28,8 +27,24 @@ public class BlueprintAdapter {
 
     public static SmithingTransformRecipe adapt(SmithingBlueprint blueprint) {
         return SmithingRecipeBuilder.smithingRecipe(blueprint.getId())
+                .template(blueprint.getTemplateItem())
                 .base(blueprint.getBaseItem())
                 .addition(blueprint.getAdditionItem())
+                .result(blueprint.getResultItem())
+                .build();
+    }
+
+    public static CookingRecipe adapt(CookingBlueprint blueprint) {
+        CookingRecipeBuilder<?> builder = switch (blueprint.getType()) {
+            case FURNACE -> FurnaceRecipeBuilder.furnaceRecipe(blueprint.getId());
+            case BLAST_FURNACE -> BlastingRecipeBuilder.blastingRecipe(blueprint.getId());
+            case SMOKER -> SmokingRecipeBuilder.smokingRecipe(blueprint.getId());
+            case CAMPFIRE -> CampfireRecipeBuilder.campfireRecipe(blueprint.getId());
+        };
+
+        return builder.cookingTime(blueprint.getVanillaOptions().cookingTime())
+                .experience(blueprint.getVanillaOptions().experience())
+                .input(blueprint.input())
                 .result(blueprint.getResultItem())
                 .build();
     }

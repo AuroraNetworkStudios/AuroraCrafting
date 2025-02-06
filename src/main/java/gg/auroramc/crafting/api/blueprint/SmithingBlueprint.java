@@ -7,7 +7,6 @@ import gg.auroramc.crafting.api.workbench.Workbench;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class SmithingBlueprint extends Blueprint {
@@ -18,6 +17,7 @@ public class SmithingBlueprint extends Blueprint {
     public SmithingBlueprint(Workbench workbench, String id) {
         super(workbench, id);
         this.ingredients.addAll(List.of(air, air, air));
+        this.ingredientItems.addAll(List.of(new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR)));
     }
 
     public static SmithingBlueprint smithingBlueprint(Workbench workbench, String id) {
@@ -26,19 +26,29 @@ public class SmithingBlueprint extends Blueprint {
 
     @Override
     public Blueprint addIngredient(ItemPair itemPair) {
-        if (ingredients.size() >= 3) {
+        if(slots[0] && slots[1] && slots[2]) {
             throw new IllegalArgumentException("Smithing recipes can only have 3 ingredients");
         }
 
+        var item = AuroraAPI.getItemManager().resolveItem(itemPair.id());
+        item.setAmount(itemPair.amount());
+
+        var index = 0;
+
         if (!slots[0]) {
-            slots[0] = true;
-            ingredients.set(0, itemPair);
+            index = 0;
         } else if (!slots[1]) {
-            slots[1] = true;
-            ingredients.set(1, itemPair);
+            index = 1;
         } else if (!slots[2]) {
-            slots[2] = true;
-            ingredients.set(2, itemPair);
+            index = 2;
+        }
+
+        slots[index] = true;
+        ingredients.set(index, itemPair);
+        ingredientItems.set(index, item);
+        this.ingredientCount.merge(itemPair.id(), itemPair.amount(), Integer::sum);
+        if (itemPair.id().equals(TypeId.from(Material.AIR))) {
+            this.ingredientCount.remove(itemPair.id());
         }
 
         return this;

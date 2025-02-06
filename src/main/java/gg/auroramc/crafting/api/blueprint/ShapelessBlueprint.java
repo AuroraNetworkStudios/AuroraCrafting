@@ -11,9 +11,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 @Getter
-public class ShapelessBlueprint extends Blueprint {
-    private CraftingBookCategory vanillaCategory = CraftingBookCategory.MISC;
-    private String vanillaGroup;
+public class ShapelessBlueprint extends CraftingBlueprint<ShapelessBlueprint> {
 
     public ShapelessBlueprint(Workbench workbench, String id) {
         super(workbench, id);
@@ -21,16 +19,6 @@ public class ShapelessBlueprint extends Blueprint {
 
     public static ShapelessBlueprint shapelessBlueprint(Workbench workbench, String id) {
         return new ShapelessBlueprint(workbench, id);
-    }
-
-    public ShapelessBlueprint vanillaCategory(CraftingBookCategory category) {
-        this.vanillaCategory = category;
-        return this;
-    }
-
-    public ShapelessBlueprint vanillaGroup(String group) {
-        this.vanillaGroup = group;
-        return this;
     }
 
     @Override

@@ -12,16 +12,16 @@ import java.util.Objects;
 
 public class Workbench {
     @Getter
-    private String id;
+    protected String id;
 
     private final Map<String, Blueprint> blueprints = new HashMap<>();
     private final Map<BlueprintType, Map<String, Blueprint>> matrixLookup = new HashMap<>();
     @Getter
-    private final int resultSlot;
+    protected final int resultSlot;
     @Getter
-    private final List<Integer> matrixSlots;
+    protected final List<Integer> matrixSlots;
     @Getter
-    private final boolean square;
+    protected final boolean square;
 
     public Workbench(String id, int resultSlot, List<Integer> matrixSlots) {
         this.id = id;
