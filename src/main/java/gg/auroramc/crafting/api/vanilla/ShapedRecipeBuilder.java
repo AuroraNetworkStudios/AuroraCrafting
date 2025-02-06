@@ -1,6 +1,5 @@
 package gg.auroramc.crafting.api.vanilla;
 
-import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;

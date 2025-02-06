@@ -1,15 +1,103 @@
 package gg.auroramc.crafting.api.blueprint;
 
+import gg.auroramc.aurora.api.AuroraAPI;
+import gg.auroramc.aurora.api.item.TypeId;
 import gg.auroramc.crafting.api.ItemPair;
+import gg.auroramc.crafting.api.workbench.Workbench;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-public class SmithingBlueprint extends ShapedBlueprint {
-    public SmithingBlueprint(String id) {
-        super(id);
+import java.util.ArrayList;
+import java.util.List;
+
+public class SmithingBlueprint extends Blueprint {
+    private static final ItemPair air = new ItemPair(TypeId.from(Material.AIR), 0);
+
+    private final boolean[] slots = new boolean[3];
+
+    public SmithingBlueprint(Workbench workbench, String id) {
+        super(workbench, id);
+        this.ingredients.addAll(List.of(air, air, air));
+    }
+
+    public static SmithingBlueprint smithingBlueprint(Workbench workbench, String id) {
+        return new SmithingBlueprint(workbench, id);
+    }
+
+    @Override
+    public Blueprint addIngredient(ItemPair itemPair) {
+        if (ingredients.size() >= 3) {
+            throw new IllegalArgumentException("Smithing recipes can only have 3 ingredients");
+        }
+
+        if (!slots[0]) {
+            slots[0] = true;
+            ingredients.set(0, itemPair);
+        } else if (!slots[1]) {
+            slots[1] = true;
+            ingredients.set(1, itemPair);
+        } else if (!slots[2]) {
+            slots[2] = true;
+            ingredients.set(2, itemPair);
+        }
+
+        return this;
+    }
+
+    @Override
+    public int getTimesCraftable(BlueprintContext context) {
+        int maxCraftable = Integer.MAX_VALUE;
+
+        var matches = true;
+        var items = context.getMatrix();
+
+        for (int i = 0; i < items.length; i++) {
+            var ingredient = ingredients.size() > i ? ingredients.get(i) : new ItemPair(TypeId.from(Material.AIR), 0);
+            var item = items[i];
+            var itemTypeId = item.isEmpty() ? TypeId.from(Material.AIR) : AuroraAPI.getItemManager().resolveId(item);
+            if (!itemTypeId.equals(ingredient.id())) {
+                matches = false;
+                break;
+            } else if (item.getAmount() < ingredient.amount()) {
+                matches = false;
+                break;
+            } else if (!ingredient.id().id().equals("air")) {
+                maxCraftable = Math.min(maxCraftable, Math.max(1, item.getAmount()) / Math.max(1, ingredient.amount()));
+            }
+        }
+
+        if (!matches) return 0;
+
+        return maxCraftable;
+    }
+
+    @Override
+    public ItemStack[] calcRemainingIngredientMatrix(BlueprintContext context, int timesCrafted) {
+        var items = new ItemStack[context.getMatrix().length];
+        var currentMatrix = context.getMatrix();
+
+        for (int i = 0; i < context.getMatrix().length; i++) {
+            var ingredient = ingredients.size() > i ? ingredients.get(i) : new ItemPair(TypeId.from(Material.AIR), 0);
+            var item = currentMatrix[i];
+            if (item.getAmount() <= ingredient.amount() * timesCrafted) {
+                items[i] = null;
+            } else {
+                var newItem = item.clone();
+                newItem.setAmount(item.getAmount() - ingredient.amount() * timesCrafted);
+                items[i] = newItem;
+            }
+        }
+
+        return items;
     }
 
     public ItemPair getTemplate() {
         return ingredients.getFirst();
+    }
+
+    public SmithingBlueprint template(ItemPair itemPair) {
+        ingredients.set(0, itemPair);
+        return this;
     }
 
     public ItemStack getTemplateItem() {
@@ -20,12 +108,22 @@ public class SmithingBlueprint extends ShapedBlueprint {
         return ingredients.get(1);
     }
 
+    public SmithingBlueprint base(ItemPair itemPair) {
+        ingredients.set(1, itemPair);
+        return this;
+    }
+
     public ItemStack getBaseItem() {
         return ingredientItems.get(1);
     }
 
     public ItemPair getAddition() {
         return ingredients.getLast();
+    }
+
+    public SmithingBlueprint addition(ItemPair itemPair) {
+        ingredients.set(2, itemPair);
+        return this;
     }
 
     public ItemStack getAdditionItem() {

@@ -4,6 +4,7 @@ import gg.auroramc.aurora.api.AuroraAPI;
 import gg.auroramc.aurora.api.item.TypeId;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.ItemPair;
+import gg.auroramc.crafting.api.workbench.Workbench;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.block.ShulkerBox;
@@ -25,8 +26,8 @@ public class RecipeWrapperBlueprint extends Blueprint {
 
     private final CraftingRecipe backingRecipe;
 
-    public RecipeWrapperBlueprint(CraftingRecipe recipe) {
-        super(recipe.getKey().toString());
+    public RecipeWrapperBlueprint(Workbench workbench, CraftingRecipe recipe) {
+        super(workbench, recipe.getKey().toString());
         this.backingRecipe = recipe;
         this.result = new ItemPair(AuroraAPI.getItemManager().resolveId(recipe.getResult()), recipe.getResult().getAmount());
         this.resultItem = recipe.getResult();

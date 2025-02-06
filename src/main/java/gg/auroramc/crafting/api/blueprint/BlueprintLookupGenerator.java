@@ -2,10 +2,12 @@ package gg.auroramc.crafting.api.blueprint;
 
 import gg.auroramc.aurora.api.AuroraAPI;
 import gg.auroramc.aurora.api.item.TypeId;
+import gg.auroramc.crafting.api.ItemPair;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 public class BlueprintLookupGenerator {
     /**
@@ -15,13 +17,14 @@ public class BlueprintLookupGenerator {
      * @return the generated key
      */
     public static String toKey(Blueprint blueprint) {
-        if (blueprint instanceof ShapedBlueprint shapedBlueprint) {
-            return toKey(shapedBlueprint);
-        } else if (blueprint instanceof ShapelessBlueprint shapelessBlueprint) {
-            return toKey(shapelessBlueprint);
-        } else {
-            throw new IllegalArgumentException("Unknown blueprint type: " + blueprint.getClass().getSimpleName());
-        }
+        return switch (blueprint) {
+            case ShapedBlueprint shapedBlueprint -> toKey(shapedBlueprint);
+            case ShapelessBlueprint shapelessBlueprint -> toKey(shapelessBlueprint);
+            case CookingBlueprint cookingBlueprint -> toKey(cookingBlueprint);
+            case SmithingBlueprint smithingBlueprint -> toKey(smithingBlueprint);
+            case null, default ->
+                    throw new IllegalArgumentException("Unknown blueprint type: " + blueprint.getClass().getSimpleName());
+        };
     }
 
     /**
@@ -39,6 +42,21 @@ public class BlueprintLookupGenerator {
         }
 
         return key.toString();
+    }
+
+    public static String toKey(SmithingBlueprint blueprint) {
+        var key = new StringBuilder();
+
+        for (var ingredient : blueprint.getIngredients()) {
+            key.append(ingredient.id().toString());
+            key.append(";");
+        }
+
+        return key.toString();
+    }
+
+    public static String toKey(CookingBlueprint cookingBlueprint) {
+        return cookingBlueprint.getIngredients().getFirst().id().toString();
     }
 
     /**
@@ -103,4 +121,42 @@ public class BlueprintLookupGenerator {
 
         return key.toString();
     }
+
+    public static String toShapedKey(ItemPair[] matrix) {
+        var key = new StringBuilder();
+        for (var ingredient : matrix) {
+            key.append(ingredient.id().toString());
+            key.append(";");
+        }
+        return key.toString();
+    }
+
+    public static String toShapedKey(List<ItemPair> ingredients) {
+        var key = new StringBuilder();
+        for (var ingredient : ingredients) {
+            key.append(ingredient.id().toString());
+            key.append(";");
+        }
+        return key.toString();
+    }
+
+    public static String toShapelessKey(ItemPair[] matrix) {
+        var idList = new ArrayList<TypeId>(matrix.length);
+
+        for (var ingredient : matrix) {
+            idList.add(ingredient.id());
+        }
+
+        idList.sort(Comparator.comparing(TypeId::toString));
+
+        var key = new StringBuilder();
+
+        for (var id : idList) {
+            key.append(id.toString());
+            key.append(";");
+        }
+
+        return key.toString();
+    }
+
 }

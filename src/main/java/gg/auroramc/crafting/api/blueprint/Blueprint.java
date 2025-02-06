@@ -27,7 +27,7 @@ public abstract class Blueprint {
     protected ItemPair result;
     protected ItemStack resultItem;
     protected String permission;
-    protected Workbench workbench;
+    protected final Workbench workbench;
     protected DisplayOptions displayOptions;
     protected Map<String, MergeOptions> mergeOptions;
     protected final List<TriConsumer<Player, ItemStack, Integer>> craftActions = new ArrayList<>();
@@ -35,7 +35,8 @@ public abstract class Blueprint {
     protected final List<ItemStack> ingredientItems = new ArrayList<>();
     protected final Map<TypeId, Integer> ingredientCount = new HashMap<>();
 
-    public Blueprint(String id) {
+    public Blueprint(Workbench workbench, String id) {
+        this.workbench = workbench;
         this.id = id;
     }
 
@@ -122,17 +123,6 @@ public abstract class Blueprint {
      */
     public Blueprint permission(String permission) {
         this.permission = permission;
-        return this;
-    }
-
-    /**
-     * Set the workbench which the blueprint can be crafted on
-     *
-     * @param workbench the workbench
-     * @return the blueprint
-     */
-    public Blueprint workbench(Workbench workbench) {
-        this.workbench = workbench;
         return this;
     }
 

@@ -1,6 +1,7 @@
 package gg.auroramc.crafting.api.blueprint;
 
 import gg.auroramc.aurora.api.AuroraAPI;
+import gg.auroramc.crafting.api.workbench.Workbench;
 import lombok.Getter;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.recipe.CraftingBookCategory;
@@ -11,11 +12,15 @@ import java.util.Comparator;
 
 @Getter
 public class ShapelessBlueprint extends Blueprint {
-    protected CraftingBookCategory vanillaCategory = CraftingBookCategory.MISC;
-    protected String vanillaGroup;
+    private CraftingBookCategory vanillaCategory = CraftingBookCategory.MISC;
+    private String vanillaGroup;
 
-    public ShapelessBlueprint(String id) {
-        super(id);
+    public ShapelessBlueprint(Workbench workbench, String id) {
+        super(workbench, id);
+    }
+
+    public static ShapelessBlueprint shapelessBlueprint(Workbench workbench, String id) {
+        return new ShapelessBlueprint(workbench, id);
     }
 
     public ShapelessBlueprint vanillaCategory(CraftingBookCategory category) {
