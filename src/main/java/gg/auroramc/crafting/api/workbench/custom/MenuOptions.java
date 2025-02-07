@@ -25,6 +25,10 @@ public final class MenuOptions implements Cloneable {
 
         ItemConfig getInvalidResult();
 
+        ItemConfig getNextRecipe();
+
+        ItemConfig getPreviousRecipe();
+
         Integer getRows();
 
         String getTitle();
@@ -36,6 +40,8 @@ public final class MenuOptions implements Cloneable {
     private ItemConfig blueprintCompletedItem;
     private ItemConfig blueprintNotCompletedItem;
     private ItemConfig invalidResultItem;
+    private ItemConfig nextRecipeItem;
+    private ItemConfig previousRecipeItem;
     private Integer rows;
     private String title;
 
@@ -57,6 +63,12 @@ public final class MenuOptions implements Cloneable {
         }
         if (this.invalidResultItem == null) {
             this.invalidResultItem = defaultSupplier.getInvalidResult();
+        }
+        if (this.nextRecipeItem == null) {
+            this.nextRecipeItem = defaultSupplier.getNextRecipe();
+        }
+        if (this.previousRecipeItem == null) {
+            this.previousRecipeItem = defaultSupplier.getPreviousRecipe();
         }
         if (this.rows == null) {
             this.rows = defaultSupplier.getRows();
@@ -87,6 +99,12 @@ public final class MenuOptions implements Cloneable {
         }
         if (invalidResultItem == null) {
             throw new IllegalArgumentException("Invalid result item cannot be null");
+        }
+        if (nextRecipeItem == null) {
+            throw new IllegalArgumentException("Next recipe item cannot be null");
+        }
+        if (previousRecipeItem == null) {
+            throw new IllegalArgumentException("Previous recipe item cannot be null");
         }
         if (rows == null || rows < 1 || rows > 6) {
             throw new IllegalArgumentException("Rows must be between 1 and 6");

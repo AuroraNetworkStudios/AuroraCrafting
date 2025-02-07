@@ -48,7 +48,10 @@ public class CustomWorkbench extends Workbench {
     }
 
     public void validate() {
-        if (matrixSlots.isEmpty()) {
+        if (id == null || id.isEmpty()) {
+            throw new IllegalStateException("Workbench id cannot be null or empty");
+        }
+        if (matrixSlots == null || matrixSlots.isEmpty()) {
             throw new IllegalStateException("Matrix slots cannot be empty");
         }
         if (matrixSlots.contains(resultSlot)) {
@@ -62,5 +65,46 @@ public class CustomWorkbench extends Workbench {
 
     public void setMenuOptions(MenuOptions menuOptions) {
         this.menuOptions = menuOptions.clone().setDefaults().validate();
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private String id;
+        private int resultSlot;
+        private List<Integer> matrixSlots;
+        private List<Integer> quickCraftSlots;
+        private MenuOptions menuOptions;
+
+        public Builder id(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder resultSlot(int resultSlot) {
+            this.resultSlot = resultSlot;
+            return this;
+        }
+
+        public Builder matrixSlots(List<Integer> matrixSlots) {
+            this.matrixSlots = matrixSlots;
+            return this;
+        }
+
+        public Builder quickCraftSlots(List<Integer> quickCraftSlots) {
+            this.quickCraftSlots = quickCraftSlots;
+            return this;
+        }
+
+        public Builder menuOptions(MenuOptions menuOptions) {
+            this.menuOptions = menuOptions;
+            return this;
+        }
+
+        public CustomWorkbench build() {
+            return new CustomWorkbench(id, resultSlot, matrixSlots, quickCraftSlots, menuOptions);
+        }
     }
 }
