@@ -4,7 +4,7 @@ import java.util.List;
 
 public class Furnace extends Workbench {
     public Furnace() {
-        super("vanilla-furnace", 1, List.of(0));
+        super("vanilla-furnace", 0, List.of(1));
         square = false;
     }
 }

@@ -5,10 +5,16 @@
 
 package gg.auroramc.crafting.util;
 
+import gg.auroramc.aurora.api.AuroraAPI;
+import gg.auroramc.aurora.api.item.TypeId;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -48,5 +54,18 @@ public final class InventoryUtils {
             }
         }
         return remainingSpace;
+    }
+
+
+    public static Map<TypeId, Integer> buildItemCounts(Player player) {
+        Map<TypeId, Integer> itemCount = new HashMap<>(player.getInventory().getSize());
+
+        for (var item : player.getInventory().getContents()) {
+            if (item == null || item.getType() == Material.AIR || item.getAmount() == 0) continue;
+            var id = AuroraAPI.getItemManager().resolveId(item);
+            itemCount.merge(id, item.getAmount(), Integer::sum);
+        }
+
+        return itemCount;
     }
 }
