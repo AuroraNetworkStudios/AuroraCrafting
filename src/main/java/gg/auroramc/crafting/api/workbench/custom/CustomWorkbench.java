@@ -19,14 +19,14 @@ public class CustomWorkbench extends Workbench {
     private final List<Integer> quickCraftSlots;
     private MenuOptions menuOptions;
 
-    public CustomWorkbench(String name, int type, List<Integer> slots, List<Integer> quickCraftSlots) {
-        this(name, type, slots, quickCraftSlots, MenuOptions.builder().build());
+    public CustomWorkbench(String id, int resultSlot, List<Integer> matrixSlots, List<Integer> quickCraftSlots) {
+        this(id, resultSlot, matrixSlots, quickCraftSlots, MenuOptions.builder().build());
     }
 
-    public CustomWorkbench(String name, int type, List<Integer> slots, List<Integer> quickCraftSlots, MenuOptions menuOptions) {
-        super(name, type, slots);
+    public CustomWorkbench(String id, int resultSlot, List<Integer> matrixSlots, List<Integer> quickCraftSlots, MenuOptions menuOptions) {
+        super(id, resultSlot, matrixSlots);
         this.quickCraftSlots = quickCraftSlots == null ? List.of() : quickCraftSlots;
-        this.square = Square.isSquareCraftingArea(slots);
+        this.square = Square.isSquareCraftingArea(matrixSlots);
         this.menuOptions = menuOptions.clone().setDefaults();
     }
 

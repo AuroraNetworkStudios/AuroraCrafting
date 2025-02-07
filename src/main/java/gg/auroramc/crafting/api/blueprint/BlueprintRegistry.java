@@ -37,7 +37,7 @@ public class BlueprintRegistry {
     }
 
     private static void addWorkbenchBlueprints(Map<String, Blueprint> blueprints, Workbench workbench) {
-        for (Blueprint blueprint : workbench.getBlueprints()) {
+        for (var blueprint : workbench.getBlueprints()) {
             blueprints.put(blueprint.getId(), blueprint);
         }
     }

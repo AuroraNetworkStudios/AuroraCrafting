@@ -4,8 +4,12 @@ import gg.auroramc.aurora.api.AuroraAPI;
 import gg.auroramc.aurora.api.AuroraLogger;
 import gg.auroramc.aurora.api.command.CommandDispatcher;
 import gg.auroramc.aurora.api.message.Chat;
+import gg.auroramc.crafting.api.AuroraCraftingPlugin;
 import gg.auroramc.crafting.api.RecipeManager;
+import gg.auroramc.crafting.api.blueprint.BlueprintRegistry;
+import gg.auroramc.crafting.api.book.Book;
 import gg.auroramc.crafting.api.event.PlayerCraftItemEvent;
+import gg.auroramc.crafting.api.workbench.WorkbenchRegistry;
 import gg.auroramc.crafting.command.CommandManager;
 import gg.auroramc.crafting.config.ConfigManager;
 import gg.auroramc.crafting.hooks.HookManager;
@@ -21,9 +25,8 @@ import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
 
-public class AuroraCrafting extends JavaPlugin {
+public class AuroraCrafting extends AuroraCraftingPlugin {
     @Getter
     private ConfigManager configManager;
 
@@ -42,6 +45,11 @@ public class AuroraCrafting extends JavaPlugin {
     @Override
     public void onLoad() {
         instance = this;
+
+        AuroraCraftingPlugin.instance = this;
+        book = new Book();
+        workbenchRegistry = new WorkbenchRegistry();
+
         configManager = new ConfigManager(this);
         configManager.reload();
         l = AuroraAPI.createLogger("AuroraCrafting", () -> configManager.getConfig().getDebug());
@@ -63,6 +71,13 @@ public class AuroraCrafting extends JavaPlugin {
         Bukkit.getGlobalRegionScheduler().runDelayed(this, (t) -> {
             recipeManager.reload();
             RecipeRegistrar.reloadRecipes(configManager);
+            // TODO: load everything from configs
+            // TODO: fire RegistryLoadEvent
+
+            // Freeze the registry to prevent further modifications
+            workbenchRegistry.freeze();
+            // Create blueprint registry
+            blueprintRegistry = BlueprintRegistry.createFrom(workbenchRegistry);
         }, 2);
 
         HookManager.enableHooks(this);

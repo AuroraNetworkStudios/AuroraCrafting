@@ -25,7 +25,7 @@ public class SmithingBlueprint extends Blueprint {
     }
 
     @Override
-    public Blueprint addIngredient(ItemPair itemPair) {
+    public SmithingBlueprint addIngredient(ItemPair itemPair) {
         if(slots[0] && slots[1] && slots[2]) {
             throw new IllegalArgumentException("Smithing recipes can only have 3 ingredients");
         }
