@@ -1,9 +1,5 @@
-package gg.auroramc.crafting.adapter;
+package gg.auroramc.crafting.api.blueprint;
 
-import gg.auroramc.crafting.api.blueprint.CookingBlueprint;
-import gg.auroramc.crafting.api.blueprint.ShapedBlueprint;
-import gg.auroramc.crafting.api.blueprint.ShapelessBlueprint;
-import gg.auroramc.crafting.api.blueprint.SmithingBlueprint;
 import gg.auroramc.crafting.api.vanilla.*;
 import org.bukkit.inventory.CookingRecipe;
 import org.bukkit.inventory.ShapedRecipe;
