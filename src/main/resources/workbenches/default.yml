@@ -14,3 +14,22 @@ custom-items:
     hide-tooltip: true
     material: red_stained_glass_pane
     slots: [45, 46, 47, 48, 49, 50, 51, 52, 53]
+
+filler:
+  material: black_stained_glass_pane
+  name: ""
+  hide-tooltip: true
+invalid-result-item:
+  material: BARRIER
+  name: "&c&lInvalid result"
+  hide-tooltip: true
+
+no-permission-quick-craft-item:
+  material: BARRIER
+  name: "&c&lNo permission to quick craft"
+  hide-tooltip: true
+
+empty-quick-craft-item:
+  material: black_stained_glass_pane
+  name: "filler but its quick crafts item"
+  hide-tooltip: true
