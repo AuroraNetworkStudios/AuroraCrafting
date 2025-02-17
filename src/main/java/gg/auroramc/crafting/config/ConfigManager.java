@@ -173,6 +173,22 @@ public class ConfigManager {
             workbenchConfig.setNoPermissionQuickCraftItem(workbenchDefaultConfig.getNoPermissionQuickCraftItem());
         }
 
+        if (workbenchConfig.getBlueprintCompletedItem() == null) {
+            workbenchConfig.setBlueprintCompletedItem(workbenchDefaultConfig.getBlueprintCompletedItem());
+        }
+
+        if (workbenchConfig.getBlueprintNotCompletedItem() == null) {
+            workbenchConfig.setBlueprintNotCompletedItem(workbenchDefaultConfig.getBlueprintNotCompletedItem());
+        }
+
+        if (workbenchConfig.getNextRecipeItem() == null) {
+            workbenchConfig.setNextRecipeItem(workbenchDefaultConfig.getNextRecipeItem());
+        }
+
+        if (workbenchConfig.getPreviousRecipeItem() == null) {
+            workbenchConfig.setPreviousRecipeItem(workbenchDefaultConfig.getPreviousRecipeItem());
+        }
+
         return workbenchConfig;
     }
 

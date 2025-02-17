@@ -22,11 +22,16 @@ public class WorkbenchConfig extends AuroraConfig {
     private String title;
     private Integer rows;
     private Integer resultSlot = 25;
-    private List<Integer> matrixSlots = List.of(10, 11, 12, 19, 20, 21, 28, 29, 30);
-    private Set<Integer> quickCraftingSlots = Set.of(16, 25, 34);
+    private List<Integer> matrixSlots;
+    private List<Integer> completionIndicatorSlots;
+    private List<Integer> quickCraftingSlots;
     private ItemConfig invalidResultItem;
     private ItemConfig emptyQuickCraftItem;
     private ItemConfig noPermissionQuickCraftItem;
+    private ItemConfig blueprintCompletedItem;
+    private ItemConfig blueprintNotCompletedItem;
+    private ItemConfig nextRecipeItem;
+    private ItemConfig previousRecipeItem;
     private String commandCompletion;
 
     public WorkbenchConfig(File file, String id) {

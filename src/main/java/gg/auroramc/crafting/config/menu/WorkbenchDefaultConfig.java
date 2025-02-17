@@ -6,7 +6,6 @@ import gg.auroramc.crafting.AuroraCrafting;
 import lombok.Getter;
 
 import java.io.File;
-import java.util.Map;
 
 @Getter
 public class WorkbenchDefaultConfig extends AuroraConfig {
@@ -16,6 +15,10 @@ public class WorkbenchDefaultConfig extends AuroraConfig {
     private ItemConfig invalidResultItem;
     private ItemConfig emptyQuickCraftItem;
     private ItemConfig noPermissionQuickCraftItem;
+    private ItemConfig blueprintCompletedItem;
+    private ItemConfig blueprintNotCompletedItem;
+    private ItemConfig nextRecipeItem;
+    private ItemConfig previousRecipeItem;
 
     public WorkbenchDefaultConfig(AuroraCrafting plugin) {
         super(getFile(plugin));

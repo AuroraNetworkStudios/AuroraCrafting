@@ -17,15 +17,17 @@ import java.util.List;
 public class CustomWorkbench extends Workbench {
     private final boolean square;
     private final List<Integer> quickCraftSlots;
+    private final List<Integer> completionIndicatorSlots;
     private MenuOptions menuOptions;
 
-    public CustomWorkbench(String id, int resultSlot, List<Integer> matrixSlots, List<Integer> quickCraftSlots) {
-        this(id, resultSlot, matrixSlots, quickCraftSlots, MenuOptions.builder().build());
+    public CustomWorkbench(String id, int resultSlot, List<Integer> matrixSlots, List<Integer> quickCraftSlots, List<Integer> completionIndicatorSlots) {
+        this(id, resultSlot, matrixSlots, quickCraftSlots, completionIndicatorSlots, MenuOptions.builder().build());
     }
 
-    public CustomWorkbench(String id, int resultSlot, List<Integer> matrixSlots, List<Integer> quickCraftSlots, MenuOptions menuOptions) {
+    public CustomWorkbench(String id, int resultSlot, List<Integer> matrixSlots, List<Integer> quickCraftSlots, List<Integer> completionIndicatorSlots, MenuOptions menuOptions) {
         super(id, resultSlot, matrixSlots);
         this.quickCraftSlots = quickCraftSlots == null ? List.of() : quickCraftSlots;
+        this.completionIndicatorSlots = completionIndicatorSlots == null ? List.of() : completionIndicatorSlots;
         this.square = Square.isSquareCraftingArea(matrixSlots);
         this.menuOptions = menuOptions.clone().setDefaults();
     }
@@ -75,6 +77,7 @@ public class CustomWorkbench extends Workbench {
         private String id;
         private int resultSlot;
         private List<Integer> matrixSlots;
+        private List<Integer> completionIndicatorSlots;
         private List<Integer> quickCraftSlots;
         private MenuOptions menuOptions;
 
@@ -98,13 +101,18 @@ public class CustomWorkbench extends Workbench {
             return this;
         }
 
+        public Builder completionIndicatorSlots(List<Integer> completionIndicatorSlots) {
+            this.completionIndicatorSlots = completionIndicatorSlots;
+            return this;
+        }
+
         public Builder menuOptions(MenuOptions menuOptions) {
             this.menuOptions = menuOptions;
             return this;
         }
 
         public CustomWorkbench build() {
-            return new CustomWorkbench(id, resultSlot, matrixSlots, quickCraftSlots, menuOptions);
+            return new CustomWorkbench(id, resultSlot, matrixSlots, quickCraftSlots, completionIndicatorSlots, menuOptions);
         }
     }
 }
