@@ -3,10 +3,10 @@ package gg.auroramc.crafting.api;
 import gg.auroramc.aurora.api.AuroraAPI;
 import gg.auroramc.aurora.api.util.ItemUtils;
 import gg.auroramc.crafting.AuroraCrafting;
+import gg.auroramc.crafting.util.FireworkRecipeMaker;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.block.ShulkerBox;
-import org.bukkit.entity.Shulker;
 import org.bukkit.inventory.CraftingRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
@@ -14,6 +14,7 @@ import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -60,6 +61,10 @@ public class VanillaRecipeWrapper extends AuroraRecipe {
     public ItemStack getResultItem() {
         if (recipe.getKey().getNamespace().equals("minecraft") && recipe.getKey().getKey().equals("armor_dye")) {
             return getDyeResult();
+        } else if (recipe.getKey().getNamespace().equals("minecraft") && recipe.getKey().getKey().equals("firework_star")) {
+            return this.getFireworkStarResult();
+        } else if (recipe.getKey().getNamespace().equals("minecraft") && recipe.getKey().getKey().equals("firework_rocket")) {
+            return this.getFireworkRocketResult();
         } else if (recipe.getResult().getType().name().endsWith("SHULKER_BOX")) {
             return getShulkerResult();
         } else if (recipe.getResult().getType().name().endsWith("BUNDLE")) {
@@ -79,6 +84,17 @@ public class VanillaRecipeWrapper extends AuroraRecipe {
             return ItemUtils.createStacksFromAmount(getBundleResult(), timesCrafted);
         }
         return super.getTotalResult(timesCrafted);
+    }
+
+    private ItemStack getFireworkStarResult() {
+        ItemStack[] items = Arrays.stream(this.matrix).filter(v -> v != null && v.getType() != Material.AIR).toArray(ItemStack[]::new);
+        FireworkRecipeMaker maker = new FireworkRecipeMaker();
+        return maker.craftFireStar(items);
+    }
+    private ItemStack getFireworkRocketResult() {
+        ItemStack[] items = Arrays.stream(this.matrix).filter(v -> v != null && v.getType() != Material.AIR).toArray(ItemStack[]::new);
+        FireworkRecipeMaker maker = new FireworkRecipeMaker();
+        return maker.craftFireworkRocket(items);
     }
 
     private ItemStack getBundleResult() {
