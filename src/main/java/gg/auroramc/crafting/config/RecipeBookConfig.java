@@ -18,6 +18,7 @@ public class RecipeBookConfig extends AuroraConfig {
         private String id;
         private List<String> files = new ArrayList<>();
         private List<String> recipes = new ArrayList<>();
+        private List<RecipeCategory> categories = new ArrayList<>();
         private Menu menu;
     }
 

@@ -15,4 +15,23 @@ categories:
         material: diamond
         name: "&6Example"
         slot: 10
+  - id: example2
+    categories:
+      - id: subcatid
+        files:
+          - example
+        recipes:
+          - amber
+        menu:
+          title: "Example recipes"
+          item:
+            material: diamond
+            name: "&6Example"
+            slot: 10
+    menu:
+      title: "Example recipes"
+      item:
+        material: diamond
+        name: "&6Example"
+        slot: 10
 
