@@ -2,6 +2,7 @@ package gg.auroramc.crafting.config;
 
 import gg.auroramc.aurora.api.config.AuroraConfig;
 import gg.auroramc.aurora.api.config.decorators.IgnoreField;
+import gg.auroramc.aurora.api.config.premade.ItemConfig;
 import gg.auroramc.crafting.AuroraCrafting;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,6 +10,7 @@ import lombok.Setter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 public class SmithingRecipesConfig extends AuroraConfig {
@@ -24,10 +26,26 @@ public class SmithingRecipesConfig extends AuroraConfig {
         private String template;
         private String base;
         private String addition;
+        private String permission;
+        private DisplayOptions displayOptions;
+        private Map<Integer, MergeOptions> mergeOptions;
+        private List<String> onCraft;
 
         @Setter
         @IgnoreField
         private String sourcePath;
+    }
+
+    @Getter
+    public static final class DisplayOptions {
+        private Map<String, ItemConfig> items;
+        private List<String> lockedLore = new ArrayList<>();
+    }
+
+    @Getter
+    public static final class MergeOptions {
+        private Boolean enchants = false;
+        private Boolean trim = false;
     }
 
     public SmithingRecipesConfig(File file) {

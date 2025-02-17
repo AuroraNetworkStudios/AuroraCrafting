@@ -13,6 +13,7 @@ import lombok.*;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ArmorMeta;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +30,8 @@ public abstract class Blueprint {
     protected String permission;
     protected final Workbench workbench;
     protected DisplayOptions displayOptions;
-    protected Map<String, MergeOptions> mergeOptions;
+    protected Map<Integer, MergeOptions> mergeOptions;
+    protected Integer resultIngredientIndex = null;
     protected final List<TriConsumer<Player, ItemStack, Integer>> craftActions = new ArrayList<>();
     protected final List<ItemPair> ingredients = new ArrayList<>();
     protected final List<ItemStack> ingredientItems = new ArrayList<>();
@@ -52,7 +54,7 @@ public abstract class Blueprint {
             return resultItem.clone();
         }
 
-        var result = resultItem.clone();
+        var result = resultIngredientIndex != null ? context.getMatrix()[resultIngredientIndex].clone() : resultItem.clone();
 
         for (int i = 0; i < context.getMatrix().length; i++) {
             var ingredient = context.getMatrix()[i];
@@ -80,6 +82,14 @@ public abstract class Blueprint {
             }
         }
 
+        if (options.trim) {
+            if (ingredient.getItemMeta() instanceof ArmorMeta armorMeta && armorMeta.hasTrim()) {
+                if (result.getItemMeta() instanceof ArmorMeta resultArmorMeta) {
+                    resultArmorMeta.setTrim(armorMeta.getTrim());
+                }
+            }
+        }
+
         return result;
     }
 
@@ -97,6 +107,26 @@ public abstract class Blueprint {
         }
         this.result = result;
         this.resultItem = itemStack;
+        return this;
+    }
+
+    /**
+     * Set the result of the blueprint based on an already
+     * registered ingredient
+     *
+     * @param index index of the ingredient to use as the result
+     * @return the blueprint
+     */
+    public Blueprint result(int index) {
+        if (index < 0 || index >= ingredients.size()) {
+            throw new IllegalArgumentException("Invalid ingredient index: " + index + " for blueprint: " + id + " with " + ingredients.size() + " ingredients");
+        }
+        if (ingredientItems.get(index).isEmpty()) {
+            throw new IllegalArgumentException("Invalid ingredient index: " + index + " for blueprint: " + id + ". Ingredient is empty/air.");
+        }
+        this.result = ingredients.get(index);
+        this.resultItem = ingredientItems.get(index).clone();
+        this.resultIngredientIndex = index;
         return this;
     }
 
@@ -146,7 +176,7 @@ public abstract class Blueprint {
         if (this.mergeOptions == null) {
             this.mergeOptions = new HashMap<>();
         }
-        this.mergeOptions.put(String.valueOf(index), mergeOptions);
+        this.mergeOptions.put(index, mergeOptions);
         return this;
     }
 
@@ -169,6 +199,17 @@ public abstract class Blueprint {
     }
 
     /**
+     * Add an ingredient to the blueprint
+     *
+     * @param ingredients the ingredient pairs
+     * @return the blueprint
+     */
+    public Blueprint ingredients(List<ItemPair> ingredients) {
+        ingredients.forEach(this::addIngredient);
+        return this;
+    }
+
+    /**
      * Register a craft action for the blueprint. This will be called
      * when the blueprint is crafted.
      *
@@ -176,6 +217,7 @@ public abstract class Blueprint {
      * @return the blueprint
      */
     public Blueprint onCraft(TriConsumer<Player, ItemStack, Integer> handler) {
+        if (handler == null) return this;
         this.craftActions.add(handler);
         return this;
     }
@@ -329,5 +371,6 @@ public abstract class Blueprint {
     @Builder
     public static final class MergeOptions {
         private boolean enchants;
+        private boolean trim;
     }
 }

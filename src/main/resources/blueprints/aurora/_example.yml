@@ -47,9 +47,7 @@ recipes:
       # Stuff from the second 2nd will be merged into the result item
       # Can be a range like 2-4 or "all" for all ingredients
       2:
-        # Can be override or merge
-        # Usually override is used in smithing table and merge in anvil
-        enchants: "merge"
+        enchants: true
         # Transfers the trim state from the ingredient to the result item (if applicable)
         trim: true
         durability:

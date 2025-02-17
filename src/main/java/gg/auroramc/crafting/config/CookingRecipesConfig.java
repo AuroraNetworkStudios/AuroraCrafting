@@ -2,6 +2,7 @@ package gg.auroramc.crafting.config;
 
 import gg.auroramc.aurora.api.config.AuroraConfig;
 import gg.auroramc.aurora.api.config.decorators.IgnoreField;
+import gg.auroramc.aurora.api.config.premade.ItemConfig;
 import gg.auroramc.crafting.AuroraCrafting;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,6 +10,7 @@ import lombok.Setter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 public class CookingRecipesConfig extends AuroraConfig {
@@ -26,6 +28,7 @@ public class CookingRecipesConfig extends AuroraConfig {
         private Integer cookingTime = 200;
         private String category = "MISC";
         private String group;
+        private DisplayOptions displayOptions;
 
         @Setter
         @IgnoreField
@@ -38,6 +41,12 @@ public class CookingRecipesConfig extends AuroraConfig {
         var absPath = file.getAbsolutePath();
         var index = absPath.indexOf(target);
         this.sourcePath = absPath.substring(index + target.length()).replace(".yml", "");
+    }
+
+    @Getter
+    public static final class DisplayOptions {
+        private Map<String, ItemConfig> items;
+        private List<String> lockedLore = new ArrayList<>();
     }
 
     @Override

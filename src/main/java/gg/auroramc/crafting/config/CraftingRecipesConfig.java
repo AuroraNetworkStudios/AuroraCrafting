@@ -28,6 +28,7 @@ public class CraftingRecipesConfig extends AuroraConfig {
         private String result;
         private VanillaOptions vanillaOptions;
         private DisplayOptions displayOptions;
+        private Map<Integer, MergeOptions> mergeOptions;
         private List<String> ingredients;
         private List<String> onCraft;
         // This is legacy for backwards compatibility
@@ -43,6 +44,12 @@ public class CraftingRecipesConfig extends AuroraConfig {
         private String category;
         private String group;
         private String choiceType;
+    }
+
+    @Getter
+    public static final class MergeOptions {
+        private Boolean enchants = false;
+        private Boolean trim = false;
     }
 
     @Getter
