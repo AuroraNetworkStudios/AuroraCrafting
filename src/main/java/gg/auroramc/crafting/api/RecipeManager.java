@@ -3,13 +3,9 @@ package gg.auroramc.crafting.api;
 import gg.auroramc.aurora.api.AuroraAPI;
 import gg.auroramc.aurora.api.item.TypeId;
 import gg.auroramc.crafting.AuroraCrafting;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.BlastingRecipe;
-import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.SmithingRecipe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +31,7 @@ public class RecipeManager {
 
         var recipes = new HashMap<String, List<AuroraRecipe>>();
 
-        for (var recipeFile : plugin.getConfigManager().getRecipes().values()) {
+        for (var recipeFile : plugin.getConfigManager().getCustomRecipes()) {
             for (var recipeConfig : recipeFile.getRecipes()) {
                 var recipe = RecipeFactory.createRecipe(
                         recipeConfig.getId(),
@@ -50,8 +46,8 @@ public class RecipeManager {
                     recipe.addIngredient(getItemPair(ingredient, recipeConfig.getId(), Material.BARRIER));
                 }
 
-                registerRecipe(recipe, recipeConfig.getSourceFile());
-                recipes.computeIfAbsent(recipeConfig.getSourceFile(), k -> new ArrayList<>()).add(recipe);
+                registerRecipe(recipe, recipeConfig.getSourcePath());
+                recipes.computeIfAbsent(recipeConfig.getSourcePath(), k -> new ArrayList<>()).add(recipe);
             }
         }
 
@@ -64,12 +60,17 @@ public class RecipeManager {
             var list = recipeCategoryLookup.computeIfAbsent(category.getId(), k -> new ArrayList<>());
 
             for (var fileName : category.getFiles()) {
-                var recipeList = recipes.get(fileName);
-                if (recipeList != null) {
-                    for (var recipe : recipeList) {
-                        recipe.setCategory(category);
-                        list.add(recipe);
+                for (var entry : recipes.entrySet()) {
+                    if (entry.getKey().endsWith(fileName)) {
+                        var recipeList = entry.getValue();
+                        if (recipeList != null) {
+                            for (var recipe : recipeList) {
+                                recipe.setCategory(category);
+                                list.add(recipe);
+                            }
+                        }
                     }
+
                 }
             }
 

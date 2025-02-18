@@ -9,7 +9,7 @@ recipes:
     permission: "craft.emerald"
     # Result item of the recipe
     # (can reference the ingredient item from the crafting inventory by using ingredient:2 for the 2nd ingredient)
-    result: "minecraft:diamond/32"
+    result: "minecraft:emerald/32"
     # Ingredients required to craft the recipe
     ingredients:
       - ""
@@ -31,7 +31,7 @@ recipes:
       category: "equipment"
       group: "vanilla grouping stuff"
       # item-type for dynamic choice or exact for items that doesn't change
-      choice-type: "item-type"
+      choice-type: "item_type"
     # Stuff to customize looks in various menus
     display-options:
       # context based menu item definitions
@@ -47,9 +47,7 @@ recipes:
       # Stuff from the second 2nd will be merged into the result item
       # Can be a range like 2-4 or "all" for all ingredients
       2:
-        # Can be override or merge
-        # Usually override is used in smithing table and merge in anvil
-        enchants: "merge"
+        enchants: true
         # Transfers the trim state from the ingredient to the result item (if applicable)
         trim: true
         durability:

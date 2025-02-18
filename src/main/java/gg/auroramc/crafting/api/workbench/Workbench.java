@@ -5,6 +5,9 @@ import gg.auroramc.crafting.api.blueprint.BlueprintContext;
 import gg.auroramc.crafting.api.blueprint.BlueprintLookupGenerator;
 import gg.auroramc.crafting.api.blueprint.BlueprintType;
 import lombok.Getter;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -32,6 +35,9 @@ public abstract class Workbench {
 
     public void addBlueprint(BlueprintType type, Blueprint blueprint) {
         if (frozen) throw new IllegalStateException("Cannot register blueprint after freezing");
+        if (blueprints.containsKey(blueprint.getId())) {
+            throw new IllegalArgumentException("Blueprint with ID: " + blueprint.getId() + " already exists");
+        }
         blueprints.put(blueprint.getId(), blueprint);
         categorizedBlueprints.computeIfAbsent(type, t -> new HashMap<>()).put(blueprint.getId(), blueprint);
         matrixLookup.computeIfAbsent(type, t -> new HashMap<>()).put(BlueprintLookupGenerator.toKey(blueprint), blueprint);
@@ -41,21 +47,45 @@ public abstract class Workbench {
         return blueprints.values();
     }
 
+    public Collection<Blueprint> getBlueprints(BlueprintType... type) {
+        if (type.length == 0) return getBlueprints();
+        var result = new ArrayList<Blueprint>();
+        for (var t : type) {
+            var lookup = categorizedBlueprints.get(t);
+            if (lookup != null) result.addAll(lookup.values());
+        }
+        return result;
+    }
+
     public Blueprint getBlueprint(String id) {
         return blueprints.get(id);
     }
 
-    public @Nullable Blueprint getBlueprint(BlueprintType type, BlueprintContext context) {
-        var lookup = matrixLookup.get(type);
-        if (lookup == null) return null;
+    public @Nullable Blueprint lookupBlueprint(BlueprintContext context, BlueprintType... types) {
+        for (var type : types) {
+            var lookup = matrixLookup.get(type);
+            if (lookup == null) continue;
 
-        if (type == BlueprintType.SHAPELESS) {
-            var shapelessKey = BlueprintLookupGenerator.toShapelessKey(context.getIdMatrix());
-            return lookup.get(shapelessKey);
-        } else {
-            var shapedKey = BlueprintLookupGenerator.toShapedKey(context.getIdMatrix());
-            return lookup.get(shapedKey);
+            if (type == BlueprintType.SHAPELESS) {
+                var shapelessKey = BlueprintLookupGenerator.toShapelessKey(context.getIdMatrix());
+                var res = lookup.get(shapelessKey);
+                if (res != null) return res;
+            } else {
+                var shapedKey = BlueprintLookupGenerator.toShapedKey(context.getIdMatrix());
+                var res = lookup.get(shapedKey);
+                if (res != null) return res;
+            }
         }
+        return null;
+    }
+
+    public BlueprintContext createContext(Player player, Inventory inventory) {
+        var matrix = new ItemStack[matrixSlots.size()];
+        for (int i = 0; i < matrixSlots.size(); i++) {
+            var item = inventory.getItem(matrixSlots.get(i));
+            matrix[i] = item == null ? ItemStack.empty() : item;
+        }
+        return new BlueprintContext(player, matrix);
     }
 
     public void freeze() {

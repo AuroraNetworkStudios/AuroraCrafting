@@ -1,6 +1,6 @@
 package gg.auroramc.crafting.api.vanilla;
 
-import gg.auroramc.crafting.api.blueprint.CraftingBlueprint;
+import gg.auroramc.crafting.api.blueprint.ChoiceType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.recipe.CraftingBookCategory;
@@ -15,11 +15,11 @@ public class ShapedRecipeBuilder extends CraftingRecipeBuilder<ShapedRecipe, Sha
     private final String[] shape = new String[]{"012", "345", "678"};
     private final Map<Character, ItemStack> ingredients = new HashMap<>();
 
-    public ShapedRecipeBuilder(String id, CraftingBlueprint.ChoiceType choiceType) {
+    public ShapedRecipeBuilder(String id, ChoiceType choiceType) {
         super(id, choiceType);
     }
 
-    public static ShapedRecipeBuilder shapedRecipe(String id, CraftingBlueprint.ChoiceType choiceType) {
+    public static ShapedRecipeBuilder shapedRecipe(String id, ChoiceType choiceType) {
         return new ShapedRecipeBuilder(id, choiceType);
     }
 

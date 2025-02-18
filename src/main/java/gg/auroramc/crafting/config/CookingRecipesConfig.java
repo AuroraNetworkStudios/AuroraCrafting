@@ -2,18 +2,21 @@ package gg.auroramc.crafting.config;
 
 import gg.auroramc.aurora.api.config.AuroraConfig;
 import gg.auroramc.aurora.api.config.decorators.IgnoreField;
+import gg.auroramc.aurora.api.config.premade.ItemConfig;
 import gg.auroramc.crafting.AuroraCrafting;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 public class CookingRecipesConfig extends AuroraConfig {
     @IgnoreField
-    private String fileName;
+    private String sourcePath;
 
     private List<RecipeConfig> recipes = new ArrayList<>();
 
@@ -26,21 +29,31 @@ public class CookingRecipesConfig extends AuroraConfig {
         private Integer cookingTime = 200;
         private String category = "MISC";
         private String group;
+        private DisplayOptions displayOptions = new DisplayOptions();
 
         @Setter
         @IgnoreField
-        private String sourceFile;
+        private String sourcePath;
     }
 
     public CookingRecipesConfig(File file) {
         super(file);
-        this.fileName = file.getName().replace(".yml", "");
+        var target = "blueprints" + File.separator;
+        var absPath = file.getAbsolutePath();
+        var index = absPath.indexOf(target);
+        this.sourcePath = absPath.substring(index + target.length()).replace(".yml", "");
+    }
+
+    @Getter
+    public static final class DisplayOptions {
+        private Map<String, ItemConfig> items = new HashMap<>();
+        private List<String> lockedLore = new ArrayList<>();
     }
 
     @Override
     public void load() {
         super.load();
-        recipes.forEach(recipe -> recipe.setSourceFile(fileName));
+        recipes.forEach(recipe -> recipe.setSourcePath(sourcePath));
 
         var it = recipes.iterator();
 
@@ -49,13 +62,13 @@ public class CookingRecipesConfig extends AuroraConfig {
 
             if (recipe.id == null) {
                 it.remove();
-                AuroraCrafting.logger().severe("Cooking recipe in " + fileName + " has no id, removing...");
+                AuroraCrafting.logger().severe("Cooking recipe in " + sourcePath + " has no id, removing...");
             } else if (recipe.result == null) {
                 it.remove();
-                AuroraCrafting.logger().severe("Cooking recipe in " + fileName + " with id " + recipe.id + " has no result, removing...");
+                AuroraCrafting.logger().severe("Cooking recipe in " + sourcePath + " with id " + recipe.id + " has no result, removing...");
             } else if (recipe.input == null) {
                 it.remove();
-                AuroraCrafting.logger().severe("Cooking recipe in " + fileName + " with id " + recipe.id + " has no input, removing...");
+                AuroraCrafting.logger().severe("Cooking recipe in " + sourcePath + " with id " + recipe.id + " has no input, removing...");
             }
         }
     }

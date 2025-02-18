@@ -1,7 +1,7 @@
 package gg.auroramc.crafting.api.vanilla;
 
 
-import gg.auroramc.crafting.api.blueprint.CraftingBlueprint;
+import gg.auroramc.crafting.api.blueprint.ChoiceType;
 import lombok.Getter;
 import org.bukkit.inventory.CraftingRecipe;
 import org.bukkit.inventory.ItemStack;
@@ -17,7 +17,7 @@ public abstract class CraftingRecipeBuilder<T extends CraftingRecipe, R extends 
     protected String group = null;
     protected final Function<ItemStack, RecipeChoice> choiceSelector;
 
-    public CraftingRecipeBuilder(String id, CraftingBlueprint.ChoiceType choiceType) {
+    public CraftingRecipeBuilder(String id, ChoiceType choiceType) {
         super(id);
 
         switch (choiceType) {

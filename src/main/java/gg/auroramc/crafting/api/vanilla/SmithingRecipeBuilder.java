@@ -1,6 +1,6 @@
 package gg.auroramc.crafting.api.vanilla;
 
-import org.bukkit.NamespacedKey;
+import gg.auroramc.crafting.api.blueprint.ChoiceType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.SmithingTransformRecipe;
@@ -11,13 +11,20 @@ public class SmithingRecipeBuilder extends RecipeBuilder<SmithingRecipeBuilder, 
     private ItemStack template = null;
     private ItemStack base = null;
     private ItemStack addition = null;
+    protected final Function<ItemStack, RecipeChoice> choiceSelector;
 
-    public SmithingRecipeBuilder(String id) {
+    public SmithingRecipeBuilder(String id, ChoiceType choiceType) {
         super(id);
+
+        switch (choiceType) {
+            case ITEM_TYPE -> choiceSelector = this::dynamicChoiceFor;
+            case EXACT -> choiceSelector = this::exactChoiceFor;
+            default -> throw new IllegalArgumentException("Invalid choice type: " + choiceType);
+        }
     }
 
-    public static SmithingRecipeBuilder smithingRecipe(String id) {
-        return new SmithingRecipeBuilder(id);
+    public static SmithingRecipeBuilder smithingRecipe(String id, ChoiceType choiceType) {
+        return new SmithingRecipeBuilder(id, choiceType);
     }
 
     public SmithingRecipeBuilder template(ItemStack template) {
@@ -37,10 +44,6 @@ public class SmithingRecipeBuilder extends RecipeBuilder<SmithingRecipeBuilder, 
 
     @Override
     public SmithingTransformRecipe build() {
-        return buildInternal(key, this::dynamicChoiceFor);
-    }
-
-    private SmithingTransformRecipe buildInternal(NamespacedKey key, Function<ItemStack, RecipeChoice> choiceSelector) {
         return new SmithingTransformRecipe(
                 key,
                 result,

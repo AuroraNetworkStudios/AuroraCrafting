@@ -54,12 +54,6 @@ public abstract class CraftingBlueprint<T extends CraftingBlueprint<T>> extends 
         }
     }
 
-    public enum ChoiceType {
-        ITEM_TYPE,
-        EXACT,
-        PREDICATE
-    }
-
     @SuppressWarnings("unchecked")
     public T vanillaOptions(VanillaOptions vanillaOptions) {
         this.vanillaOptions = vanillaOptions;

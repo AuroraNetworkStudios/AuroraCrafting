@@ -2,6 +2,7 @@ package gg.auroramc.crafting.util;
 
 import gg.auroramc.aurora.api.AuroraAPI;
 import gg.auroramc.aurora.api.item.TypeId;
+import gg.auroramc.crafting.api.blueprint.ChoiceType;
 import gg.auroramc.crafting.api.vanilla.*;
 import gg.auroramc.crafting.config.CookingRecipesConfig;
 import gg.auroramc.crafting.config.SmithingRecipesConfig;
@@ -47,7 +48,7 @@ public class RecipeAdapter {
     }
 
     public static Recipe adapt(RecipeType type, SmithingRecipesConfig.RecipeConfig config) {
-        var builder = SmithingRecipeBuilder.smithingRecipe(config.getId());
+        var builder = SmithingRecipeBuilder.smithingRecipe(config.getId(), ChoiceType.EXACT);
 
         if (config.getAddition() != null) {
             builder.addition(AuroraAPI.getItemManager().resolveItem(TypeId.fromDefault(config.getAddition())));

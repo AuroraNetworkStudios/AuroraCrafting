@@ -28,6 +28,30 @@ no-permission-quick-craft-item:
     - " "
     - "&cYou do not have permission to use this slot"
 
+blueprint-completed-item:
+  material: lime_stained_glass_pane
+  name: ""
+  hide-tooltip: true
+  slots: [45, 46, 47, 48, 49, 50, 51, 52, 53]
+
+blueprint-not-completed-item:
+  material: red_stained_glass_pane
+  name: ""
+  hide-tooltip: true
+  slots: [45, 46, 47, 48, 49, 50, 51, 52, 53]
+
+next-recipe-item:
+  material: arrow
+  name: "&7Next Recipe"
+  lore:
+    - "&7Click to view the next recipe"
+
+previous-recipe-item:
+  material: arrow
+  name: "&7Previous Recipe"
+  lore:
+    - "&7Click to view the previous recipe"
+
 filler:
   material: black_stained_glass_pane
   name: ""

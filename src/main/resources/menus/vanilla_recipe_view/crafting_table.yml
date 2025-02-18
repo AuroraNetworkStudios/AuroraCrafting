@@ -1,0 +1,21 @@
+title: "Recipe"
+rows: 6
+
+matrix: [ 10, 11, 12, 19, 20, 21, 28, 29, 30 ]
+
+slots:
+  result: 23
+
+items:
+  filler:
+    material: black_stained_glass_pane
+    name: ""
+    hide-tooltip: true
+  back:
+    material: arrow
+    name: "&7Back"
+    slot: 45
+    lore:
+      - "&7Click to go back"
+
+custom-items: {}

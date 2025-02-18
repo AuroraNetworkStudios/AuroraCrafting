@@ -4,12 +4,19 @@ import gg.auroramc.aurora.api.AuroraAPI;
 import gg.auroramc.aurora.api.item.TypeId;
 import gg.auroramc.crafting.api.ItemPair;
 import gg.auroramc.crafting.api.workbench.Workbench;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.recipe.CraftingBookCategory;
 
 import java.util.List;
 
 public class SmithingBlueprint extends Blueprint {
+    @Getter
+    private VanillaOptions vanillaOptions = VanillaOptions.builder().build();
+
     private static final ItemPair air = new ItemPair(TypeId.from(Material.AIR), 0);
 
     private final boolean[] slots = new boolean[3];
@@ -26,7 +33,7 @@ public class SmithingBlueprint extends Blueprint {
 
     @Override
     public SmithingBlueprint addIngredient(ItemPair itemPair) {
-        if(slots[0] && slots[1] && slots[2]) {
+        if (slots[0] && slots[1] && slots[2]) {
             throw new IllegalArgumentException("Smithing recipes can only have 3 ingredients");
         }
 
@@ -106,7 +113,11 @@ public class SmithingBlueprint extends Blueprint {
     }
 
     public SmithingBlueprint template(ItemPair itemPair) {
+        var item = AuroraAPI.getItemManager().resolveItem(itemPair.id());
+        item.setAmount(itemPair.amount());
+
         ingredients.set(0, itemPair);
+        ingredientItems.set(0, item);
         return this;
     }
 
@@ -119,7 +130,11 @@ public class SmithingBlueprint extends Blueprint {
     }
 
     public SmithingBlueprint base(ItemPair itemPair) {
+        var item = AuroraAPI.getItemManager().resolveItem(itemPair.id());
+        item.setAmount(itemPair.amount());
+
         ingredients.set(1, itemPair);
+        ingredientItems.set(1, item);
         return this;
     }
 
@@ -132,11 +147,47 @@ public class SmithingBlueprint extends Blueprint {
     }
 
     public SmithingBlueprint addition(ItemPair itemPair) {
+        var item = AuroraAPI.getItemManager().resolveItem(itemPair.id());
+        item.setAmount(itemPair.amount());
+
         ingredients.set(2, itemPair);
+        ingredientItems.set(2, item);
         return this;
     }
 
     public ItemStack getAdditionItem() {
         return ingredientItems.getLast();
+    }
+
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static final class VanillaOptions {
+        private ChoiceType choiceType;
+
+        public static VanillaOptions.VanillaOptionsBuilder builder() {
+            return new VanillaOptions.VanillaOptionsBuilder();
+        }
+
+        public static class VanillaOptionsBuilder {
+            private ChoiceType choiceType = ChoiceType.ITEM_TYPE;
+
+            public VanillaOptions.VanillaOptionsBuilder choiceType(ChoiceType choiceType) {
+                if (choiceType != null) {
+                    this.choiceType = choiceType;
+                }
+                return this;
+            }
+
+            public VanillaOptions build() {
+                return new VanillaOptions(choiceType);
+            }
+        }
+    }
+
+    public SmithingBlueprint vanillaOptions(VanillaOptions vanillaOptions) {
+        this.vanillaOptions = vanillaOptions;
+        return this;
     }
 }

@@ -1,12 +1,22 @@
 package gg.auroramc.crafting.api.blueprint;
 
 import gg.auroramc.crafting.api.vanilla.*;
-import org.bukkit.inventory.CookingRecipe;
-import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.ShapelessRecipe;
-import org.bukkit.inventory.SmithingTransformRecipe;
+import org.bukkit.inventory.*;
 
 public class BlueprintAdapter {
+    public static Recipe adapt(Blueprint blueprint) {
+        if (blueprint instanceof ShapelessBlueprint shapelessBlueprint) {
+            return adapt(shapelessBlueprint);
+        } else if (blueprint instanceof ShapedBlueprint shapedBlueprint) {
+            return adapt(shapedBlueprint);
+        } else if (blueprint instanceof SmithingBlueprint smithingBlueprint) {
+            return adapt(smithingBlueprint);
+        } else if (blueprint instanceof CookingBlueprint cookingBlueprint) {
+            return adapt(cookingBlueprint);
+        }
+        return null;
+    }
+
     public static ShapelessRecipe adapt(ShapelessBlueprint blueprint) {
         return ShapelessRecipeBuilder.shapelessRecipe(blueprint.getId(), blueprint.getVanillaOptions().getChoiceType())
                 .category(blueprint.getVanillaOptions().getCategory())
@@ -26,7 +36,7 @@ public class BlueprintAdapter {
     }
 
     public static SmithingTransformRecipe adapt(SmithingBlueprint blueprint) {
-        return SmithingRecipeBuilder.smithingRecipe(blueprint.getId())
+        return SmithingRecipeBuilder.smithingRecipe(blueprint.getId(), blueprint.getVanillaOptions().getChoiceType())
                 .template(blueprint.getTemplateItem())
                 .base(blueprint.getBaseItem())
                 .addition(blueprint.getAdditionItem())

@@ -1,12 +1,9 @@
 package gg.auroramc.crafting.api.workbench;
 
 import gg.auroramc.crafting.api.workbench.custom.CustomWorkbench;
-import gg.auroramc.crafting.api.workbench.vanilla.CraftingTable;
-import gg.auroramc.crafting.api.workbench.vanilla.Furnace;
-import gg.auroramc.crafting.api.workbench.vanilla.SmithingTable;
-import gg.auroramc.crafting.api.workbench.vanilla.Station;
-import lombok.AccessLevel;
+import gg.auroramc.crafting.api.workbench.vanilla.*;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -20,11 +17,7 @@ public class WorkbenchRegistry {
 
     private final Map<String, CustomWorkbench> workbenches = new HashMap<>();
 
-    private final Map<Station, Workbench> vanillaWorkbenches = Map.of(
-            Station.CRAFTING_TABLE, new CraftingTable(),
-            Station.SMITHING_TABLE, new SmithingTable(),
-            Station.FURNACE, new Furnace()
-    );
+    private Map<VanillaType, VanillaWorkbench<?>> vanillaWorkbenches = vanillaWorkbenchInit();
 
     public void registerWorkbench(CustomWorkbench workbench) {
         if (frozen) throw new IllegalStateException("Cannot register workbench after freezing");
@@ -32,27 +25,39 @@ public class WorkbenchRegistry {
         workbenches.put(workbench.getId(), workbench);
     }
 
-    public @Nullable Workbench getWorkbench(String id) {
+    public @Nullable CustomWorkbench getWorkbench(String id) {
         return workbenches.get(id);
     }
 
     public CraftingTable getCraftingTable() {
-        return (CraftingTable) vanillaWorkbenches.get(Station.CRAFTING_TABLE);
+        return (CraftingTable) vanillaWorkbenches.get(VanillaType.CRAFTING_TABLE);
     }
 
     public SmithingTable getSmithingTable() {
-        return (SmithingTable) vanillaWorkbenches.get(Station.SMITHING_TABLE);
+        return (SmithingTable) vanillaWorkbenches.get(VanillaType.SMITHING_TABLE);
     }
 
     public Furnace getFurnace() {
-        return (Furnace) vanillaWorkbenches.get(Station.FURNACE);
+        return (Furnace) vanillaWorkbenches.get(VanillaType.FURNACE);
+    }
+
+    public BlastFurnace getBlastFurnace() {
+        return (BlastFurnace) vanillaWorkbenches.get(VanillaType.BLAST_FURNACE);
+    }
+
+    public Smoker getSmoker() {
+        return (Smoker) vanillaWorkbenches.get(VanillaType.SMOKER);
+    }
+
+    public Campfire getCampfire() {
+        return (Campfire) vanillaWorkbenches.get(VanillaType.CAMPFIRE);
     }
 
     public Collection<CustomWorkbench> getCustomWorkbenches() {
         return workbenches.values();
     }
 
-    public Collection<Workbench> getVanillaWorkbenches() {
+    public Collection<VanillaWorkbench<?>> getVanillaWorkbenches() {
         return vanillaWorkbenches.values();
     }
 
@@ -63,8 +68,32 @@ public class WorkbenchRegistry {
             workbench.freeze();
         }
 
-        for (var workbench : workbenches.values()) {
+        for (var workbench : vanillaWorkbenches.values()) {
             workbench.freeze();
         }
+
+        Bukkit.updateRecipes();
+    }
+
+    public void unfreezeAndClear() {
+        frozen = false;
+        workbenches.clear();
+
+        for(var workbench : vanillaWorkbenches.values()) {
+            workbench.dispose();
+        }
+
+        vanillaWorkbenches = vanillaWorkbenchInit();
+    }
+
+    private Map<VanillaType, VanillaWorkbench<?>> vanillaWorkbenchInit() {
+        return Map.of(
+                VanillaType.CRAFTING_TABLE, new CraftingTable(),
+                VanillaType.SMITHING_TABLE, new SmithingTable(),
+                VanillaType.FURNACE, new Furnace(),
+                VanillaType.SMOKER, new Smoker(),
+                VanillaType.BLAST_FURNACE, new BlastFurnace(),
+                VanillaType.CAMPFIRE, new Campfire()
+        );
     }
 }

@@ -13,23 +13,25 @@ import lombok.*;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ArmorMeta;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 @Getter
 public abstract class Blueprint {
     protected final String id;
-    protected BookCategory category;
+    protected List<BookCategory> category = new ArrayList<>();
+    protected String source;
     protected ItemPair result;
     protected ItemStack resultItem;
     protected String permission;
     protected final Workbench workbench;
     protected DisplayOptions displayOptions;
-    protected Map<String, MergeOptions> mergeOptions;
+    protected Map<Integer, MergeOptions> mergeOptions;
+    protected Integer resultIngredientIndex = null;
     protected final List<TriConsumer<Player, ItemStack, Integer>> craftActions = new ArrayList<>();
     protected final List<ItemPair> ingredients = new ArrayList<>();
     protected final List<ItemStack> ingredientItems = new ArrayList<>();
@@ -52,14 +54,14 @@ public abstract class Blueprint {
             return resultItem.clone();
         }
 
-        var result = resultItem.clone();
+        var result = resultIngredientIndex != null ? context.getMatrix()[resultIngredientIndex].clone() : resultItem.clone();
 
         for (int i = 0; i < context.getMatrix().length; i++) {
             var ingredient = context.getMatrix()[i];
             if (ingredient == null) {
                 continue;
             }
-            var mergeOption = mergeOptions.get(String.valueOf(i));
+            var mergeOption = mergeOptions.get(i);
             if (mergeOption == null) {
                 continue;
             }
@@ -76,6 +78,15 @@ public abstract class Blueprint {
                     result.addEnchantment(enchant.getKey(), enchant.getValue() + result.getEnchantmentLevel(enchant.getKey()));
                 } else {
                     result.addEnchantment(enchant.getKey(), enchant.getValue());
+                }
+            }
+        }
+
+        if (options.trim) {
+            if (ingredient.getItemMeta() instanceof ArmorMeta armorMeta && armorMeta.hasTrim()) {
+                if (result.getItemMeta() instanceof ArmorMeta resultArmorMeta) {
+                    resultArmorMeta.setTrim(armorMeta.getTrim());
+                    result.setItemMeta(resultArmorMeta);
                 }
             }
         }
@@ -101,6 +112,26 @@ public abstract class Blueprint {
     }
 
     /**
+     * Set the result of the blueprint based on an already
+     * registered ingredient
+     *
+     * @param index index of the ingredient to use as the result
+     * @return the blueprint
+     */
+    public Blueprint result(int index) {
+        if (index < 0 || index >= ingredients.size()) {
+            throw new IllegalArgumentException("Invalid ingredient index: " + index + " for blueprint: " + id + " with " + ingredients.size() + " ingredients");
+        }
+        if (ingredientItems.get(index).isEmpty()) {
+            throw new IllegalArgumentException("Invalid ingredient index: " + index + " for blueprint: " + id + ". Ingredient is empty/air.");
+        }
+        this.result = ingredients.get(index);
+        this.resultItem = ingredientItems.get(index).clone();
+        this.resultIngredientIndex = index;
+        return this;
+    }
+
+    /**
      * Set the permission required to craft the blueprint
      *
      * @param permission the permission
@@ -112,13 +143,24 @@ public abstract class Blueprint {
     }
 
     /**
+     * Set the load source of the blueprint
+     *
+     * @param source source of the blueprint
+     * @return the blueprint
+     */
+    public Blueprint source(String source) {
+        this.source = source;
+        return this;
+    }
+
+    /**
      * Set the book category which the blueprint belongs to
      *
      * @param category the category
      * @return the blueprint
      */
     public Blueprint category(BookCategory category) {
-        this.category = category;
+        this.category.add(category);
         return this;
     }
 
@@ -146,7 +188,7 @@ public abstract class Blueprint {
         if (this.mergeOptions == null) {
             this.mergeOptions = new HashMap<>();
         }
-        this.mergeOptions.put(String.valueOf(index), mergeOptions);
+        this.mergeOptions.put(index, mergeOptions);
         return this;
     }
 
@@ -169,6 +211,17 @@ public abstract class Blueprint {
     }
 
     /**
+     * Add an ingredient to the blueprint
+     *
+     * @param ingredients the ingredient pairs
+     * @return the blueprint
+     */
+    public Blueprint ingredients(List<ItemPair> ingredients) {
+        ingredients.forEach(this::addIngredient);
+        return this;
+    }
+
+    /**
      * Register a craft action for the blueprint. This will be called
      * when the blueprint is crafted.
      *
@@ -176,6 +229,7 @@ public abstract class Blueprint {
      * @return the blueprint
      */
     public Blueprint onCraft(TriConsumer<Player, ItemStack, Integer> handler) {
+        if (handler == null) return this;
         this.craftActions.add(handler);
         return this;
     }
@@ -295,6 +349,15 @@ public abstract class Blueprint {
         }
     }
 
+    public boolean isStacked() {
+        for (var ingredient : ingredients) {
+            if (ingredient.amount() > 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Get the number of times the blueprint can be crafted based on the items in the matrix
      *
@@ -329,5 +392,6 @@ public abstract class Blueprint {
     @Builder
     public static final class MergeOptions {
         private boolean enchants;
+        private boolean trim;
     }
 }

@@ -1,0 +1,20 @@
+title: "Smithing recipe"
+rows: 4
+
+slots:
+  template: 10
+  base: 11
+  addition: 12
+  result: 16
+
+items:
+  filler:
+    material: black_stained_glass_pane
+    name: ""
+    hide-tooltip: true
+  back:
+    material: arrow
+    name: "&7Back"
+    slot: 27
+    lore:
+      - "&7Click to go back"

@@ -1,12 +1,12 @@
 config-version: 0
 
-command-completion: "default"
 
 rows: 6
 title: "Craft Item"
 result-slot: 23
 matrix-slots: [ 10, 11, 12, 19, 20, 21, 28, 29, 30 ]
 quick-crafting-slots: [ 16, 25, 34 ]
+completion-indicator-slots: [ 45, 46, 47, 48, 49, 50, 51, 52, 53 ]
 
 custom-items:
   filler:

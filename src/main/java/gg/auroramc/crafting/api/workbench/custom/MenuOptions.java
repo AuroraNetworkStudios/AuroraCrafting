@@ -6,6 +6,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 @Getter
 @Builder
 public final class MenuOptions implements Cloneable {
@@ -34,6 +38,7 @@ public final class MenuOptions implements Cloneable {
         String getTitle();
     }
 
+    private List<ItemConfig> customItems;
     private ItemConfig fillerItem;
     private ItemConfig emptyQuickCraftItem;
     private ItemConfig noPermissionQuickCraftItem;
@@ -76,9 +81,11 @@ public final class MenuOptions implements Cloneable {
         if (this.title == null) {
             this.title = defaultSupplier.getTitle();
         }
+        if (customItems == null) {
+            customItems = new ArrayList<>();
+        }
         return this;
     }
-
 
 
     public MenuOptions validate() {

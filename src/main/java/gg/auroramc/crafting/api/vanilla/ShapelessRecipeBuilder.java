@@ -1,21 +1,18 @@
 package gg.auroramc.crafting.api.vanilla;
 
-import gg.auroramc.crafting.api.blueprint.CraftingBlueprint;
-import org.bukkit.NamespacedKey;
+import gg.auroramc.crafting.api.blueprint.ChoiceType;
 import org.bukkit.inventory.*;
-import org.bukkit.inventory.recipe.CraftingBookCategory;
 
 import java.util.List;
-import java.util.function.Function;
 
 public class ShapelessRecipeBuilder extends CraftingRecipeBuilder<ShapelessRecipe, ShapelessRecipeBuilder> {
     private List<ItemStack> ingredients;
 
-    public ShapelessRecipeBuilder(String id, CraftingBlueprint.ChoiceType choiceType) {
+    public ShapelessRecipeBuilder(String id, ChoiceType choiceType) {
         super(id, choiceType);
     }
 
-    public static ShapelessRecipeBuilder shapelessRecipe(String id, CraftingBlueprint.ChoiceType choiceType) {
+    public static ShapelessRecipeBuilder shapelessRecipe(String id, ChoiceType choiceType) {
         return new ShapelessRecipeBuilder(id, choiceType);
     }
 

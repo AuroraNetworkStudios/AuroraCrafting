@@ -1,0 +1,19 @@
+title: "Furnace recipe"
+rows: 4
+
+slots:
+  fuel: 19
+  input: 10
+  result: 16
+
+items:
+  fuel:
+    material: coal
+  back:
+    material: arrow
+    name: "&7Back"
+    slot: 27
+    lore:
+      - "&7Click to go back"
+
+custom-items: {}
