@@ -94,32 +94,41 @@ public class RecipeWrapperBlueprint extends Blueprint {
 
     @Override
     public ItemStack getResultItem(BlueprintContext context) {
-        if (backingRecipe.getKey().getNamespace().equals("minecraft") && backingRecipe.getKey().getKey().equals("armor_dye")) {
+        if (matches("armor_dye")) {
             return getDyeResult(context.getMatrix());
 
-        } else if (backingRecipe.getKey().getNamespace().equals("minecraft") && backingRecipe.getKey().getKey().equals("firework_star")) {
-            ItemStack[] matrix = Arrays.stream(context.getMatrix()).filter(v -> !v.isEmpty()).toArray(ItemStack[]::new);
-            return FireworkRecipeMaker.craftFireStar(matrix);
+        } else if (matches("firework_star")) {
+            return FireworkRecipeMaker.craftFireStar(filterEmpty(context.getMatrix()));
 
-        } else if (backingRecipe.getKey().getNamespace().equals("minecraft") && backingRecipe.getKey().getKey().equals("firework_star_fade")) {
-            ItemStack[] matrix = Arrays.stream(context.getMatrix()).filter(v -> !v.isEmpty()).toArray(ItemStack[]::new);
-            return FireworkRecipeMaker.craftFireStarFade(matrix);
+        } else if (matches("firework_star_fade")) {
+            return FireworkRecipeMaker.craftFadeFireStar(filterEmpty(context.getMatrix()));
 
-        } else if (backingRecipe.getKey().getNamespace().equals("minecraft") && backingRecipe.getKey().getKey().equals("firework_rocket")) {
-            ItemStack[] matrix = Arrays.stream(context.getMatrix()).filter(v -> !v.isEmpty()).toArray(ItemStack[]::new);
-            return FireworkRecipeMaker.craftFireworkRocket(matrix);
+        } else if (matches("firework_rocket")) {
+            return FireworkRecipeMaker.craftFireworkRocket(filterEmpty(context.getMatrix()));
 
-        } else if (backingRecipe.getKey().getNamespace().equals("minecraft") && backingRecipe.getKey().getKey().equals("decorated_pot")) {
+        } else if (matches("decorated_pot")) {
             return PotteryRecipeMaker.create(context.getMatrix());
 
-        } else if (backingRecipe.getResult().getType().name().endsWith("SHULKER_BOX")) {
+        } else if (endsWith("SHULKER_BOX")) {
             return getShulkerResult(context.getMatrix());
 
-        } else if (backingRecipe.getResult().getType().name().endsWith("BUNDLE")) {
+        } else if (endsWith("BUNDLE")) {
             return getBundleResult(context.getMatrix());
         }
 
         return resultItem.clone();
+    }
+
+    private ItemStack[] filterEmpty(ItemStack[] matrix) {
+        return Arrays.stream(matrix).filter(v -> !v.isEmpty()).toArray(ItemStack[]::new);
+    }
+
+    private boolean matches(String key) {
+        return backingRecipe.getKey().getNamespace().equals("minecraft") && backingRecipe.getKey().getKey().equals(key);
+    }
+
+    private boolean endsWith(String key) {
+        return backingRecipe.getResult().getType().name().endsWith(key);
     }
 
     private ItemStack getBundleResult(ItemStack[] matrix) {
