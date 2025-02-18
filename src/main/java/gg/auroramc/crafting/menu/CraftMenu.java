@@ -2,11 +2,15 @@ package gg.auroramc.crafting.menu;
 
 import gg.auroramc.aurora.api.menu.ItemBuilder;
 import gg.auroramc.aurora.api.menu.MenuEntry;
+import gg.auroramc.aurora.api.menu.MenuItem;
 import gg.auroramc.aurora.api.message.Text;
 import gg.auroramc.aurora.api.util.ItemUtils;
 import gg.auroramc.crafting.AuroraCrafting;
-import gg.auroramc.crafting.api.AuroraRecipe;
-import gg.auroramc.crafting.api.VanillaRecipeWrapper;
+import gg.auroramc.crafting.api.blueprint.Blueprint;
+import gg.auroramc.crafting.api.blueprint.BlueprintContext;
+import gg.auroramc.crafting.api.blueprint.BlueprintType;
+import gg.auroramc.crafting.api.blueprint.RecipeWrapperBlueprint;
+import gg.auroramc.crafting.api.workbench.custom.CustomWorkbench;
 import gg.auroramc.crafting.util.InventoryUtils;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -35,31 +39,34 @@ public class CraftMenu implements InventoryHolder {
     private final ItemStack fillerItem;
     private final ItemStack noPermQuickCraftItem;
     private final ItemStack emptyQuickCraftItem;
-    private Map<Integer, AuroraRecipe> quickCraftRecipes = new HashMap<>();
-    private Map<Integer, MenuEntry> customItems = new HashMap<>();
+    private final MenuItem completedItem;
+    private final MenuItem notCompletedItem;
+    private final Map<Integer, Blueprint> quickCraftBlueprints = new HashMap<>();
+    private final Map<Integer, MenuEntry> customItems = new HashMap<>();
     private boolean updateQuickCraftOnPlace = false;
-    private final String workbenchId;
+    private final CustomWorkbench workbench;
 
-    public static CraftMenu craftMenu(AuroraCrafting plugin, Player player, String workbenchId) {
-        return new CraftMenu(plugin, player, workbenchId);
+    public static CraftMenu craftMenu(AuroraCrafting plugin, Player player, CustomWorkbench workbench) {
+        return new CraftMenu(plugin, player, workbench);
     }
 
-    public CraftMenu(AuroraCrafting plugin, Player player, String workbenchId) {
+    public CraftMenu(AuroraCrafting plugin, Player player, CustomWorkbench workbench) {
         this.plugin = plugin;
         this.player = player;
-        this.workbenchId = workbenchId;
+        this.workbench = workbench;
 
-        var config = plugin.getWorkbenchRegistry().getWorkbench(workbenchId);
-        this.matrixSlots = config.getMatrixSlots();
+        this.matrixSlots = workbench.getMatrixSlots();
         this.matrixLookup = Set.copyOf(matrixSlots);
-        this.resultSlot = config.getResultSlot();
-        this.quickCraftSlots = new HashSet<>(config.getQuickCraftSlots());
+        this.resultSlot = workbench.getResultSlot();
+        this.quickCraftSlots = new LinkedHashSet<>(workbench.getQuickCraftSlots());
 
-        this.inventory = Bukkit.createInventory(this, config.getMenuOptions().getRows() * 9, Text.component(config.getMenuOptions().getTitle()));
-        this.invalidResultItem = ItemBuilder.of(config.getMenuOptions().getInvalidResultItem()).toItemStack(player);
-        this.fillerItem = ItemBuilder.of(config.getMenuOptions().getFillerItem()).toItemStack(player);
-        this.noPermQuickCraftItem = ItemBuilder.of(config.getMenuOptions().getNoPermissionQuickCraftItem()).toItemStack(player);
-        this.emptyQuickCraftItem = ItemBuilder.of(config.getMenuOptions().getEmptyQuickCraftItem()).toItemStack(player);
+        this.inventory = Bukkit.createInventory(this, workbench.getMenuOptions().getRows() * 9, Text.component(workbench.getMenuOptions().getTitle()));
+        this.invalidResultItem = ItemBuilder.of(workbench.getMenuOptions().getInvalidResultItem()).toItemStack(player);
+        this.fillerItem = ItemBuilder.of(workbench.getMenuOptions().getFillerItem()).toItemStack(player);
+        this.noPermQuickCraftItem = ItemBuilder.of(workbench.getMenuOptions().getNoPermissionQuickCraftItem()).toItemStack(player);
+        this.emptyQuickCraftItem = ItemBuilder.of(workbench.getMenuOptions().getEmptyQuickCraftItem()).toItemStack(player);
+        this.completedItem = ItemBuilder.of(workbench.getMenuOptions().getBlueprintCompletedItem()).build(player);
+        this.notCompletedItem = ItemBuilder.of(workbench.getMenuOptions().getBlueprintNotCompletedItem()).build(player);
 
         for (int i = 0; i < inventory.getSize(); i++) {
             if (!matrixLookup.contains(i)) {
@@ -69,7 +76,11 @@ public class CraftMenu implements InventoryHolder {
         inventory.setItem(resultSlot, invalidResultItem);
         setUpQuickCraft();
 
-        for (var itemConfig : config.getMenuOptions().getCustomItems()) {
+        for (var slot : notCompletedItem.getSlots()) {
+            inventory.setItem(slot, notCompletedItem.getItemStack());
+        }
+
+        for (var itemConfig : workbench.getMenuOptions().getCustomItems()) {
             var menuItem = ItemBuilder.of(itemConfig).build(player);
             for (var slot : menuItem.getSlots()) {
                 if (matrixLookup.contains(slot) || slot == resultSlot || quickCraftSlots.contains(slot)) {
@@ -85,8 +96,8 @@ public class CraftMenu implements InventoryHolder {
     }
 
     private void setUpQuickCraft() {
-        this.quickCraftRecipes.clear();
-        var quickCraftRecipes = plugin.getRecipeManager().getCraftableRecipes(player, quickCraftSlots.size(), workbenchId);
+        this.quickCraftBlueprints.clear();
+        var quickCraftRecipes = workbench.getCraftableBlueprints(player, workbench.getQuickCraftSlots().size(), BlueprintType.SHAPED, BlueprintType.SHAPELESS);
         var quickCraftSlots = new ArrayList<>(this.quickCraftSlots);
         quickCraftSlots.sort(Integer::compareTo);
 
@@ -96,7 +107,7 @@ public class CraftMenu implements InventoryHolder {
                 if (player.hasPermission("aurora.quickcraft." + slot)) {
                     var recipe = quickCraftRecipes.get(i);
                     inventory.setItem(slot, recipe.getResultItem());
-                    this.quickCraftRecipes.put(slot, recipe);
+                    this.quickCraftBlueprints.put(slot, recipe);
                 } else {
                     inventory.setItem(slot, noPermQuickCraftItem);
                 }
@@ -116,7 +127,10 @@ public class CraftMenu implements InventoryHolder {
 
     private boolean isCustomSlotClick(InventoryClickEvent event) {
         return event.getClickedInventory() == inventory
-                && !matrixLookup.contains(event.getSlot()) && event.getSlot() != resultSlot && !quickCraftSlots.contains(event.getSlot());
+                && !matrixLookup.contains(event.getSlot()) && event.getSlot() != resultSlot
+                && !quickCraftSlots.contains(event.getSlot())
+                && !completedItem.getSlots().contains(event.getSlot())
+                && !notCompletedItem.getSlots().contains(event.getSlot());
     }
 
     private boolean isUpdateRequired(InventoryClickEvent event) {
@@ -144,6 +158,14 @@ public class CraftMenu implements InventoryHolder {
                 result = true;
                 break;
             }
+        }
+
+        if (completedItem.getItemStack().isSimilar(event.getCurrentItem())) {
+            result = true;
+        }
+
+        if (notCompletedItem.getItemStack().isSimilar(event.getCurrentItem())) {
+            result = true;
         }
 
         return result;
@@ -226,46 +248,48 @@ public class CraftMenu implements InventoryHolder {
             return;
         }
 
-        var recipe = quickCraftRecipes.get(event.getSlot());
-        if (recipe == null) {
+        var blueprint = quickCraftBlueprints.get(event.getSlot());
+        if (blueprint == null) {
             event.setCancelled(true);
             return;
         }
 
-        var timesCraftable = recipe.getQuickCraftTimes(player);
+        var timesCraftable = blueprint.getQuickCraftTimes(InventoryUtils.buildItemCounts(player));
         if (timesCraftable == 0) {
             event.setCancelled(true);
             return;
         }
 
+        final var currentItem = event.getCurrentItem() != null ? event.getCurrentItem() : ItemStack.empty();
+
         if (event.isShiftClick()) {
             // Check the player inventory for space. If one crafting result fits, allow the shift click
             int currentSpace = InventoryUtils.calculateSpaceForItem(player.getInventory(), event.getCurrentItem());
-            if (currentSpace < recipe.getResult().amount()) {
+            if (currentSpace < blueprint.getResult().amount()) {
                 event.setCancelled(true);
                 return;
             }
             // Add the remaining items to the player inventory, but only the amount that fits, deduct the matrix
-            final int availableSpace = currentSpace - recipe.getResult().amount();
-            final int timesCrafted = Math.min((availableSpace / recipe.getResult().amount()) + 1, timesCraftable);
+            final int availableSpace = currentSpace - blueprint.getResult().amount();
+            final int timesCrafted = Math.min((availableSpace / blueprint.getResult().amount()) + 1, timesCraftable);
 
             // If only the shift click is craftable, just update the matrix and return
             if (timesCrafted == 1) {
                 player.getScheduler().run(plugin, (t) -> {
-                    recipe.quickCraft(player, 1, true);
+                    blueprint.quickCraft(context(inventory), 1, true);
                     setUpQuickCraft();
                     player.updateInventory();
-                    plugin.callCraftEvent(player, recipe.getResultItem(), recipe.getResult().amount());
+                    plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount());
                 }, null);
                 return;
             }
 
             // If there is more space, add the remaining items to the player inventory and update the matrix
             player.getScheduler().run(plugin, (t) -> {
-                recipe.quickCraft(player, timesCrafted, true);
+                blueprint.quickCraft(context(inventory), timesCrafted, true);
                 setUpQuickCraft();
                 player.updateInventory();
-                plugin.callCraftEvent(player, recipe.getResultItem(), timesCrafted * recipe.getResult().amount());
+                plugin.callCraftEvent(player, currentItem, timesCrafted * blueprint.getResult().amount());
             }, null);
         } else {
             if (event.getCursor().isEmpty()) {
@@ -273,28 +297,27 @@ public class CraftMenu implements InventoryHolder {
                 updateQuickCraftOnPlace = true;
                 player.getScheduler().run(plugin,
                         (t) -> {
-                            recipe.quickCraft(player, 1, true);
+                            blueprint.quickCraft(context(inventory), 1, true);
                             setUpQuickCraft();
                             player.updateInventory();
-                            plugin.callCraftEvent(player, recipe.getResultItem(), recipe.getResult().amount());
+                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount());
                         }, null);
             } else {
                 var cursor = event.getCursor();
-                var result = event.getCurrentItem();
 
                 // Allow stacking the result and deduct the matrix
-                if (cursor.isSimilar(result)) {
+                if (cursor.isSimilar(currentItem)) {
                     var maxAmount = cursor.getMaxStackSize() - cursor.getAmount();
-                    if (recipe.getResult().amount() <= maxAmount) {
+                    if (blueprint.getResult().amount() <= maxAmount) {
                         updateQuickCraftOnPlace = true;
                         player.getScheduler().run(plugin, (t) -> {
-                            if (player.getItemOnCursor().isSimilar(result)) {
-                                player.getItemOnCursor().setAmount(cursor.getAmount() + recipe.getResult().amount());
+                            if (player.getItemOnCursor().isSimilar(currentItem)) {
+                                player.getItemOnCursor().setAmount(cursor.getAmount() + blueprint.getResult().amount());
                             }
-                            recipe.quickCraft(player, 1, true);
+                            blueprint.quickCraft(context(inventory), 1, true);
                             setUpQuickCraft();
                             player.updateInventory();
-                            plugin.callCraftEvent(player, recipe.getResultItem(), recipe.getResult().amount());
+                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount());
                         }, null);
                     }
                 }
@@ -317,24 +340,23 @@ public class CraftMenu implements InventoryHolder {
         }
 
         // Get the crafting matrix
-        var matrix = getMatrix(event.getInventory(), matrixSlots);
+        var context = this.context(event.getInventory());
 
-        // If we don't have a recipe cancel the event
-        var maybeRecipe = plugin.getRecipeManager().getRecipeByMatrix(matrix);
+        // If we don't have a blueprint cancel the event
+        var maybeBlueprint = workbench.lookupBlueprint(context, BlueprintType.SHAPED, BlueprintType.SHAPELESS);
 
-        if (maybeRecipe == null && plugin.getConfigManager().getConfig().getIncludeVanillaRecipes().contains(workbenchId)) {
-            var matrixArray = matrix.toArray(ItemStack[]::new);
-            var vanillaRecipe = Bukkit.getServer().getCraftingRecipe(matrixArray, player.getWorld());
+        if (maybeBlueprint == null && plugin.getConfigManager().getConfig().getIncludeVanillaRecipes().contains(workbench.getId())) {
+            var vanillaRecipe = Bukkit.getServer().getCraftingRecipe(context.getMatrix(), player.getWorld());
             if (vanillaRecipe instanceof CraftingRecipe craftingRecipe) {
-                if (craftingRecipe.getKey().getNamespace().equals("minecraft") || plugin.getConfigManager().getConfig().getIncludeOtherPluginRecipes().contains(workbenchId)) {
-                    maybeRecipe = new VanillaRecipeWrapper(craftingRecipe, matrixArray);
+                if (craftingRecipe.getKey().getNamespace().equals("minecraft") || plugin.getConfigManager().getConfig().getIncludeOtherPluginRecipes().contains(workbench.getId())) {
+                    maybeBlueprint = new RecipeWrapperBlueprint(workbench, craftingRecipe);
                 }
             }
         }
 
-        final var recipe = maybeRecipe;
+        final var blueprint = maybeBlueprint;
 
-        if (recipe == null || !recipe.hasPermission(player, workbenchId)) {
+        if (blueprint == null || !blueprint.hasAccess(player)) {
             event.setCancelled(true);
             return;
         }
@@ -349,43 +371,45 @@ public class CraftMenu implements InventoryHolder {
             return;
         }
 
-        // Based on the crafting matrix, let's see how many times can we craft the recipe
-        var timesCraftable = recipe.getTimesCraftable(matrix);
+        // Based on the crafting matrix, let's see how many times can we craft the blueprint
+        var timesCraftable = blueprint.getTimesCraftable(context);
         if (timesCraftable == 0) {
             event.setCancelled(true);
             return;
         }
 
+        final var currentItem = event.getCurrentItem() != null ? event.getCurrentItem() : ItemStack.empty();
+
         // Handle crafting when shift clicking
         if (event.isShiftClick()) {
             // Check the player inventory for space. If one crafting result fits, allow the shift click
-            int currentSpace = InventoryUtils.calculateSpaceForItem(player.getInventory(), event.getCurrentItem());
-            if (currentSpace < maybeRecipe.getResult().amount()) {
+            int currentSpace = InventoryUtils.calculateSpaceForItem(player.getInventory(), currentItem);
+            if (currentSpace < maybeBlueprint.getResult().amount()) {
                 event.setCancelled(true);
                 return;
             }
             // Add the remaining items to the player inventory, but only the amount that fits, deduct the matrix
-            final int availableSpace = currentSpace - maybeRecipe.getResult().amount();
-            final int timesCrafted = Math.min((availableSpace / maybeRecipe.getResult().amount()) + 1, timesCraftable);
+            final int availableSpace = currentSpace - maybeBlueprint.getResult().amount();
+            final int timesCrafted = Math.min((availableSpace / maybeBlueprint.getResult().amount()) + 1, timesCraftable);
 
             // If only the shift click is craftable, just update the matrix and return
             if (timesCrafted == 1) {
                 player.getScheduler().run(plugin, (t) -> {
                     setUpQuickCraft();
-                    updateMatrix(recipe, timesCraftable, 1, matrix);
-                    plugin.callCraftEvent(player, recipe.getResultItem(), recipe.getResult().amount());
+                    updateMatrix(blueprint, timesCraftable, 1, context);
+                    plugin.callCraftEvent(player, event.getCurrentItem(), blueprint.getResult().amount());
                 }, null);
                 return;
             }
 
             // If there is more space, add the remaining items to the player inventory and update the matrix
             player.getScheduler().run(plugin, (t) -> {
-                var amount = (timesCrafted - 1) * recipe.getResult().amount();
-                var stacks = ItemUtils.createStacksFromAmount(recipe.getResultItem(), amount);
+                var amount = (timesCrafted - 1) * blueprint.getResult().amount();
+                var stacks = ItemUtils.createStacksFromAmount(currentItem, amount);
                 player.getInventory().addItem(stacks);
                 setUpQuickCraft();
-                updateMatrix(recipe, timesCraftable, timesCrafted, matrix);
-                plugin.callCraftEvent(player, recipe.getResultItem(), amount + recipe.getResult().amount());
+                updateMatrix(blueprint, timesCraftable, timesCrafted, context);
+                plugin.callCraftEvent(player, currentItem, amount + blueprint.getResult().amount());
             }, null);
 
             // Handle crafting for regular clicks
@@ -396,25 +420,25 @@ public class CraftMenu implements InventoryHolder {
                 player.getScheduler().run(plugin,
                         (t) -> {
                             setUpQuickCraft();
-                            updateMatrix(recipe, timesCraftable, 1, matrix);
-                            plugin.callCraftEvent(player, recipe.getResultItem(), recipe.getResult().amount());
+                            updateMatrix(blueprint, timesCraftable, 1, context);
+                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount());
                         }, null);
             } else {
                 var cursor = event.getCursor();
-                var result = event.getCurrentItem();
 
                 // Allow stacking the result and deduct the matrix
-                if (cursor.isSimilar(result)) {
+                if (cursor.isSimilar(currentItem)) {
                     var maxAmount = cursor.getMaxStackSize() - cursor.getAmount();
-                    if (maybeRecipe.getResult().amount() <= maxAmount) {
+                    if (maybeBlueprint.getResult().amount() <= maxAmount) {
                         updateQuickCraftOnPlace = true;
                         player.getScheduler().run(plugin, (t) -> {
-                            if (player.getItemOnCursor().isSimilar(result)) {
-                                player.getItemOnCursor().setAmount(cursor.getAmount() + recipe.getResult().amount());
+
+                            if (player.getItemOnCursor().isSimilar(currentItem)) {
+                                player.getItemOnCursor().setAmount(cursor.getAmount() + blueprint.getResult().amount());
                             }
                             setUpQuickCraft();
-                            updateMatrix(recipe, timesCraftable, 1, matrix);
-                            plugin.callCraftEvent(player, recipe.getResultItem(), recipe.getResult().amount());
+                            updateMatrix(blueprint, timesCraftable, 1, context);
+                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount());
                         }, null);
                     }
                 }
@@ -461,14 +485,14 @@ public class CraftMenu implements InventoryHolder {
         }
     }
 
-    private void updateMatrix(AuroraRecipe recipe, int timesCraftable, int timesCrafted, List<ItemStack> matrix) {
-        var newMatrix = recipe.calcRemainingIngredientMatrix(timesCrafted, matrix);
+    private void updateMatrix(Blueprint blueprint, int timesCraftable, int timesCrafted, BlueprintContext context) {
+        var newMatrix = blueprint.calcRemainingIngredientMatrix(context, timesCrafted);
 
         for (int i = 0; i < matrixSlots.size(); i++) {
             inventory.setItem(matrixSlots.get(i), newMatrix[i]);
         }
         if (timesCraftable > timesCrafted) {
-            inventory.setItem(resultSlot, recipe.getResultItem());
+            inventory.setItem(resultSlot, blueprint.getResultItem(this.context(inventory)));
         } else {
             inventory.setItem(resultSlot, invalidResultItem);
         }
@@ -479,44 +503,66 @@ public class CraftMenu implements InventoryHolder {
     private void updateResult() {
         inventory.setItem(resultSlot, invalidResultItem);
         // Calc new potential result
-        var matrix = getMatrix(inventory, matrixSlots);
+        var context = context(inventory);
 
-        var recipe = plugin.getRecipeManager().getRecipeByMatrix(matrix);
+        var blueprint = workbench.lookupBlueprint(context, BlueprintType.SHAPED, BlueprintType.SHAPELESS);
 
-        if (recipe != null && recipe.hasPermission(player, workbenchId)) {
-            var timesCraftable = recipe.getTimesCraftable(matrix);
+        if (blueprint != null && blueprint.hasAccess(player)) {
+            var timesCraftable = blueprint.getTimesCraftable(context);
             if (timesCraftable > 0) {
-                inventory.setItem(resultSlot, recipe.getResultItem());
+                setResult(blueprint.getResultItem(context));
             }
         } else {
-            if (plugin.getConfigManager().getConfig().getIncludeVanillaRecipes().contains(workbenchId)) {
-                var vanillaRecipe = Bukkit.getCraftingRecipe(matrix.toArray(ItemStack[]::new), player.getWorld());
+            if (plugin.getConfigManager().getConfig().getIncludeVanillaRecipes().contains(workbench.getId())) {
+                var vanillaRecipe = Bukkit.getCraftingRecipe(context.getMatrix(), player.getWorld());
                 if (vanillaRecipe instanceof CraftingRecipe craftingRecipe) {
-                    if (!craftingRecipe.getKey().getNamespace().equals("minecraft") && !plugin.getConfigManager().getConfig().getIncludeOtherPluginRecipes().contains(workbenchId)) {
-                        inventory.setItem(resultSlot, invalidResultItem);
+                    if (!craftingRecipe.getKey().getNamespace().equals("minecraft") && !plugin.getConfigManager().getConfig().getIncludeOtherPluginRecipes().contains(workbench.getId())) {
+                        setInvalidResult();
                     } else {
-                        var result = new VanillaRecipeWrapper(craftingRecipe, matrix.toArray(ItemStack[]::new)).getResultItem();
-                        inventory.setItem(resultSlot, result);
+                        var result = new RecipeWrapperBlueprint(workbench, craftingRecipe).getResultItem(context);
+                        setResult(result);
                     }
                 } else {
-                    inventory.setItem(resultSlot, invalidResultItem);
+                    setInvalidResult();
                 }
             } else {
-                inventory.setItem(resultSlot, invalidResultItem);
+                setInvalidResult();
             }
         }
         player.updateInventory();
     }
 
-    private List<ItemStack> getMatrix(Inventory inventory, List<Integer> matrixSlots) {
-        var matrix = new ArrayList<ItemStack>();
+    private void setInvalidResult() {
+        inventory.setItem(resultSlot, invalidResultItem);
+
+        for (var slot : completedItem.getSlots()) {
+            inventory.setItem(slot, fillerItem);
+        }
+
+        for (var slot : notCompletedItem.getSlots()) {
+            inventory.setItem(slot, notCompletedItem.getItemStack());
+        }
+    }
+
+    private void setResult(ItemStack item) {
+        inventory.setItem(resultSlot, item);
+
+        for (var slot : notCompletedItem.getSlots()) {
+            inventory.setItem(slot, fillerItem);
+        }
+
+        for (var slot : completedItem.getSlots()) {
+            inventory.setItem(slot, completedItem.getItemStack());
+        }
+    }
+
+    private ItemStack[] getMatrix(Inventory inventory) {
+        var matrix = new ItemStack[matrixSlots.size()];
+        int i = 0;
         for (var slot : matrixSlots) {
             var item = inventory.getItem(slot);
-            if (item != null) {
-                matrix.add(item);
-            } else {
-                matrix.add(ItemStack.empty());
-            }
+            matrix[i] = Objects.requireNonNullElseGet(item, ItemStack::empty);
+            i++;
         }
         return matrix;
     }
@@ -524,5 +570,9 @@ public class CraftMenu implements InventoryHolder {
     @Override
     public @NotNull Inventory getInventory() {
         return inventory;
+    }
+
+    private BlueprintContext context(Inventory inventory) {
+        return new BlueprintContext(player, getMatrix(inventory));
     }
 }

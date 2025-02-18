@@ -58,17 +58,22 @@ public abstract class Workbench {
         return blueprints.get(id);
     }
 
-    public @Nullable Blueprint getBlueprint(BlueprintType type, BlueprintContext context) {
-        var lookup = matrixLookup.get(type);
-        if (lookup == null) return null;
+    public @Nullable Blueprint lookupBlueprint(BlueprintContext context, BlueprintType... types) {
+        for (var type : types) {
+            var lookup = matrixLookup.get(type);
+            if (lookup == null) continue;
 
-        if (type == BlueprintType.SHAPELESS) {
-            var shapelessKey = BlueprintLookupGenerator.toShapelessKey(context.getIdMatrix());
-            return lookup.get(shapelessKey);
-        } else {
-            var shapedKey = BlueprintLookupGenerator.toShapedKey(context.getIdMatrix());
-            return lookup.get(shapedKey);
+            if (type == BlueprintType.SHAPELESS) {
+                var shapelessKey = BlueprintLookupGenerator.toShapelessKey(context.getIdMatrix());
+                var res = lookup.get(shapelessKey);
+                if (res != null) return res;
+            } else {
+                var shapedKey = BlueprintLookupGenerator.toShapedKey(context.getIdMatrix());
+                var res = lookup.get(shapedKey);
+                if (res != null) return res;
+            }
         }
+        return null;
     }
 
     public void freeze() {

@@ -23,8 +23,9 @@ public class CraftingCommand extends BaseCommand {
     @CommandPermission("aurora.crafting.use")
     public void onMenu(Player player, @Default("default") String workbenchId) {
         if (player.hasPermission("aurora.crafting.use." + workbenchId)) {
-            if (plugin.getWorkbenchRegistry().getWorkbench(workbenchId) != null) {
-                CraftMenu.craftMenu(plugin, player, workbenchId).open();
+            var workbench = plugin.getWorkbenchRegistry().getWorkbench(workbenchId);
+            if (workbench != null) {
+                CraftMenu.craftMenu(plugin, player, workbench).open();
             } else {
                 Chat.sendMessage(player, plugin.getConfigManager().getMessageConfig().getWorkbenchNotFound(), Placeholder.of("{workbench}", workbenchId));
             }
@@ -49,7 +50,8 @@ public class CraftingCommand extends BaseCommand {
         if (plugin.getWorkbenchRegistry().getWorkbench(workbenchId) != null) {
             if (target.hasPermission("aurora.crafting.use." + workbenchId)) {
                 target.getScheduler().run(plugin, (t) -> {
-                    CraftMenu.craftMenu(plugin, target, workbenchId).open();
+                    var workbench = plugin.getWorkbenchRegistry().getWorkbench(workbenchId);
+                    CraftMenu.craftMenu(plugin, target, workbench).open();
                     if (!silent) {
                         Chat.sendMessage(sender, plugin.getConfigManager().getMessageConfig().getForceOpened(), Placeholder.of("{workbench}", workbenchId), Placeholder.of("{player}", target.getName()));
                     }

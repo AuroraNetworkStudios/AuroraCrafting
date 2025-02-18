@@ -24,11 +24,13 @@ public class CraftingTableInteractListener implements Listener {
             if (plugin.getConfigManager().getConfig().getOpenInsteadOfCraftingTable()) {
                 if (!event.getPlayer().hasPermission("aurora.crafting.use.interact")) return;
                 event.setCancelled(true);
-                CraftMenu.craftMenu(plugin, event.getPlayer(), plugin.getConfigManager().getConfig().getDefaultWorkbench()).open();
+                var workbench = plugin.getWorkbenchRegistry().getWorkbench(plugin.getConfigManager().getConfig().getDefaultWorkbench());
+                CraftMenu.craftMenu(plugin, event.getPlayer(), workbench).open();
             } else if (plugin.getConfigManager().getConfig().getOpenShiftClickCraftingTable() && event.getPlayer().isSneaking()) {
                 if (!event.getPlayer().hasPermission("aurora.crafting.use.interact")) return;
                 event.setCancelled(true);
-                CraftMenu.craftMenu(plugin, event.getPlayer(), plugin.getConfigManager().getConfig().getDefaultWorkbench()).open();
+                var workbench = plugin.getWorkbenchRegistry().getWorkbench(plugin.getConfigManager().getConfig().getDefaultWorkbench());
+                CraftMenu.craftMenu(plugin, event.getPlayer(), workbench).open();
             }
         }
     }

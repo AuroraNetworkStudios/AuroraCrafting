@@ -96,8 +96,10 @@ public class AuroraCrafting extends AuroraCraftingPlugin {
 
         CommandDispatcher.registerActionHandler("workbench", (player, input) -> {
             var workbenchId = input.trim();
+            var workbench = workbenchRegistry.getWorkbench(workbenchId);
+            if(workbench == null) return;
             if (player.hasPermission("aurora.crafting.use." + workbenchId)) {
-                CraftMenu.craftMenu(this, player, workbenchId).open();
+                CraftMenu.craftMenu(this, player, workbench).open();
             } else {
                 Chat.sendMessage(player, configManager.getMessageConfig().getNoPermission());
             }

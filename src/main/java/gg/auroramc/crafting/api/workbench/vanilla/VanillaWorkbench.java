@@ -27,7 +27,7 @@ public class VanillaWorkbench<T extends Blueprint> extends Workbench {
 
     @SuppressWarnings("unchecked")
     public @Nullable T getBlueprint(BlueprintContext context) {
-        return (T) getBlueprint(type.getBlueprintType(), context);
+        return (T) lookupBlueprint(context, type.getBlueprintType());
     }
 
     public void addBlueprint(T blueprint) {

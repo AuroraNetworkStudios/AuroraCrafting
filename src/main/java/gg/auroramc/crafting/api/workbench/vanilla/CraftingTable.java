@@ -1,7 +1,6 @@
 package gg.auroramc.crafting.api.workbench.vanilla;
 
 import gg.auroramc.crafting.api.blueprint.*;
-import gg.auroramc.crafting.api.workbench.Workbench;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -23,10 +22,10 @@ public class CraftingTable extends VanillaWorkbench<CraftingBlueprint<?>> {
     }
 
     public @Nullable ShapedBlueprint getShapedBlueprint(BlueprintContext context) {
-        return (ShapedBlueprint) this.getBlueprint(BlueprintType.SHAPED, context);
+        return (ShapedBlueprint) this.lookupBlueprint(context, BlueprintType.SHAPED);
     }
 
     public @Nullable ShapelessBlueprint getShapelessBlueprint(BlueprintContext context) {
-        return (ShapelessBlueprint) this.getBlueprint(BlueprintType.SHAPELESS, context);
+        return (ShapelessBlueprint) this.lookupBlueprint(context, BlueprintType.SHAPELESS);
     }
 }
