@@ -349,6 +349,15 @@ public abstract class Blueprint {
         }
     }
 
+    public boolean isStacked() {
+        for (var ingredient : ingredients) {
+            if (ingredient.amount() > 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Get the number of times the blueprint can be crafted based on the items in the matrix
      *

@@ -3,6 +3,7 @@ package gg.auroramc.crafting.listener;
 import gg.auroramc.aurora.api.util.ItemUtils;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.blueprint.BlueprintType;
+import gg.auroramc.crafting.api.event.RegistryLoadedEvent;
 import gg.auroramc.crafting.util.InventoryUtils;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
@@ -16,9 +17,14 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
 import org.bukkit.inventory.*;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @RequiredArgsConstructor
 public class SmithingListener implements Listener {
     private final AuroraCrafting plugin;
+    private final Map<ItemStack, List<Recipe>> recipeCache = new HashMap<>(100);
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPrepareSmithing(PrepareSmithingEvent event) {
@@ -31,8 +37,14 @@ public class SmithingListener implements Listener {
         boolean isAuroraRecipe = false;
 
         if (event.getResult() != null) {
-            var recipes = Bukkit.getRecipesFor(event.getResult()).stream().filter(r -> r instanceof SmithingRecipe);
-            isAuroraRecipe = recipes.anyMatch(r -> ((SmithingRecipe) r).getKey().getNamespace().equals("aurora"));
+            var recipes = recipeCache.computeIfAbsent(event.getResult(),
+                    (k) -> Bukkit.getRecipesFor(event.getResult()).stream().filter(r -> r instanceof SmithingRecipe).toList());
+            for (var r : recipes) {
+                if (((SmithingRecipe) r).getKey().getNamespace().equals("aurora")) {
+                    isAuroraRecipe = true;
+                    break;
+                }
+            }
         }
 
         if (blueprint == null) {
@@ -71,6 +83,8 @@ public class SmithingListener implements Listener {
         if (blueprint == null) {
             return;
         }
+
+        if (!blueprint.isStacked()) return;
 
         event.setCancelled(true);
 
@@ -123,6 +137,11 @@ public class SmithingListener implements Listener {
             }
         }
 
+    }
+
+    @EventHandler
+    public void onRegistryReload(RegistryLoadedEvent event) {
+        recipeCache.clear();
     }
 
     private void updateMatrix(Player player, Inventory inventory, ItemStack[] resultingMatrix) {
