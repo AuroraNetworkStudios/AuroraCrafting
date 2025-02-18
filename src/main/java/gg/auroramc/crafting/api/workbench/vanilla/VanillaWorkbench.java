@@ -1,5 +1,6 @@
 package gg.auroramc.crafting.api.workbench.vanilla;
 
+import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.blueprint.Blueprint;
 import gg.auroramc.crafting.api.blueprint.BlueprintAdapter;
 import gg.auroramc.crafting.api.blueprint.BlueprintContext;
@@ -19,7 +20,6 @@ public class VanillaWorkbench<T extends Blueprint> extends Workbench {
     @Getter
     protected final VanillaType type;
     private final Set<NamespacedKey> registeredRecipes = new HashSet<>();
-    protected boolean registerRecipes = true;
 
     public VanillaWorkbench(String id, int resultSlot, List<Integer> matrixSlots, VanillaType type) {
         super(id, resultSlot, matrixSlots);
@@ -39,14 +39,16 @@ public class VanillaWorkbench<T extends Blueprint> extends Workbench {
     @Override
     public void freeze() {
         super.freeze();
-        if (!registerRecipes) return;
+        int count = 0;
         for (var blueprint : getBlueprints(type.getBlueprintTypes())) {
             var recipe = BlueprintAdapter.adapt(blueprint);
             var success = Bukkit.addRecipe(recipe);
             if (success) {
                 registeredRecipes.add(((Keyed) recipe).getKey());
+                count++;
             }
         }
+        AuroraCrafting.logger().info("Registered " + count + " recipes for workbench: " + id);
     }
 
     public void discoverRecipesFor(Player player) {
@@ -54,7 +56,6 @@ public class VanillaWorkbench<T extends Blueprint> extends Workbench {
     }
 
     public void dispose() {
-        if (!registerRecipes) return;
         for (var key : registeredRecipes) {
             Bukkit.removeRecipe(key);
         }

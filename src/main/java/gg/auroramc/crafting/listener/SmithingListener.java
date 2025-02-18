@@ -16,7 +16,7 @@ import org.bukkit.event.inventory.PrepareSmithingEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.SmithingInventory;
-//import org.bukkit.inventory.SmithingRecipe;
+import org.bukkit.inventory.SmithingRecipe;
 
 @RequiredArgsConstructor
 public class SmithingListener implements Listener {
@@ -30,18 +30,18 @@ public class SmithingListener implements Listener {
         var context = workbench.createContext(player, event.getInventory());
         var blueprint = workbench.lookupBlueprint(context, BlueprintType.SMITHING);
 
-//        boolean pureAuroraRecipe = false;
+        boolean pureAuroraRecipe = false;
 
-//        if (event.getResult() != null) {
-//            var recipes = Bukkit.getRecipesFor(event.getResult());
-//            pureAuroraRecipe = recipes.stream().filter(r -> r instanceof SmithingRecipe)
-//                    .allMatch(r -> ((SmithingRecipe) r).getKey().getNamespace().equals("aurora"));
-//        }
+        if (event.getResult() != null) {
+            var recipes = Bukkit.getRecipesFor(event.getResult());
+            pureAuroraRecipe = recipes.stream().filter(r -> r instanceof SmithingRecipe)
+                    .allMatch(r -> ((SmithingRecipe) r).getKey().getNamespace().equals("aurora"));
+        }
 
         if (blueprint == null) {
-//            if (pureAuroraRecipe) {
-//                event.setResult(ItemStack.empty());
-//            }
+            if (pureAuroraRecipe) {
+                event.setResult(ItemStack.empty());
+            }
             return;
         }
 
@@ -73,9 +73,10 @@ public class SmithingListener implements Listener {
             return;
         }
 
+        event.setCancelled(true);
+
         // Ignore dumb ways of crafting
         if (event.getClick() != ClickType.SHIFT_LEFT && event.getClick() != ClickType.LEFT) {
-            event.setCancelled(true);
             return;
         }
 
@@ -96,7 +97,7 @@ public class SmithingListener implements Listener {
             if (timesCrafted == 1) {
                 updateMatrix(player, event.getInventory(), blueprint.calcRemainingIngredientMatrix(context, 1));
             } else {
-                var amount = (timesCrafted - 1) * blueprint.getResult().amount();
+                var amount = timesCrafted * blueprint.getResult().amount();
                 var stacks = ItemUtils.createStacksFromAmount(currentItem, amount);
                 player.getInventory().addItem(stacks);
                 updateMatrix(player, event.getInventory(), blueprint.calcRemainingIngredientMatrix(context, timesCrafted));
@@ -104,6 +105,7 @@ public class SmithingListener implements Listener {
         } else {
             if (event.getCursor().isEmpty()) {
                 updateMatrix(player, event.getInventory(), blueprint.calcRemainingIngredientMatrix(context, 1));
+                player.getScheduler().run(plugin, (t) -> player.setItemOnCursor(currentItem), null);
             } else {
                 if (event.getCursor().isSimilar(currentItem)) {
                     var maxAmount = event.getCursor().getMaxStackSize() - event.getCursor().getAmount();

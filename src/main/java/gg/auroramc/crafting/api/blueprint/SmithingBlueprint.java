@@ -113,7 +113,11 @@ public class SmithingBlueprint extends Blueprint {
     }
 
     public SmithingBlueprint template(ItemPair itemPair) {
+        var item = AuroraAPI.getItemManager().resolveItem(itemPair.id());
+        item.setAmount(itemPair.amount());
+
         ingredients.set(0, itemPair);
+        ingredientItems.set(0, item);
         return this;
     }
 
@@ -126,7 +130,11 @@ public class SmithingBlueprint extends Blueprint {
     }
 
     public SmithingBlueprint base(ItemPair itemPair) {
+        var item = AuroraAPI.getItemManager().resolveItem(itemPair.id());
+        item.setAmount(itemPair.amount());
+
         ingredients.set(1, itemPair);
+        ingredientItems.set(1, item);
         return this;
     }
 
@@ -139,7 +147,11 @@ public class SmithingBlueprint extends Blueprint {
     }
 
     public SmithingBlueprint addition(ItemPair itemPair) {
+        var item = AuroraAPI.getItemManager().resolveItem(itemPair.id());
+        item.setAmount(itemPair.amount());
+
         ingredients.set(2, itemPair);
+        ingredientItems.set(2, item);
         return this;
     }
 

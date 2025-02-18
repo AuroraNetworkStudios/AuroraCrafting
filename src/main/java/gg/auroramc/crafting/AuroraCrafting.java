@@ -15,9 +15,9 @@ import gg.auroramc.crafting.api.workbench.WorkbenchRegistry;
 import gg.auroramc.crafting.command.CommandManager;
 import gg.auroramc.crafting.config.ConfigManager;
 import gg.auroramc.crafting.hooks.HookManager;
-import gg.auroramc.crafting.listener.SmithingListener;
-import gg.auroramc.crafting.listener.RecipeDiscoverListener;
 import gg.auroramc.crafting.listener.CraftingTableInteractListener;
+import gg.auroramc.crafting.listener.RecipeDiscoverListener;
+import gg.auroramc.crafting.listener.SmithingListener;
 import gg.auroramc.crafting.loader.BlueprintLoader;
 import gg.auroramc.crafting.loader.BookLoader;
 import gg.auroramc.crafting.loader.WorkbenchLoader;
@@ -25,6 +25,7 @@ import gg.auroramc.crafting.menu.CraftMenu;
 import gg.auroramc.crafting.menu.MenuListener;
 import gg.auroramc.crafting.menu.RecipeBookMenu;
 import gg.auroramc.crafting.menu.RecipeMenu;
+import gg.auroramc.crafting.util.RecipeUtil;
 import lombok.Getter;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -141,6 +142,8 @@ public class AuroraCrafting extends AuroraCraftingPlugin {
         book.freeze();
         // Fire RegistryLoadedEvent to notify API users that the registry is now frozen
         Bukkit.getPluginManager().callEvent(new RegistryLoadedEvent());
+        // Disable vanilla recipes based on config
+        RecipeUtil.removeVanillaRecipes(configManager.getDisabledRecipesConfig().getRecipes());
     }
 
     public void callCraftEvent(Player player, ItemStack item, int amount) {
