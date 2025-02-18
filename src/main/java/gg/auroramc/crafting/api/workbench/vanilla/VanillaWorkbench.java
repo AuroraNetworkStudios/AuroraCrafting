@@ -1,6 +1,6 @@
 package gg.auroramc.crafting.api.workbench.vanilla;
 
-public enum Station {
+public enum VanillaWorkbench {
     CRAFTING_TABLE,
     SMITHING_TABLE,
     FURNACE,

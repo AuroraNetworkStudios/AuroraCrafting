@@ -32,6 +32,9 @@ public abstract class Workbench {
 
     public void addBlueprint(BlueprintType type, Blueprint blueprint) {
         if (frozen) throw new IllegalStateException("Cannot register blueprint after freezing");
+        if (blueprints.containsKey(blueprint.getId())) {
+            throw new IllegalArgumentException("Blueprint with ID: " + blueprint.getId() + " already exists");
+        }
         blueprints.put(blueprint.getId(), blueprint);
         categorizedBlueprints.computeIfAbsent(type, t -> new HashMap<>()).put(blueprint.getId(), blueprint);
         matrixLookup.computeIfAbsent(type, t -> new HashMap<>()).put(BlueprintLookupGenerator.toKey(blueprint), blueprint);

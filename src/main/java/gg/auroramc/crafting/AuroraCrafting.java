@@ -9,17 +9,21 @@ import gg.auroramc.crafting.api.RecipeManager;
 import gg.auroramc.crafting.api.blueprint.BlueprintRegistry;
 import gg.auroramc.crafting.api.book.Book;
 import gg.auroramc.crafting.api.event.PlayerCraftItemEvent;
+import gg.auroramc.crafting.api.event.RegistryLoadEvent;
+import gg.auroramc.crafting.api.event.RegistryLoadedEvent;
 import gg.auroramc.crafting.api.workbench.WorkbenchRegistry;
 import gg.auroramc.crafting.command.CommandManager;
 import gg.auroramc.crafting.config.ConfigManager;
 import gg.auroramc.crafting.hooks.HookManager;
 import gg.auroramc.crafting.listener.ConnectionListener;
 import gg.auroramc.crafting.listener.CraftingTableInteractListener;
+import gg.auroramc.crafting.loader.BlueprintLoader;
+import gg.auroramc.crafting.loader.BookLoader;
+import gg.auroramc.crafting.loader.WorkbenchLoader;
 import gg.auroramc.crafting.menu.CraftMenu;
 import gg.auroramc.crafting.menu.MenuListener;
 import gg.auroramc.crafting.menu.RecipeBookMenu;
 import gg.auroramc.crafting.menu.RecipeMenu;
-import gg.auroramc.crafting.util.RecipeRegistrar;
 import lombok.Getter;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -68,17 +72,7 @@ public class AuroraCrafting extends AuroraCraftingPlugin {
             Bukkit.getPluginManager().registerEvents(new CraftingTableInteractListener(this), this);
         }
 
-        Bukkit.getGlobalRegionScheduler().runDelayed(this, (t) -> {
-            recipeManager.reload();
-            RecipeRegistrar.reloadRecipes(configManager);
-            // TODO: load everything from configs
-            // TODO: fire RegistryLoadEvent
-
-            // Freeze the registry to prevent further modifications
-            workbenchRegistry.freeze();
-            // Create blueprint registry
-            blueprintRegistry = BlueprintRegistry.createFrom(workbenchRegistry);
-        }, 2);
+        Bukkit.getGlobalRegionScheduler().runDelayed(this, (t) -> initState(), 2);
 
         HookManager.enableHooks(this);
 
@@ -102,7 +96,6 @@ public class AuroraCrafting extends AuroraCraftingPlugin {
 
         CommandDispatcher.registerActionHandler("workbench", (player, input) -> {
             var workbenchId = input.trim();
-            if (!configManager.getWorkbenchConfig().containsKey(workbenchId)) return;
             if (player.hasPermission("aurora.crafting.use." + workbenchId)) {
                 CraftMenu.craftMenu(this, player, workbenchId).open();
             } else {
@@ -121,11 +114,32 @@ public class AuroraCrafting extends AuroraCraftingPlugin {
     public void reload() {
         configManager.reload();
         commandManager.reload();
-        recipeManager.reload();
-        RecipeRegistrar.reloadRecipes(configManager);
+        initState();
+    }
+
+    private void initState() {
+        // Initialize fields
+        book.unfreezeAndClear();
+        workbenchRegistry.unfreezeAndClear();
+        // Load everything from configs
+        BookLoader.loadBookCategories(this);
+        WorkbenchLoader.loadWorkbenches(this);
+        BlueprintLoader.loadBlueprints(this);
+        // Fire RegistryLoadEvent for API users to register their own workbenches/blueprints
+        Bukkit.getPluginManager().callEvent(new RegistryLoadEvent());
+        // Freeze the registry to prevent further modifications
+        workbenchRegistry.freeze();
+        // Create blueprint registry (immutable)
+        blueprintRegistry = BlueprintRegistry.createFrom(workbenchRegistry);
+        // Fill book categories with blueprints from config
+        BookLoader.fillBookCategories(this);
+        // Freeze the book to prevent further modifications
+        book.freeze();
+        // Fire RegistryLoadedEvent to notify API users that the registry is now frozen
+        Bukkit.getPluginManager().callEvent(new RegistryLoadedEvent());
     }
 
     public void callCraftEvent(Player player, ItemStack item, int amount) {
-        Bukkit.getPluginManager().callEvent(new PlayerCraftItemEvent(player, item, amount, null));
+        Bukkit.getPluginManager().callEvent(new PlayerCraftItemEvent(player, item, null, amount));
     }
 }

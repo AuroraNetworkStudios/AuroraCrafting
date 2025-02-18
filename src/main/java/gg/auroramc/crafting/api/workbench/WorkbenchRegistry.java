@@ -1,11 +1,7 @@
 package gg.auroramc.crafting.api.workbench;
 
 import gg.auroramc.crafting.api.workbench.custom.CustomWorkbench;
-import gg.auroramc.crafting.api.workbench.vanilla.CraftingTable;
-import gg.auroramc.crafting.api.workbench.vanilla.Furnace;
-import gg.auroramc.crafting.api.workbench.vanilla.SmithingTable;
-import gg.auroramc.crafting.api.workbench.vanilla.Station;
-import lombok.AccessLevel;
+import gg.auroramc.crafting.api.workbench.vanilla.*;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,11 +16,7 @@ public class WorkbenchRegistry {
 
     private final Map<String, CustomWorkbench> workbenches = new HashMap<>();
 
-    private final Map<Station, Workbench> vanillaWorkbenches = Map.of(
-            Station.CRAFTING_TABLE, new CraftingTable(),
-            Station.SMITHING_TABLE, new SmithingTable(),
-            Station.FURNACE, new Furnace()
-    );
+    private Map<VanillaWorkbench, Workbench> vanillaWorkbenches = vanillaWorkbenchInit();
 
     public void registerWorkbench(CustomWorkbench workbench) {
         if (frozen) throw new IllegalStateException("Cannot register workbench after freezing");
@@ -32,20 +24,32 @@ public class WorkbenchRegistry {
         workbenches.put(workbench.getId(), workbench);
     }
 
-    public @Nullable Workbench getWorkbench(String id) {
+    public @Nullable CustomWorkbench getWorkbench(String id) {
         return workbenches.get(id);
     }
 
     public CraftingTable getCraftingTable() {
-        return (CraftingTable) vanillaWorkbenches.get(Station.CRAFTING_TABLE);
+        return (CraftingTable) vanillaWorkbenches.get(VanillaWorkbench.CRAFTING_TABLE);
     }
 
     public SmithingTable getSmithingTable() {
-        return (SmithingTable) vanillaWorkbenches.get(Station.SMITHING_TABLE);
+        return (SmithingTable) vanillaWorkbenches.get(VanillaWorkbench.SMITHING_TABLE);
     }
 
     public Furnace getFurnace() {
-        return (Furnace) vanillaWorkbenches.get(Station.FURNACE);
+        return (Furnace) vanillaWorkbenches.get(VanillaWorkbench.FURNACE);
+    }
+
+    public BlastFurnace getBlastFurnace() {
+        return (BlastFurnace) vanillaWorkbenches.get(VanillaWorkbench.BLAST_FURNACE);
+    }
+
+    public Smoker getSmoker() {
+        return (Smoker) vanillaWorkbenches.get(VanillaWorkbench.SMOKER);
+    }
+
+    public Campfire getCampfire() {
+        return (Campfire) vanillaWorkbenches.get(VanillaWorkbench.CAMPFIRE);
     }
 
     public Collection<CustomWorkbench> getCustomWorkbenches() {
@@ -66,5 +70,22 @@ public class WorkbenchRegistry {
         for (var workbench : workbenches.values()) {
             workbench.freeze();
         }
+    }
+
+    public void unfreezeAndClear() {
+        frozen = false;
+        workbenches.clear();
+        vanillaWorkbenches = vanillaWorkbenchInit();
+    }
+
+    private Map<VanillaWorkbench, Workbench> vanillaWorkbenchInit() {
+        return Map.of(
+                VanillaWorkbench.CRAFTING_TABLE, new CraftingTable(),
+                VanillaWorkbench.SMITHING_TABLE, new SmithingTable(),
+                VanillaWorkbench.FURNACE, new Furnace(),
+                VanillaWorkbench.SMOKER, new Smoker(),
+                VanillaWorkbench.BLAST_FURNACE, new BlastFurnace(),
+                VanillaWorkbench.CAMPFIRE, new Campfire()
+        );
     }
 }

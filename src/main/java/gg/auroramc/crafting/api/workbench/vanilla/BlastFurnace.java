@@ -8,16 +8,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class Furnace extends Workbench {
-    public Furnace() {
-        super("vanilla-furnace", 0, List.of(1));
+public class BlastFurnace extends Workbench {
+    public BlastFurnace() {
+        super("vanilla-blast-furnace", 0, List.of(1));
     }
 
     public @Nullable CookingBlueprint getBlueprint(BlueprintContext context) {
-        return (CookingBlueprint) this.getBlueprint(BlueprintType.FURNACE, context);
+        return (CookingBlueprint) this.getBlueprint(BlueprintType.BLASTING, context);
     }
 
     public void addBlueprint(CookingBlueprint blueprint) {
-        this.addBlueprint(BlueprintType.FURNACE, blueprint);
+        this.addBlueprint(BlueprintType.BLASTING, blueprint);
     }
 }

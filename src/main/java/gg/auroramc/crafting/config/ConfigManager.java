@@ -1,6 +1,7 @@
 package gg.auroramc.crafting.config;
 
 import gg.auroramc.crafting.AuroraCrafting;
+import gg.auroramc.crafting.api.workbench.custom.MenuOptions;
 import gg.auroramc.crafting.config.menu.*;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -28,7 +29,7 @@ public class ConfigManager {
     private DisabledRecipesConfig disabledRecipesConfig;
 
     // menus
-    private Map<String, WorkbenchConfig> workbenchConfig;
+    private List<WorkbenchConfig> workbenchConfig;
     private RecipeViewConfig recipeViewConfig;
     private RecipeBookMenuConfig recipeBookMenuConfig;
     private RecipeBookCategoryConfig recipeBookCategoryConfig;
@@ -88,6 +89,8 @@ public class ConfigManager {
         workbenchDefaultConfig = new WorkbenchDefaultConfig(plugin);
         workbenchDefaultConfig.load();
 
+        MenuOptions.setDefaultSupplier(workbenchDefaultConfig);
+
         workbenchConfig = loadWorkBenches();
 
         customRecipes = getRecipesConfigs();
@@ -114,7 +117,7 @@ public class ConfigManager {
     }
 
     @SneakyThrows
-    private Map<String, WorkbenchConfig> loadWorkBenches() {
+    private List<WorkbenchConfig> loadWorkBenches() {
         if (!new File(plugin.getDataFolder() + "workbenches").exists()) {
             if (new File(plugin.getDataFolder() + "/menus", "workbench.yml").exists()) {
                 Files.createDirectories(Path.of(plugin.getDataFolder().getPath(), "workbenches"));
@@ -127,7 +130,7 @@ public class ConfigManager {
             }
         }
 
-        var map = new HashMap<String, WorkbenchConfig>();
+        var map = new ArrayList<WorkbenchConfig>();
 
         try (Stream<Path> paths = Files.walk(Path.of(plugin.getDataFolder().getPath(), "workbenches"), 1)) {
             var fileList = paths
@@ -137,7 +140,7 @@ public class ConfigManager {
                     .toList();
 
             for (var file : fileList) {
-                map.put(file.getName().replace(".yml", ""), getWorkbenchConfig(file));
+                map.add(getWorkbenchConfig(file));
             }
 
             return map;

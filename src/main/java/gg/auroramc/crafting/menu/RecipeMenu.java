@@ -20,12 +20,12 @@ public class RecipeMenu {
     }
 
     public void open() {
-        var workbenchConfig = plugin.getConfigManager().getWorkbenchConfig().get(recipe.getWorkbench());
+        var workbenchConfig = plugin.getWorkbenchRegistry().getWorkbench(recipe.getWorkbench());
         var mc = plugin.getConfigManager().getRecipeViewConfig();
         var mcc = plugin.getConfigManager().getRecipeBookCategoryConfig();
 
-        var menu = new AuroraMenu(player, mc.getTitle(), workbenchConfig.getRows() * 9, false);
-        menu.addFiller(ItemBuilder.of(workbenchConfig.getFiller()).toItemStack(player));
+        var menu = new AuroraMenu(player, mc.getTitle(), workbenchConfig.getMenuOptions().getRows() * 9, false);
+        menu.addFiller(ItemBuilder.of(workbenchConfig.getMenuOptions().getFillerItem()).toItemStack(player));
 
         var ingredientItems = recipe.getIngredientItems();
         var ingredientTypes = recipe.getIngredients();

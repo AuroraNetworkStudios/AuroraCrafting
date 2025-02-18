@@ -24,7 +24,8 @@ import java.util.function.Consumer;
 @Getter
 public abstract class Blueprint {
     protected final String id;
-    protected BookCategory category;
+    protected List<BookCategory> category = new ArrayList<>();
+    protected String source;
     protected ItemPair result;
     protected ItemStack resultItem;
     protected String permission;
@@ -142,13 +143,24 @@ public abstract class Blueprint {
     }
 
     /**
+     * Set the load source of the blueprint
+     *
+     * @param source source of the blueprint
+     * @return the blueprint
+     */
+    public Blueprint source(String source) {
+        this.source = source;
+        return this;
+    }
+
+    /**
      * Set the book category which the blueprint belongs to
      *
      * @param category the category
      * @return the blueprint
      */
     public Blueprint category(BookCategory category) {
-        this.category = category;
+        this.category.add(category);
         return this;
     }
 

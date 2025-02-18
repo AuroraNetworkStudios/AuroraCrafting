@@ -49,17 +49,17 @@ public class CraftMenu implements InventoryHolder {
         this.player = player;
         this.workbenchId = workbenchId;
 
-        var config = plugin.getConfigManager().getWorkbenchConfig().get(workbenchId);
+        var config = plugin.getWorkbenchRegistry().getWorkbench(workbenchId);
         this.matrixSlots = config.getMatrixSlots();
         this.matrixLookup = Set.copyOf(matrixSlots);
         this.resultSlot = config.getResultSlot();
-        this.quickCraftSlots = config.getQuickCraftingSlots();
+        this.quickCraftSlots = new HashSet<>(config.getQuickCraftSlots());
 
-        this.inventory = Bukkit.createInventory(this, config.getRows() * 9, Text.component(config.getTitle()));
-        this.invalidResultItem = ItemBuilder.of(config.getInvalidResultItem()).toItemStack(player);
-        this.fillerItem = ItemBuilder.of(config.getFiller()).toItemStack(player);
-        this.noPermQuickCraftItem = ItemBuilder.of(config.getNoPermissionQuickCraftItem()).toItemStack(player);
-        this.emptyQuickCraftItem = ItemBuilder.of(config.getEmptyQuickCraftItem()).toItemStack(player);
+        this.inventory = Bukkit.createInventory(this, config.getMenuOptions().getRows() * 9, Text.component(config.getMenuOptions().getTitle()));
+        this.invalidResultItem = ItemBuilder.of(config.getMenuOptions().getInvalidResultItem()).toItemStack(player);
+        this.fillerItem = ItemBuilder.of(config.getMenuOptions().getFillerItem()).toItemStack(player);
+        this.noPermQuickCraftItem = ItemBuilder.of(config.getMenuOptions().getNoPermissionQuickCraftItem()).toItemStack(player);
+        this.emptyQuickCraftItem = ItemBuilder.of(config.getMenuOptions().getEmptyQuickCraftItem()).toItemStack(player);
 
         for (int i = 0; i < inventory.getSize(); i++) {
             if (!matrixLookup.contains(i)) {
@@ -69,7 +69,7 @@ public class CraftMenu implements InventoryHolder {
         inventory.setItem(resultSlot, invalidResultItem);
         setUpQuickCraft();
 
-        for (var itemConfig : config.getCustomItems().values()) {
+        for (var itemConfig : config.getMenuOptions().getCustomItems()) {
             var menuItem = ItemBuilder.of(itemConfig).build(player);
             for (var slot : menuItem.getSlots()) {
                 if (matrixLookup.contains(slot) || slot == resultSlot || quickCraftSlots.contains(slot)) {

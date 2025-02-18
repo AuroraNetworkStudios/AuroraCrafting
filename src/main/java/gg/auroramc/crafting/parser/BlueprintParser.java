@@ -71,6 +71,7 @@ public class BlueprintParser {
                 .permission(config.getPermission())
                 .ingredients(config.getIngredients().stream().map(i -> parseItemPair(i, Material.BARRIER)).toList())
                 .category(category)
+                .source(config.getSourcePath())
                 .onCraft((player, result, amount) -> {
                     for (var cmd : config.getOnCraft()) {
                         CommandDispatcher.dispatch(player, cmd,
@@ -112,6 +113,7 @@ public class BlueprintParser {
                                 .category(vanillaCategory)
                                 .build())
                 .category(category)
+                .source(config.getSourcePath())
                 .displayOptions(Blueprint.DisplayOptions.builder()
                         .items(config.getDisplayOptions().getItems())
                         .lockedLore(config.getDisplayOptions().getLockedLore())
@@ -130,6 +132,7 @@ public class BlueprintParser {
                         .lockedLore(config.getDisplayOptions().getLockedLore())
                         .build())
                 .category(category)
+                .source(config.getSourcePath())
                 .onCraft(config.getOnCraft() != null ? (player, result, amount) -> {
                     for (var cmd : config.getOnCraft()) {
                         CommandDispatcher.dispatch(player, cmd,
