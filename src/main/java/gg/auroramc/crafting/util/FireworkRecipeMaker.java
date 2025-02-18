@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.bukkit.Color;
+import org.bukkit.DyeColor;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -14,6 +15,7 @@ import org.bukkit.inventory.meta.FireworkEffectMeta;
 import org.bukkit.inventory.meta.FireworkMeta;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Getter
@@ -42,7 +44,7 @@ public class FireworkRecipeMaker {
         };
     }
 
-    public ItemStack craftFireStar(ItemStack[] matrix) {
+    public static ItemStack craftFireStar(ItemStack[] matrix) {
 
         FireStarSettings settings = getFireStarSettings(matrix);
 
@@ -58,6 +60,7 @@ public class FireworkRecipeMaker {
 
         FireworkEffect.Builder builder = FireworkEffect.builder()
                 .withColor(settings.getColors());
+
 
         if(settings.isGlowStone()) builder.withFlicker();
         if(settings.isDiamond()) builder.withTrail();
@@ -87,10 +90,65 @@ public class FireworkRecipeMaker {
                 case SKELETON_SKULL, WITHER_SKELETON_SKULL, PLAYER_HEAD, CREEPER_HEAD -> settings.setType(FireworkEffect.Type.CREEPER);
 
                 default -> {
-                    if(item.getType().name().toLowerCase().endsWith("dye")) {
-                        Color color = getDyeColor(item.getType());
-                        if(color != null) settings.getColors().add(color);
+                    if(item.getType().name().endsWith("DYE")) {
+                        Color color = DyeColor.valueOf(item.getType().name().replace("_DYE", "")).getFireworkColor();
+                        settings.getColors().add(color);
                     }
+                }
+            }
+        }
+
+        return settings;
+    }
+
+    public static ItemStack craftFireStarFade(ItemStack[] matrix) {
+        FadeFireStarSettings settings = getFadeFireStarSettings(matrix);
+
+        ItemStack item = settings.getFireStar();
+        if (item == null) return null;
+
+        FireworkEffectMeta meta = (FireworkEffectMeta) item.getItemMeta();
+
+        FireworkEffect.Builder builder = FireworkEffect.builder();
+        if (meta.hasEffect()) {
+            builder
+                    .withColor(meta.getEffect().getColors())
+                    .with(meta.getEffect().getType())
+                    .trail(meta.getEffect().hasTrail())
+                    .flicker(meta.getEffect().hasFlicker());
+        }
+
+        builder.withFade(settings.getFadeColors());
+        FireworkEffect effect = builder.build();
+
+        meta.setEffect(effect);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    @Getter
+    @Setter
+    @ToString
+    @NoArgsConstructor
+    @AllArgsConstructor
+    private static class FadeFireStarSettings {
+        private ItemStack fireStar;
+        private List<Color> fadeColors = new ArrayList<>();
+    }
+
+    private static FadeFireStarSettings getFadeFireStarSettings(ItemStack[] matrix) {
+        FadeFireStarSettings settings = new FadeFireStarSettings();
+
+        for (ItemStack item : Arrays.stream(matrix).toList().reversed()) {
+            if (item == null) continue;
+            if(item.isEmpty()) continue;
+
+            if(item.getType().equals(Material.FIREWORK_STAR)) {
+                settings.setFireStar(item);
+            } else {
+                if(item.getType().name().endsWith("DYE")) {
+                    Color color = DyeColor.valueOf(item.getType().name().replace("_DYE", "")).getFireworkColor();
+                    settings.getFadeColors().add(color);
                 }
             }
         }
@@ -118,13 +176,13 @@ public class FireworkRecipeMaker {
      * |------------------------|
      */
 
-    public ItemStack craftFireworkRocket(ItemStack[] matrix) {
+    public static ItemStack craftFireworkRocket(ItemStack[] matrix) {
         FireWorkSettings settings = getFireWorkSettings(matrix);
 
         // must have at least one gunpowder and one paper
         if(settings.getGunPowderCount() == 0 || settings.getPaperCount() == 0) return null;
 
-        ItemStack fireWorkRocket = new ItemStack(Material.FIREWORK_ROCKET);
+        ItemStack fireWorkRocket = new ItemStack(Material.FIREWORK_ROCKET, 3);
         FireworkMeta rocketMeta = (FireworkMeta) fireWorkRocket.getItemMeta();
         if(rocketMeta == null) return null;
 
@@ -138,7 +196,7 @@ public class FireworkRecipeMaker {
         return fireWorkRocket;
     }
 
-    private FireWorkSettings getFireWorkSettings(ItemStack[] matrix) {
+    private static FireWorkSettings getFireWorkSettings(ItemStack[] matrix) {
         FireWorkSettings settings = new FireWorkSettings();
 
         int gunPowderCount = 0;
@@ -146,7 +204,6 @@ public class FireworkRecipeMaker {
         for (ItemStack item : matrix) {
             if (item == null) continue;
             if(item.isEmpty() || item.getType().equals(Material.AIR)) continue;
-
 
             // todo, config option to ignore gunpowder vanilla limits
             switch (item.getType()) {

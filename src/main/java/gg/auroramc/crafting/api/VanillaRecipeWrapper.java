@@ -88,13 +88,11 @@ public class VanillaRecipeWrapper extends AuroraRecipe {
 
     private ItemStack getFireworkStarResult() {
         ItemStack[] items = Arrays.stream(this.matrix).filter(v -> v != null && v.getType() != Material.AIR).toArray(ItemStack[]::new);
-        FireworkRecipeMaker maker = new FireworkRecipeMaker();
-        return maker.craftFireStar(items);
+        return FireworkRecipeMaker.craftFireStar(items);
     }
     private ItemStack getFireworkRocketResult() {
         ItemStack[] items = Arrays.stream(this.matrix).filter(v -> v != null && v.getType() != Material.AIR).toArray(ItemStack[]::new);
-        FireworkRecipeMaker maker = new FireworkRecipeMaker();
-        return maker.craftFireworkRocket(items);
+        return FireworkRecipeMaker.craftFireworkRocket(items);
     }
 
     private ItemStack getBundleResult() {
