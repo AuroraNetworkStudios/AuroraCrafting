@@ -13,10 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.SmithingInventory;
-import org.bukkit.inventory.SmithingRecipe;
+import org.bukkit.inventory.*;
 
 @RequiredArgsConstructor
 public class SmithingListener implements Listener {
@@ -30,16 +27,15 @@ public class SmithingListener implements Listener {
         var context = workbench.createContext(player, event.getInventory());
         var blueprint = workbench.lookupBlueprint(context, BlueprintType.SMITHING);
 
-        boolean pureAuroraRecipe = false;
+        boolean isAuroraRecipe = false;
 
         if (event.getResult() != null) {
-            var recipes = Bukkit.getRecipesFor(event.getResult());
-            pureAuroraRecipe = recipes.stream().filter(r -> r instanceof SmithingRecipe)
-                    .allMatch(r -> ((SmithingRecipe) r).getKey().getNamespace().equals("aurora"));
+            var recipes = Bukkit.getRecipesFor(event.getResult()).stream().filter(r -> r instanceof SmithingRecipe);
+            isAuroraRecipe = recipes.anyMatch(r -> ((SmithingRecipe) r).getKey().getNamespace().equals("aurora"));
         }
 
         if (blueprint == null) {
-            if (pureAuroraRecipe) {
+            if (isAuroraRecipe) {
                 event.setResult(ItemStack.empty());
             }
             return;
@@ -51,7 +47,9 @@ public class SmithingListener implements Listener {
         }
 
         if (blueprint.getTimesCraftable(context) <= 0) {
-            event.setResult(ItemStack.empty());
+            if (isAuroraRecipe) {
+                event.setResult(ItemStack.empty());
+            }
             return;
         }
 

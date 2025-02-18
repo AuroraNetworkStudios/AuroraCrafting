@@ -61,7 +61,7 @@ public abstract class Blueprint {
             if (ingredient == null) {
                 continue;
             }
-            var mergeOption = mergeOptions.get(String.valueOf(i));
+            var mergeOption = mergeOptions.get(i);
             if (mergeOption == null) {
                 continue;
             }
@@ -86,6 +86,7 @@ public abstract class Blueprint {
             if (ingredient.getItemMeta() instanceof ArmorMeta armorMeta && armorMeta.hasTrim()) {
                 if (result.getItemMeta() instanceof ArmorMeta resultArmorMeta) {
                     resultArmorMeta.setTrim(armorMeta.getTrim());
+                    result.setItemMeta(resultArmorMeta);
                 }
             }
         }
