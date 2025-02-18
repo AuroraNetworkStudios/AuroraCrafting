@@ -73,12 +73,8 @@ public class CraftMenu implements InventoryHolder {
                 inventory.setItem(i, fillerItem);
             }
         }
-        inventory.setItem(resultSlot, invalidResultItem);
+        setInvalidResult();
         setUpQuickCraft();
-
-        for (var slot : notCompletedItem.getSlots()) {
-            inventory.setItem(slot, notCompletedItem.getItemStack());
-        }
 
         for (var itemConfig : workbench.getMenuOptions().getCustomItems()) {
             var menuItem = ItemBuilder.of(itemConfig).build(player);
