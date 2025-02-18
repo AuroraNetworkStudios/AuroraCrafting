@@ -9,7 +9,7 @@ recipes:
     permission: "craft.emerald"
     # Result item of the recipe
     # (can reference the ingredient item from the crafting inventory by using ingredient:2 for the 2nd ingredient)
-    result: "minecraft:diamond/32"
+    result: "minecraft:emerald/32"
     # Ingredients required to craft the recipe
     ingredients:
       - ""
