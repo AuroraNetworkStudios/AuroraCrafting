@@ -256,7 +256,7 @@ public class CraftMenu implements InventoryHolder {
             return;
         }
 
-        final var currentItem = event.getCurrentItem() != null ? event.getCurrentItem() : ItemStack.empty();
+        final var currentItem = event.getCurrentItem() != null ? event.getCurrentItem().clone() : ItemStack.empty();
 
         if (event.isShiftClick()) {
             // Check the player inventory for space. If one crafting result fits, allow the shift click
@@ -374,7 +374,7 @@ public class CraftMenu implements InventoryHolder {
             return;
         }
 
-        final var currentItem = event.getCurrentItem() != null ? event.getCurrentItem() : ItemStack.empty();
+        final var currentItem = event.getCurrentItem() != null ? event.getCurrentItem().clone() : ItemStack.empty();
 
         // Handle crafting when shift clicking
         if (event.isShiftClick()) {
