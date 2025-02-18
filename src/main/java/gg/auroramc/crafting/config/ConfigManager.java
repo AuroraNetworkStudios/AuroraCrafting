@@ -3,6 +3,12 @@ package gg.auroramc.crafting.config;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.workbench.custom.MenuOptions;
 import gg.auroramc.crafting.config.menu.*;
+import gg.auroramc.crafting.config.menu.vanilla.BlastFurnaceRecipeViewConfig;
+import gg.auroramc.crafting.config.menu.vanilla.CampfireRecipeViewConfig;
+import gg.auroramc.crafting.config.menu.vanilla.CraftingTableRecipeViewConfig;
+import gg.auroramc.crafting.config.menu.vanilla.FurnaceRecipeViewConfig;
+import gg.auroramc.crafting.config.menu.vanilla.SmithingRecipeViewConfig;
+import gg.auroramc.crafting.config.menu.vanilla.SmokerRecipeViewConfig;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
@@ -12,14 +18,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Getter
 public class ConfigManager {
+
+    public static final String VANILLA_RECIPE_VIEW_PATH = "menus/vanilla_recipe_view";
+
     private final AuroraCrafting plugin;
 
     private Config config;
@@ -35,6 +42,15 @@ public class ConfigManager {
     private RecipeBookCategoryConfig recipeBookCategoryConfig;
     private MerchantsMenuConfig merchantsMenuConfig;
     private WorkbenchDefaultConfig workbenchDefaultConfig;
+
+
+    // recipe views
+    private BlastFurnaceRecipeViewConfig blastFurnaceRecipeViewConfig;
+    private CampfireRecipeViewConfig campfireRecipeViewConfig;
+    private CraftingTableRecipeViewConfig craftingTableRecipeViewConfig;
+    private FurnaceRecipeViewConfig furnaceRecipeViewConfig;
+    private SmithingRecipeViewConfig smithingRecipeViewConfig;
+    private SmokerRecipeViewConfig smokerRecipeViewConfig;
 
     private List<CraftingRecipesConfig> customRecipes;
 
@@ -88,6 +104,33 @@ public class ConfigManager {
         WorkbenchDefaultConfig.saveDefault(plugin);
         workbenchDefaultConfig = new WorkbenchDefaultConfig(plugin);
         workbenchDefaultConfig.load();
+
+
+        // recipe views
+        BlastFurnaceRecipeViewConfig.saveDefault(plugin);
+        blastFurnaceRecipeViewConfig = new BlastFurnaceRecipeViewConfig(plugin);
+        blastFurnaceRecipeViewConfig.load();
+
+        CampfireRecipeViewConfig.saveDefault(plugin);
+        campfireRecipeViewConfig = new CampfireRecipeViewConfig(plugin);
+        campfireRecipeViewConfig.load();
+
+        CraftingTableRecipeViewConfig.saveDefault(plugin);
+        craftingTableRecipeViewConfig = new CraftingTableRecipeViewConfig(plugin);
+        craftingTableRecipeViewConfig.load();
+
+        FurnaceRecipeViewConfig.saveDefault(plugin);
+        furnaceRecipeViewConfig = new FurnaceRecipeViewConfig(plugin);
+        furnaceRecipeViewConfig.load();
+
+        SmithingRecipeViewConfig.saveDefault(plugin);
+        smithingRecipeViewConfig = new SmithingRecipeViewConfig(plugin);
+        smithingRecipeViewConfig.load();
+
+        SmokerRecipeViewConfig.saveDefault(plugin);
+        smokerRecipeViewConfig = new SmokerRecipeViewConfig(plugin);
+        smokerRecipeViewConfig.load();
+
 
         MenuOptions.setDefaultSupplier(workbenchDefaultConfig);
 
