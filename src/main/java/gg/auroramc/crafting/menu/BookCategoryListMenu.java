@@ -22,6 +22,7 @@ public class BookCategoryListMenu {
 
     public void open() {
         var mc = plugin.getConfigManager().getRecipeBookMenuConfig();
+        var mcc = plugin.getConfigManager().getRecipeBookCategoryConfig();
         var categories = category.getCategories();
 
         var menu = new AuroraMenu(player, category.getMenuOptions().getTitle(), mc.getRows() * 9, false);
@@ -51,6 +52,10 @@ public class BookCategoryListMenu {
             for (var item : mc.getCustomItems().values()) {
                 menu.addItem(ItemBuilder.of(item).build(player));
             }
+        } else {
+            menu.addItem(ItemBuilder.of(mcc.getItems().get("back")).build(player), (e) -> {
+                BookCategoryListMenu.bookCategoryListMenu(plugin, player, category.getParent()).open();
+            });
         }
 
         menu.open();

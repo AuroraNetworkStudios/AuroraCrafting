@@ -1,9 +1,11 @@
 package gg.auroramc.crafting.loader;
 
 import gg.auroramc.crafting.AuroraCrafting;
+import gg.auroramc.crafting.api.book.BookCategory;
 import gg.auroramc.crafting.config.RecipeBookConfig;
 import gg.auroramc.crafting.parser.BookParser;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,22 @@ public class BookLoader {
                 AuroraCrafting.logger().severe("Failed to load book category " + categoryConfig.getId() + ": " + e.getMessage());
             }
         }
+
+        // Print the tree of book categories
+        AuroraCrafting.logger().info("-------------------------------------------");
+        AuroraCrafting.logger().info("Recipe book structure:");
+        AuroraCrafting.logger().info("  " + plugin.getBook().getId());
+        printTree(plugin.getBook().getCategories(), 2);
+        AuroraCrafting.logger().info("-------------------------------------------");
+    }
+
+    private static void printTree(Collection<BookCategory> categories, int depth) {
+        for (var category : categories) {
+            var indent = " ".repeat(depth * 2);
+            AuroraCrafting.logger().info(indent + category.getId());
+            printTree(category.getCategories(), depth + 1);
+        }
+
     }
 
     public static void fillBookCategories(AuroraCrafting plugin) {
