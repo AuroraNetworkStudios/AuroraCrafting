@@ -10,7 +10,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.inventory.CraftingInventory;
@@ -77,26 +76,27 @@ public class CraftingListener implements Listener {
 
         if (!blueprint.isStacked()) return;
 
-        event.setCancelled(true);
-
-        // Ignore dumb ways of crafting
-        if (event.getClick() != ClickType.SHIFT_LEFT && event.getClick() != ClickType.LEFT) {
+        var timesCraftable = blueprint.getTimesCraftable(context);
+        if (timesCraftable == 0) {
+            event.setCancelled(true);
             return;
         }
 
-        var timesCraftable = blueprint.getTimesCraftable(context);
-        if (timesCraftable == 0) return;
+        // Don't fuck with the event if it isn't a shift click
+        if (!event.isShiftClick()) {
+            var result = craftingInventory.getResult();
+            var newMatrix = blueprint.calcRemainingIngredientMatrix(context, 1);
+            updateMatrix(player, craftingInventory, newMatrix);
+            craftingInventory.setResult(result);
+        } else {
+            event.setCancelled(true);
+            final var currentItem = event.getCurrentItem() != null ? event.getCurrentItem().clone() : ItemStack.empty();
 
-        final var currentItem = event.getCurrentItem() != null ? event.getCurrentItem().clone() : ItemStack.empty();
-
-        if (event.isShiftClick()) {
             int currentSpace = InventoryUtils.calculateSpaceForItem(player.getInventory(), currentItem);
             if (currentSpace < blueprint.getResult().amount()) {
-                event.setCancelled(true);
                 return;
             }
-            final int availableSpace = currentSpace - blueprint.getResult().amount();
-            final int timesCrafted = Math.min((availableSpace / blueprint.getResult().amount()) + 1, timesCraftable);
+            final int timesCrafted = Math.min((currentSpace / blueprint.getResult().amount()) + 1, timesCraftable);
 
             if (timesCrafted == 1) {
                 updateMatrix(player, event.getInventory(), blueprint.calcRemainingIngredientMatrix(context, 1));
@@ -107,22 +107,8 @@ public class CraftingListener implements Listener {
                 player.getInventory().addItem(stacks);
                 updateMatrix(player, event.getInventory(), blueprint.calcRemainingIngredientMatrix(context, timesCrafted));
             }
-        } else {
-            if (event.getCursor().isEmpty()) {
-                updateMatrix(player, event.getInventory(), blueprint.calcRemainingIngredientMatrix(context, 1));
-                player.getScheduler().run(plugin, (t) -> player.setItemOnCursor(currentItem), null);
-            } else {
-                if (event.getCursor().isSimilar(currentItem)) {
-                    var maxAmount = event.getCursor().getMaxStackSize() - event.getCursor().getAmount();
-                    if (blueprint.getResult().amount() <= maxAmount) {
-                        updateMatrix(player, event.getInventory(), blueprint.calcRemainingIngredientMatrix(context, 1));
-                        player.getScheduler().run(plugin, (t) -> {
-                            player.getItemOnCursor().setAmount(event.getCursor().getAmount() + blueprint.getResult().amount());
-                        }, null);
-                    }
-                }
-            }
         }
+
     }
 
     private void updateMatrix(Player player, Inventory inventory, ItemStack[] resultingMatrix) {
