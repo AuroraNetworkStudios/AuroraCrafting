@@ -7,10 +7,13 @@ import gg.auroramc.crafting.api.workbench.Workbench;
 import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.recipe.CraftingBookCategory;
+
+import java.util.*;
 
 @Getter
 public class ShapedBlueprint extends CraftingBlueprint<ShapedBlueprint> {
+    private Map<String, List<ItemPair>> variations = new HashMap<>();
+    private boolean symmetry = false;
 
     public ShapedBlueprint(Workbench workbench, String id) {
         super(workbench, id);
@@ -20,8 +23,15 @@ public class ShapedBlueprint extends CraftingBlueprint<ShapedBlueprint> {
         return new ShapedBlueprint(workbench, id);
     }
 
+    public ShapedBlueprint symmetry(boolean symmetry) {
+        this.symmetry = symmetry;
+        return this;
+    }
+
     @Override
     public int getTimesCraftable(BlueprintContext context) {
+        var ingredients = symmetry ? variations.get(BlueprintLookupGenerator.toShapedKey(context.getIdMatrix())) : this.ingredients;
+
         int maxCraftable = Integer.MAX_VALUE;
 
         var matches = true;
@@ -49,6 +59,7 @@ public class ShapedBlueprint extends CraftingBlueprint<ShapedBlueprint> {
 
     @Override
     public ItemStack[] calcRemainingIngredientMatrix(BlueprintContext context, int timesCrafted) {
+        var ingredients = symmetry ? variations.get(BlueprintLookupGenerator.toShapedKey(context.getIdMatrix())) : this.ingredients;
         var items = new ItemStack[context.getMatrix().length];
         var currentMatrix = context.getMatrix();
 
@@ -65,5 +76,61 @@ public class ShapedBlueprint extends CraftingBlueprint<ShapedBlueprint> {
         }
 
         return items;
+    }
+
+    private Map<String, List<ItemPair>> generateShiftedIngredients(ItemPair[] ingredients, int craftingSize) {
+        Map<String, List<ItemPair>> variations = new HashMap<>();
+        variations.put(BlueprintLookupGenerator.toShapedKey(ingredients), Arrays.asList(ingredients));
+
+        // Convert to 2D matrix representation
+        ItemPair[][] matrix = new ItemPair[craftingSize][craftingSize];
+        for (int i = 0; i < craftingSize * craftingSize; i++) {
+            matrix[i / craftingSize][i % craftingSize] = ingredients[i];
+        }
+
+        // Find bounding box of the recipe
+        int minX = craftingSize, maxX = 0, minY = craftingSize, maxY = 0;
+        for (int r = 0; r < craftingSize; r++) {
+            for (int c = 0; c < craftingSize; c++) {
+                if (!matrix[r][c].id().equals(TypeId.from(Material.AIR))) {
+                    minX = Math.min(minX, c);
+                    maxX = Math.max(maxX, c);
+                    minY = Math.min(minY, r);
+                    maxY = Math.max(maxY, r);
+                }
+            }
+        }
+
+        int width = maxX - minX + 1;
+        int height = maxY - minY + 1;
+
+        // Generate all possible shifted versions
+        for (int dx = 0; dx <= craftingSize - width; dx++) {
+            for (int dy = 0; dy <= craftingSize - height; dy++) {
+                List<ItemPair> shifted = new ArrayList<>(Collections.nCopies(craftingSize * craftingSize, new ItemPair(TypeId.from(Material.AIR), 0)));
+
+                for (int r = minY; r <= maxY; r++) {
+                    for (int c = minX; c <= maxX; c++) {
+                        if (!matrix[r][c].id().equals(TypeId.from(Material.AIR))) {
+                            int newRow = r - minY + dy;
+                            int newCol = c - minX + dx;
+                            shifted.set(newRow * craftingSize + newCol, matrix[r][c]);
+                        }
+                    }
+                }
+
+                variations.put(BlueprintLookupGenerator.toShapedKey(shifted), shifted);
+            }
+        }
+
+        return variations;
+    }
+
+    @Override
+    public Blueprint complete() {
+        if (symmetry) {
+            variations = generateShiftedIngredients(ingredients.toArray(new ItemPair[0]), workbench.getCraftingSize());
+        }
+        return this;
     }
 }

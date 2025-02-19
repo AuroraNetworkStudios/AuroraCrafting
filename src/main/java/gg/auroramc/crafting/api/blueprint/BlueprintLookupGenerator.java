@@ -5,9 +5,7 @@ import gg.auroramc.aurora.api.item.TypeId;
 import gg.auroramc.crafting.api.ItemPair;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class BlueprintLookupGenerator {
     /**
@@ -87,7 +85,7 @@ public class BlueprintLookupGenerator {
      * @return the generated key
      */
     public static String toShapedKey(ItemStack[] matrix) {
-        var key = new StringBuilder();
+        var key = new StringBuilder(matrix.length);
         for (var ingredient : matrix) {
             key.append(AuroraAPI.getItemManager().resolveId(ingredient));
             key.append(";");
@@ -123,7 +121,7 @@ public class BlueprintLookupGenerator {
     }
 
     public static String toShapedKey(ItemPair[] matrix) {
-        var key = new StringBuilder();
+        var key = new StringBuilder(matrix.length);
         for (var ingredient : matrix) {
             key.append(ingredient.id().toString());
             key.append(";");
@@ -132,7 +130,7 @@ public class BlueprintLookupGenerator {
     }
 
     public static String toShapedKey(List<ItemPair> ingredients) {
-        var key = new StringBuilder();
+        var key = new StringBuilder(ingredients.size());
         for (var ingredient : ingredients) {
             key.append(ingredient.id().toString());
             key.append(";");
@@ -159,4 +157,8 @@ public class BlueprintLookupGenerator {
         return key.toString();
     }
 
+
+    public static List<String> toShapedVariations(ShapedBlueprint blueprint) {
+        return new ArrayList<>(blueprint.getVariations().keySet());
+    }
 }

@@ -27,6 +27,7 @@ public class CraftingRecipesConfig extends AuroraConfig {
         private String permission;
         private String workbench;
         private Boolean shapeless = false;
+        private Boolean symmetry = false;
         private String result;
         private VanillaOptions vanillaOptions = new VanillaOptions();
         private DisplayOptions displayOptions = new DisplayOptions();

@@ -375,6 +375,13 @@ public abstract class Blueprint {
      */
     public abstract ItemStack[] calcRemainingIngredientMatrix(BlueprintContext context, int timesCrafted);
 
+    /**
+     * Should be called when the blueprint is fully completed
+     */
+    public Blueprint complete() {
+        return this;
+    }
+
     @Getter
     @Setter
     @AllArgsConstructor

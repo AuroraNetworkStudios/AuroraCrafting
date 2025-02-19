@@ -53,7 +53,7 @@ public class BlueprintParser {
         if (config.getShapeless()) {
             blueprint = ShapelessBlueprint.shapelessBlueprint(workbench, config.getId());
         } else {
-            blueprint = ShapedBlueprint.shapedBlueprint(workbench, config.getId());
+            blueprint = ShapedBlueprint.shapedBlueprint(workbench, config.getId()).symmetry(config.getSymmetry());
         }
 
         var ret = blueprint.vanillaOptions(CraftingBlueprint.VanillaOptions.builder()
@@ -115,7 +115,7 @@ public class BlueprintParser {
                         .items(config.getDisplayOptions().getItems())
                         .lockedLore(config.getDisplayOptions().getLockedLore())
                         .build())
-                .result(parseItemPair(config.getResult(), Material.AIR));
+                .result(parseItemPair(config.getResult(), Material.AIR)).complete();
     }
 
     public Blueprint parse(SmithingRecipesConfig.RecipeConfig config) {
@@ -167,7 +167,7 @@ public class BlueprintParser {
         } else {
             blueprint.result(parseItemPair(result, Material.AIR));
         }
-        return blueprint;
+        return blueprint.complete();
     }
 
     private Integer parseResultIngredientIndex(String result) {
