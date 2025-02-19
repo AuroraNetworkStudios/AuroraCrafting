@@ -54,7 +54,7 @@ public class BlueprintAdapter {
 
         return builder.cookingTime(blueprint.getVanillaOptions().getCookingTime())
                 .experience(blueprint.getVanillaOptions().getExperience())
-                .input(blueprint.input())
+                .input(blueprint.getInput())
                 .result(blueprint.getResultItem())
                 .build();
     }
