@@ -345,7 +345,9 @@ public class CraftMenu implements InventoryHolder {
             var vanillaRecipe = Bukkit.getServer().getCraftingRecipe(context.getMatrix(), player.getWorld());
             if (vanillaRecipe instanceof CraftingRecipe craftingRecipe) {
                 if (craftingRecipe.getKey().getNamespace().equals("minecraft") || plugin.getConfigManager().getConfig().getIncludeOtherPluginRecipes().contains(workbench.getId())) {
-                    maybeBlueprint = new RecipeWrapperBlueprint(workbench, craftingRecipe);
+                    if (isVanillaOnlyMatrix(context)) {
+                        maybeBlueprint = new RecipeWrapperBlueprint(workbench, craftingRecipe);
+                    }
                 }
             }
         }
@@ -515,8 +517,12 @@ public class CraftMenu implements InventoryHolder {
                     if (!craftingRecipe.getKey().getNamespace().equals("minecraft") && !plugin.getConfigManager().getConfig().getIncludeOtherPluginRecipes().contains(workbench.getId())) {
                         setInvalidResult();
                     } else {
-                        var result = new RecipeWrapperBlueprint(workbench, craftingRecipe).getResultItem(context);
-                        setResult(result);
+                        if (isVanillaOnlyMatrix(context)) {
+                            var result = new RecipeWrapperBlueprint(workbench, craftingRecipe).getResultItem(context);
+                            setResult(result);
+                        } else {
+                            setInvalidResult();
+                        }
                     }
                 } else {
                     setInvalidResult();
@@ -570,5 +576,14 @@ public class CraftMenu implements InventoryHolder {
 
     private BlueprintContext context(Inventory inventory) {
         return new BlueprintContext(player, getMatrix(inventory));
+    }
+
+    private boolean isVanillaOnlyMatrix(BlueprintContext context) {
+        for (var item : context.getIdMatrix()) {
+            if (!item.id().namespace().equals("minecraft")) {
+                return false;
+            }
+        }
+        return true;
     }
 }
