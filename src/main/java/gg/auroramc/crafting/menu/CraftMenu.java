@@ -509,6 +509,8 @@ public class CraftMenu implements InventoryHolder {
             var timesCraftable = blueprint.getTimesCraftable(context);
             if (timesCraftable > 0) {
                 setResult(blueprint.getResultItem(context));
+            } else {
+                setInvalidResult();
             }
         } else {
             if (plugin.getConfigManager().getConfig().getIncludeVanillaRecipes().contains(workbench.getId())) {
