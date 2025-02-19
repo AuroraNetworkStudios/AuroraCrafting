@@ -97,7 +97,7 @@ public class CookingBlueprint extends Blueprint {
         return this;
     }
 
-    public ItemStack input() {
+    public ItemStack getInput() {
         return this.ingredientItems.getFirst();
     }
 

@@ -1,10 +1,9 @@
 title: "Recipe"
 rows: 6
 
-matrix: [ 10, 11, 12, 19, 20, 21, 28, 29, 30 ]
-
 slots:
   result: 23
+  matrix: [ 10, 11, 12, 19, 20, 21, 28, 29, 30 ]
 
 items:
   filler:
