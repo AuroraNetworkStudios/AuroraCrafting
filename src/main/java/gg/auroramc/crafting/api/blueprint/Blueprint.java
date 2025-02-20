@@ -9,6 +9,7 @@ import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.ItemPair;
 import gg.auroramc.crafting.api.book.BookCategory;
 import gg.auroramc.crafting.api.workbench.Workbench;
+import gg.auroramc.crafting.util.PersistentDataUtils;
 import lombok.*;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -89,6 +90,14 @@ public abstract class Blueprint {
                     result.setItemMeta(resultArmorMeta);
                 }
             }
+        }
+
+        if (options.pdcBestEffort) {
+            var meta = result.getItemMeta();
+            PersistentDataUtils.mergePersistentDataContainers(
+                    ingredient.getItemMeta().getPersistentDataContainer(),
+                    meta.getPersistentDataContainer());
+            result.setItemMeta(meta);
         }
 
         return result;
@@ -400,5 +409,6 @@ public abstract class Blueprint {
     public static final class MergeOptions {
         private boolean enchants;
         private boolean trim;
+        private boolean pdcBestEffort;
     }
 }
