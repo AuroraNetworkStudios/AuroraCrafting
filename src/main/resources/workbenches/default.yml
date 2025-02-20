@@ -8,9 +8,4 @@ matrix-slots: [ 10, 11, 12, 19, 20, 21, 28, 29, 30 ]
 quick-crafting-slots: [ 16, 25, 34 ]
 completion-indicator-slots: [ 45, 46, 47, 48, 49, 50, 51, 52, 53 ]
 
-custom-items:
-  filler:
-    name: ""
-    hide-tooltip: true
-    material: red_stained_glass_pane
-    slots: [45, 46, 47, 48, 49, 50, 51, 52, 53]
+custom-items: {}
