@@ -31,7 +31,9 @@ public class ShapelessRecipeBuilder extends CraftingRecipeBuilder<ShapelessRecip
         recipe.setCategory(category);
 
         for (var ingredient : ingredients) {
-            recipe.addIngredient(choiceSelector.apply(ingredient));
+            if (!ingredient.isEmpty()) {
+                recipe.addIngredient(choiceSelector.apply(ingredient));
+            }
         }
 
         return recipe;
