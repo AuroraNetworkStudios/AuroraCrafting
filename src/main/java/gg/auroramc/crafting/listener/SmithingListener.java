@@ -46,13 +46,22 @@ public class SmithingListener implements Listener {
         var context = workbench.createContext(player, event.getInventory());
         var blueprint = workbench.lookupBlueprint(context, BlueprintType.SMITHING);
 
+        // Just because the blueprint is null, it doesn't mean vanilla didn't match our material choice recipes
         if (blueprint == null) {
+            // If there is an actual vanilla recipe, we should let it go through
             var vanillaRecipe = getVanillaRecipe(event.getInventory());
             if (vanillaRecipe != null) {
                 if (vanillaRecipe.getResult() != null && !vanillaRecipe.getResult().isEmpty()) {
+                    // Trimming is hardcoded by mojang, so we only set the result if it is not empty
                     event.setResult(vanillaRecipe.getResult());
+                } else if (workbench.matchesRegisteredVanillaRecipe(context)) {
+                    // Users might register a recipe that overlaps with a vanilla trim recipe
+                    // In this case we don't really have a choice, have to set the result to null
+                    // Because I won't reimplement vanilla trimming logic
+                    event.setResult(null);
                 }
             } else {
+                // If we don't have a vanilla recipe, just set the result to null
                 event.setResult(null);
             }
             return;
