@@ -7,6 +7,8 @@ import gg.auroramc.crafting.api.event.RegistryLoadedEvent;
 import gg.auroramc.crafting.util.InventoryUtils;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -25,6 +27,7 @@ import java.util.Map;
 public class SmithingListener implements Listener {
     private final AuroraCrafting plugin;
     private final Map<ItemStack, List<Recipe>> recipeCache = new HashMap<>(100);
+    private final NamespacedKey smithingSoundKey = NamespacedKey.minecraft("block.smithing_table.use");
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPrepareSmithing(PrepareSmithingEvent event) {
@@ -97,6 +100,7 @@ public class SmithingListener implements Listener {
         if (timesCraftable == 0) return;
 
         final var currentItem = event.getCurrentItem() != null ? event.getCurrentItem().clone() : ItemStack.empty();
+        final var sound = Registry.SOUNDS.get(smithingSoundKey);
 
         if (event.isShiftClick()) {
             int currentSpace = InventoryUtils.calculateSpaceForItem(player.getInventory(), currentItem);
@@ -110,25 +114,25 @@ public class SmithingListener implements Listener {
             if (timesCrafted == 1) {
                 updateMatrix(player, event.getInventory(), blueprint.calcRemainingIngredientMatrix(context, 1));
                 player.getInventory().addItem(currentItem);
-                player.playSound(player, Sound.BLOCK_SMITHING_TABLE_USE, 1f, 1f);
+                player.playSound(player, sound, 1f, 1f);
             } else {
                 var amount = timesCrafted * blueprint.getResult().amount();
                 var stacks = ItemUtils.createStacksFromAmount(currentItem, amount);
                 player.getInventory().addItem(stacks);
                 updateMatrix(player, event.getInventory(), blueprint.calcRemainingIngredientMatrix(context, timesCrafted));
-                player.playSound(player, Sound.BLOCK_SMITHING_TABLE_USE, 1f, 1f);
+                player.playSound(player, sound, 1f, 1f);
             }
         } else {
             if (event.getCursor().isEmpty()) {
                 updateMatrix(player, event.getInventory(), blueprint.calcRemainingIngredientMatrix(context, 1));
                 player.getScheduler().run(plugin, (t) -> player.setItemOnCursor(currentItem), null);
-                player.playSound(player, Sound.BLOCK_SMITHING_TABLE_USE, 1f, 1f);
+                player.playSound(player, sound, 1f, 1f);
             } else {
                 if (event.getCursor().isSimilar(currentItem)) {
                     var maxAmount = event.getCursor().getMaxStackSize() - event.getCursor().getAmount();
                     if (blueprint.getResult().amount() <= maxAmount) {
                         updateMatrix(player, event.getInventory(), blueprint.calcRemainingIngredientMatrix(context, 1));
-                        player.playSound(player, Sound.BLOCK_SMITHING_TABLE_USE, 1f, 1f);
+                        player.playSound(player, sound, 1f, 1f);
                         player.getScheduler().run(plugin, (t) -> {
                             player.getItemOnCursor().setAmount(event.getCursor().getAmount() + blueprint.getResult().amount());
                         }, null);

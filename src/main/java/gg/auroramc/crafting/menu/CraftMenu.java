@@ -448,11 +448,12 @@ public class CraftMenu implements InventoryHolder {
 
     public void onDrag(InventoryDragEvent event) {
         for (var rawSlot : event.getRawSlots()) {
-            var inv = event.getView().getInventory(rawSlot);
-            if (inv == inventory) {
-                if (!matrixLookup.contains(rawSlot)) {
-                    event.setCancelled(true);
-                    return;
+            if (rawSlot < event.getInventory().getSize()) {
+                if (event.getInventory() == inventory) {
+                    if (!matrixLookup.contains(rawSlot)) {
+                        event.setCancelled(true);
+                        return;
+                    }
                 }
             }
         }
