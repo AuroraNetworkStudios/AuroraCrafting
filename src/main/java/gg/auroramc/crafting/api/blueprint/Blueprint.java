@@ -92,11 +92,9 @@ public abstract class Blueprint {
             }
         }
 
-        if (options.pdcBestEffort) {
+        if (!options.pdc.isEmpty()) {
             var meta = result.getItemMeta();
-            PersistentDataUtils.mergePersistentDataContainers(
-                    ingredient.getItemMeta().getPersistentDataContainer(),
-                    meta.getPersistentDataContainer());
+            PersistentDataUtils.mergePaths(ingredient, meta, options.pdc);
             result.setItemMeta(meta);
         }
 
@@ -409,6 +407,6 @@ public abstract class Blueprint {
     public static final class MergeOptions {
         private boolean enchants;
         private boolean trim;
-        private boolean pdcBestEffort;
+        private List<String> pdc;
     }
 }

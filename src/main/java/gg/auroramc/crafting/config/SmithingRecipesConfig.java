@@ -49,7 +49,7 @@ public class SmithingRecipesConfig extends AuroraConfig {
     public static final class MergeOptions {
         private Boolean enchants = false;
         private Boolean trim = false;
-        private Boolean pdcBestEffort = false;
+        private List<String> pdc = new ArrayList<>();
     }
 
     @Getter
@@ -79,7 +79,7 @@ public class SmithingRecipesConfig extends AuroraConfig {
                 it.remove();
                 AuroraCrafting.logger().severe("Smithing transform recipe in " + sourcePath + " has no id removing...");
             }
-            if(recipe.result == null) {
+            if (recipe.result == null) {
                 it.remove();
                 AuroraCrafting.logger().severe("Smithing transform Recipe in " + sourcePath + " with id " + recipe.id + " has no result removing...");
             }

@@ -56,7 +56,7 @@ public class CraftingRecipesConfig extends AuroraConfig {
     public static final class MergeOptions {
         private Boolean enchants = false;
         private Boolean trim = false;
-        private Boolean pdcBestEffort = false;
+        private List<String> pdc = new ArrayList<>();
     }
 
     @Getter
