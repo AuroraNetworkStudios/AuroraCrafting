@@ -46,13 +46,6 @@ public class SmithingRecipesConfig extends AuroraConfig {
     }
 
     @Getter
-    public static final class MergeOptions {
-        private Boolean enchants = false;
-        private Boolean trim = false;
-        private List<String> pdc = new ArrayList<>();
-    }
-
-    @Getter
     public static final class VanillaOptions {
         private String choiceType = ChoiceType.ITEM_TYPE.name();
     }

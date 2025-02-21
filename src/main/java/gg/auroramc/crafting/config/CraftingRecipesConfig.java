@@ -53,13 +53,6 @@ public class CraftingRecipesConfig extends AuroraConfig {
     }
 
     @Getter
-    public static final class MergeOptions {
-        private Boolean enchants = false;
-        private Boolean trim = false;
-        private List<String> pdc = new ArrayList<>();
-    }
-
-    @Getter
     public static final class DisplayOptions {
         private Map<String, ItemConfig> items = new HashMap<>();
         private List<String> lockedLore = new ArrayList<>();

@@ -86,7 +86,13 @@ public class BlueprintParser {
             for (var entry : config.getMergeOptions().entrySet()) {
                 var mergeOptions = entry.getValue();
                 var index = entry.getKey() - 1;
-                ret.mergeOptions(index, new Blueprint.MergeOptions(mergeOptions.getEnchants(), mergeOptions.getTrim(), mergeOptions.getPdc()));
+                ret.mergeOptions(index, new Blueprint.MergeOptions(
+                        mergeOptions.getEnchants(),
+                        mergeOptions.getTrim(),
+                        mergeOptions.getPdc(),
+                        mergeOptions.getRestoreDurability(),
+                        mergeOptions.getMergeDurability())
+                );
             }
         }
 
@@ -161,7 +167,13 @@ public class BlueprintParser {
             for (var entry : config.getMergeOptions().entrySet()) {
                 var mergeOptions = entry.getValue();
                 var index = entry.getKey() - 1;
-                ret.mergeOptions(index, new Blueprint.MergeOptions(mergeOptions.getEnchants(), mergeOptions.getTrim(), mergeOptions.getPdc()));
+                ret.mergeOptions(index, new Blueprint.MergeOptions(
+                        mergeOptions.getEnchants(),
+                        mergeOptions.getTrim(),
+                        mergeOptions.getPdc(),
+                        mergeOptions.getRestoreDurability(),
+                        mergeOptions.getMergeDurability())
+                );
             }
         }
 

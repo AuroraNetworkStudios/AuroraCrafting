@@ -5,6 +5,7 @@ import gg.auroramc.aurora.api.config.premade.ItemConfig;
 import gg.auroramc.aurora.api.item.TypeId;
 import gg.auroramc.aurora.api.util.ItemUtils;
 import gg.auroramc.aurora.api.util.TriConsumer;
+import gg.auroramc.aurora.api.util.Version;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.ItemPair;
 import gg.auroramc.crafting.api.book.BookCategory;
@@ -15,6 +16,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
+import org.bukkit.inventory.meta.Damageable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,30 +80,66 @@ public abstract class Blueprint {
     }
 
     protected ItemStack mergeToResult(ItemStack result, ItemStack ingredient, MergeOptions options) {
+        var ingredientMeta = ingredient.getItemMeta();
+        var resultMeta = result.getItemMeta();
+
         if (options.enchants) {
-            for (var enchant : ingredient.getEnchantments().entrySet()) {
-                if (result.getEnchantments().containsKey(enchant.getKey())) {
-                    result.addUnsafeEnchantment(enchant.getKey(), enchant.getValue() + result.getEnchantmentLevel(enchant.getKey()));
+            for (var enchant : ingredientMeta.getEnchants().entrySet()) {
+                if (resultMeta.getEnchants().containsKey(enchant.getKey())) {
+                    resultMeta.addEnchant(enchant.getKey(), enchant.getValue() + resultMeta.getEnchantLevel(enchant.getKey()), true);
                 } else {
-                    result.addUnsafeEnchantment(enchant.getKey(), enchant.getValue());
+                    resultMeta.addEnchant(enchant.getKey(), enchant.getValue(), true);
                 }
             }
         }
 
         if (options.trim) {
-            if (ingredient.getItemMeta() instanceof ArmorMeta armorMeta && armorMeta.hasTrim()) {
-                if (result.getItemMeta() instanceof ArmorMeta resultArmorMeta) {
-                    resultArmorMeta.setTrim(armorMeta.getTrim());
-                    result.setItemMeta(resultArmorMeta);
+            if (ingredientMeta instanceof ArmorMeta ingredientArmorMeta && ingredientArmorMeta.hasTrim()) {
+                if (resultMeta instanceof ArmorMeta) {
+                    ((ArmorMeta) resultMeta).setTrim(ingredientArmorMeta.getTrim());
                 }
             }
         }
 
         if (!options.pdc.isEmpty()) {
-            var meta = result.getItemMeta();
-            PersistentDataUtils.mergePaths(ingredient, meta, options.pdc);
-            result.setItemMeta(meta);
+            PersistentDataUtils.mergePaths(ingredient, resultMeta, options.pdc);
         }
+
+        if (options.mergeDurability || options.restoreDurability != null) {
+            if (options.restoreDurability != null) {
+                if (result.getItemMeta() instanceof Damageable damageable && damageable.hasDamage()) {
+                    damageable.setDamage(Math.max(damageable.getDamage() - options.getRestoreDurability(), 0));
+                    if (!damageable.hasDamage() && Version.isAtLeastVersion(21)) {
+                        damageable.resetDamage();
+                    }
+                    resultMeta = damageable;
+                }
+            } else {
+                if (result.getItemMeta() instanceof Damageable resultDamageable && resultDamageable.hasDamage()) {
+                    if (ingredient.getItemMeta() instanceof Damageable ingredientDamageable) {
+                        var restoreDurability = 0;
+
+                        if (Version.isAtLeastVersion(20, 5) && ingredientDamageable.hasMaxDamage()) {
+                            restoreDurability = ingredientDamageable.hasDamage()
+                                    ? ingredientDamageable.getMaxDamage() - ingredientDamageable.getDamage()
+                                    : ingredientDamageable.getMaxDamage();
+                        } else {
+                            restoreDurability = ingredientDamageable.hasDamage()
+                                    ? ingredient.getType().getMaxDurability() - ingredientDamageable.getDamage()
+                                    : ingredient.getType().getMaxDurability();
+                        }
+
+                        resultDamageable.setDamage(Math.max(resultDamageable.getDamage() - restoreDurability, 0));
+                        if (!resultDamageable.hasDamage() && Version.isAtLeastVersion(21)) {
+                            resultDamageable.resetDamage();
+                        }
+                        resultMeta = resultDamageable;
+                    }
+                }
+            }
+        }
+
+        result.setItemMeta(resultMeta);
 
         return result;
     }
@@ -415,6 +453,8 @@ public abstract class Blueprint {
         private boolean enchants;
         private boolean trim;
         private List<String> pdc;
+        private Integer restoreDurability;
+        private boolean mergeDurability;
     }
 
     @Getter
