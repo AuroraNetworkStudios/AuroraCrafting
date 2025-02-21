@@ -68,19 +68,28 @@ public class BookBlueprintListMenu {
                     meta.displayName(Text.component("&c&lInvalid blueprint result"));
                     item.setItemMeta(meta);
                 }
-                if (blueprint.hasAccess(player) || !mc.getSecretRecipeDisplay().getEnabled()) {
+                if (mc.getSecretRecipeDisplay().getEnabled() && !blueprint.hasAccess(player)) {
+                    menu.addItem(ItemBuilder.of(mc.getSecretRecipeDisplay().getItem()).slot(slot).loreCompute(() -> {
+                        var lore = new ArrayList<>(mc.getSecretRecipeDisplay().getItem().getLore());
+                        lore.addAll(blueprint.getDisplayOptions().getLockedLore());
+                        return lore.stream().map(l -> Text.component(player, l)).toList();
+                    }).build(player));
+                } else {
                     var builder = ItemBuilder.item(item).slot(slot);
 
                     if (item.hasItemMeta()) {
                         ItemStack finalItem = item;
                         builder.loreCompute(() -> {
                             var lore = new ArrayList<Component>();
-                            if (finalItem.hasItemMeta()) {
-                                var meta = finalItem.getItemMeta();
-                                if (meta.hasLore()) {
-                                    lore.addAll(meta.lore());
-                                }
+                            var meta = finalItem.getItemMeta();
+                            if (meta.hasLore()) {
+                                lore.addAll(meta.lore());
                             }
+
+                            if (!blueprint.hasAccess(player)) {
+                                lore.addAll(blueprint.getDisplayOptions().getLockedLore().stream().map(l -> Text.component(player, l)).toList());
+                            }
+
                             lore.addAll(mc.getAppendLore().stream().map(l -> Text.component(player, l)).toList());
                             return lore;
                         });
@@ -89,12 +98,6 @@ public class BookBlueprintListMenu {
                     menu.addItem(builder.build(player), (e) -> {
                         BlueprintMenu.blueprintMenu(plugin, player, blueprint, () -> BookBlueprintListMenu.bookBlueprintListMenu(plugin, player, category, page).open()).open();
                     });
-                } else {
-                    menu.addItem(ItemBuilder.of(mc.getSecretRecipeDisplay().getItem()).slot(slot).loreCompute(() -> {
-                        var lore = new ArrayList<>(mc.getSecretRecipeDisplay().getItem().getLore());
-                        lore.addAll(blueprint.getDisplayOptions().getLockedLore());
-                        return lore.stream().map(l -> Text.component(player, l)).toList();
-                    }).build(player));
                 }
             } else {
                 menu.addItem(ItemBuilder.item(ItemBuilder.filler(Material.AIR)).slot(slot).build(player));
