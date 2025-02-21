@@ -6,6 +6,7 @@ import gg.auroramc.aurora.api.command.CommandDispatcher;
 import gg.auroramc.aurora.api.message.Chat;
 import gg.auroramc.aurora.api.util.Version;
 import gg.auroramc.crafting.api.AuroraCraftingPlugin;
+import gg.auroramc.crafting.api.blueprint.Blueprint;
 import gg.auroramc.crafting.api.blueprint.BlueprintRegistry;
 import gg.auroramc.crafting.api.book.Book;
 import gg.auroramc.crafting.api.book.BookCategory;
@@ -148,7 +149,7 @@ public class AuroraCrafting extends AuroraCraftingPlugin {
         Bukkit.getPluginManager().callEvent(new RegistryLoadedEvent());
     }
 
-    public void callCraftEvent(Player player, ItemStack item, int amount) {
-        Bukkit.getPluginManager().callEvent(new PlayerCraftItemEvent(player, item, null, amount));
+    public void callCraftEvent(Player player, ItemStack item, int amount, Blueprint blueprint) {
+        Bukkit.getPluginManager().callEvent(new PlayerCraftItemEvent(player, item, blueprint, amount));
     }
 }

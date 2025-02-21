@@ -275,7 +275,7 @@ public class CraftMenu implements InventoryHolder {
                     blueprint.quickCraft(context(inventory), 1, true);
                     setUpQuickCraft();
                     player.updateInventory();
-                    plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount());
+                    plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount(), blueprint);
                 }, null);
                 return;
             }
@@ -285,7 +285,7 @@ public class CraftMenu implements InventoryHolder {
                 blueprint.quickCraft(context(inventory), timesCrafted, true);
                 setUpQuickCraft();
                 player.updateInventory();
-                plugin.callCraftEvent(player, currentItem, timesCrafted * blueprint.getResult().amount());
+                plugin.callCraftEvent(player, currentItem, timesCrafted * blueprint.getResult().amount(), blueprint);
             }, null);
         } else {
             if (event.getCursor().isEmpty()) {
@@ -296,7 +296,7 @@ public class CraftMenu implements InventoryHolder {
                             blueprint.quickCraft(context(inventory), 1, true);
                             setUpQuickCraft();
                             player.updateInventory();
-                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount());
+                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount(), blueprint);
                         }, null);
             } else {
                 var cursor = event.getCursor();
@@ -313,7 +313,7 @@ public class CraftMenu implements InventoryHolder {
                             blueprint.quickCraft(context(inventory), 1, true);
                             setUpQuickCraft();
                             player.updateInventory();
-                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount());
+                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount(), blueprint);
                         }, null);
                     }
                 }
@@ -395,7 +395,7 @@ public class CraftMenu implements InventoryHolder {
                 player.getScheduler().run(plugin, (t) -> {
                     setUpQuickCraft();
                     updateMatrix(blueprint, timesCraftable, 1, context);
-                    plugin.callCraftEvent(player, event.getCurrentItem(), blueprint.getResult().amount());
+                    plugin.callCraftEvent(player, event.getCurrentItem(), blueprint.getResult().amount(), blueprint);
                 }, null);
                 return;
             }
@@ -407,7 +407,7 @@ public class CraftMenu implements InventoryHolder {
                 player.getInventory().addItem(stacks);
                 setUpQuickCraft();
                 updateMatrix(blueprint, timesCraftable, timesCrafted, context);
-                plugin.callCraftEvent(player, currentItem, amount + blueprint.getResult().amount());
+                plugin.callCraftEvent(player, currentItem, amount + blueprint.getResult().amount(), blueprint);
             }, null);
 
             // Handle crafting for regular clicks
@@ -419,7 +419,7 @@ public class CraftMenu implements InventoryHolder {
                         (t) -> {
                             setUpQuickCraft();
                             updateMatrix(blueprint, timesCraftable, 1, context);
-                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount());
+                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount(), blueprint);
                         }, null);
             } else {
                 var cursor = event.getCursor();
@@ -436,7 +436,7 @@ public class CraftMenu implements InventoryHolder {
                             }
                             setUpQuickCraft();
                             updateMatrix(blueprint, timesCraftable, 1, context);
-                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount());
+                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount(), blueprint);
                         }, null);
                     }
                 }
