@@ -1,0 +1,35 @@
+title: "Campfire recipe"
+rows: 4
+
+slots:
+  input: 10
+  result: 43
+  fluid-level: [ 13, 22, 31 ]
+
+fluid-materials:
+  water:
+    material: WATER_BUCKET
+    name: ""
+    hide-tooltip: true
+  lava:
+    material: LAVA_BUCKET
+    name: ""
+    hide-tooltip: true
+  powder_snow:
+    material: POWDER_SNOW_BUCKET
+    name: ""
+    hide-tooltip: true
+
+items:
+  filler:
+    material: black_stained_glass_pane
+    name: ""
+    hide-tooltip: true
+  back:
+    material: arrow
+    name: "&7Back"
+    slot: 27
+    lore:
+      - "&7Click to go back"
+
+custom-items: { }

@@ -9,6 +9,7 @@ import gg.auroramc.crafting.api.ItemPair;
 import gg.auroramc.crafting.api.blueprint.*;
 import gg.auroramc.crafting.api.book.BookCategory;
 import gg.auroramc.crafting.api.workbench.Workbench;
+import gg.auroramc.crafting.config.CauldronRecipesConfig;
 import gg.auroramc.crafting.config.CookingRecipesConfig;
 import gg.auroramc.crafting.config.CraftingRecipesConfig;
 import gg.auroramc.crafting.config.SmithingRecipesConfig;
@@ -111,6 +112,26 @@ public class BlueprintParser {
                                 .build())
                 .category(category)
                 .source(config.getSourcePath())
+                .displayOptions(Blueprint.DisplayOptions.builder()
+                        .items(config.getDisplayOptions().getItems())
+                        .lockedLore(config.getDisplayOptions().getLockedLore())
+                        .build())
+                .result(parseItemPair(config.getResult(), Material.AIR));
+    }
+
+    public Blueprint parse(CauldronRecipesConfig.RecipeConfig config) {
+        return CauldronBlueprint.cauldronBlueprint(workbench, config.getId())
+                .addIngredient(parseItemPair(config.getInput(), Material.BARRIER))
+                .vanillaOptions(
+                        CauldronBlueprint.VanillaOptions.builder()
+                                .experience(config.getExperience())
+                                .fluidLevel(config.getFluidLevel())
+                                .fluid(config.getFluid())
+                                .input(config.getInput())
+                                .build()
+                )
+                .category(category)
+                .source(config.getSourcepath())
                 .displayOptions(Blueprint.DisplayOptions.builder()
                         .items(config.getDisplayOptions().getItems())
                         .lockedLore(config.getDisplayOptions().getLockedLore())

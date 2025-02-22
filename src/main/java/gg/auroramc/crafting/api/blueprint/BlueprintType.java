@@ -11,5 +11,6 @@ public enum BlueprintType {
     STONE_CUTTER,
     BREWING,
     ANVIL,
-    GRINDSTONE
+    GRINDSTONE,
+    CAULDRON
 }

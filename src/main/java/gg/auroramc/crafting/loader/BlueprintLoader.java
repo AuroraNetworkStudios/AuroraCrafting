@@ -1,8 +1,11 @@
 package gg.auroramc.crafting.loader;
 
 import gg.auroramc.crafting.AuroraCrafting;
+import gg.auroramc.crafting.api.blueprint.Blueprint;
 import gg.auroramc.crafting.api.blueprint.BlueprintType;
+import gg.auroramc.crafting.api.blueprint.CauldronBlueprint;
 import gg.auroramc.crafting.api.blueprint.CookingBlueprint;
+import gg.auroramc.crafting.api.workbench.vanilla.Cauldron;
 import gg.auroramc.crafting.parser.BlueprintParser;
 
 import java.util.ArrayList;
@@ -71,6 +74,23 @@ public class BlueprintLoader {
                 duplicates.computeIfAbsent(recipe.getId(), k -> new ArrayList<>());
             } catch (Exception e) {
                 AuroraCrafting.logger().severe("Failed to load blueprint " + recipe.getId() + " in source: " + recipe.getSourcePath() + ", reason:" + e.getMessage());
+            }
+        }
+
+        for (var recipe : manager.getCauldronRecipes()) {
+            if (duplicates.containsKey(recipe.getId())) {
+                duplicates.get(recipe.getId()).add(recipe.getSourcepath());
+                AuroraCrafting.logger().severe("Failed to load blueprint " + recipe.getId() + ": Duplicate recipe ID, skipping... Source: " + recipe.getSourcepath() + " other sources: " + duplicates.get(recipe.getId()));
+                continue;
+            }
+
+            Cauldron workbench = plugin.getWorkbenchRegistry().getCauldron();
+            try {
+                Blueprint blueprint = BlueprintParser.from(workbench, null, recipe.getId()).parse(recipe);
+                workbench.addBlueprint(BlueprintType.CAULDRON, blueprint);
+                duplicates.computeIfAbsent(recipe.getId(), k -> new ArrayList<>());
+            } catch (Exception e) {
+                AuroraCrafting.logger().severe("Failed to load blueprint " + recipe.getId() + " in source: " + recipe.getSourcepath() + ", reason:" + e.getMessage());
             }
         }
 

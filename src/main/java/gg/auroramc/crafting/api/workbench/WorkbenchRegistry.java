@@ -57,6 +57,8 @@ public class WorkbenchRegistry {
         return workbenches.values();
     }
 
+    public Cauldron getCauldron() { return (Cauldron) vanillaWorkbenches.get(VanillaType.CAULDRON); }
+
     public Collection<VanillaWorkbench<?>> getVanillaWorkbenches() {
         return vanillaWorkbenches.values();
     }

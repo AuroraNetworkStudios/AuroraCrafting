@@ -12,7 +12,8 @@ public enum VanillaType {
     BLAST_FURNACE(BlueprintType.BLASTING),
     CAMPFIRE(BlueprintType.CAMPFIRE),
     STONE_CUTTER(BlueprintType.STONE_CUTTER),
-    BREWING_STAND(BlueprintType.BREWING);
+    BREWING_STAND(BlueprintType.BREWING),
+    CAULDRON(BlueprintType.CAULDRON);
 
     private final BlueprintType[] blueprintTypes;
 

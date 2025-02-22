@@ -1,0 +1,8 @@
+recipes:
+  - id: soaked_diamond
+    input: "minecraft:diamond"
+    result: "minecraft:prismarine_shard"
+    fluid-level: 1
+    fluid: POWDERED_SNOW_BUCKET
+    # Every field is optional below
+    experience: 10
