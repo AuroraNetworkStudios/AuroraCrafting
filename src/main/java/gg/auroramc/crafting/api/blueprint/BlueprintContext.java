@@ -15,6 +15,8 @@ public class BlueprintContext {
     private final Player player;
     private final ItemStack[] matrix;
     private final ItemPair[] idMatrix;
+    private final String shapedLookupKey;
+    private final String shapelessLookupKey;
 
     public BlueprintContext(Player player, ItemStack[] matrix) {
         this.player = player;
@@ -30,6 +32,8 @@ public class BlueprintContext {
         }
 
         this.idMatrix = idMatrix;
+        this.shapedLookupKey = BlueprintLookupGenerator.toShapedKey(idMatrix);
+        this.shapelessLookupKey = BlueprintLookupGenerator.toShapelessKey(idMatrix);
     }
 
     public static BlueprintContext blueprintContext(Player player, ItemStack[] matrix) {

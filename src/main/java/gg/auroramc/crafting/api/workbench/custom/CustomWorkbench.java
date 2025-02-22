@@ -4,7 +4,6 @@ import gg.auroramc.crafting.api.blueprint.Blueprint;
 import gg.auroramc.crafting.api.blueprint.BlueprintType;
 import gg.auroramc.crafting.api.workbench.Workbench;
 import gg.auroramc.crafting.util.InventoryUtils;
-import gg.auroramc.crafting.util.Square;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +14,6 @@ import java.util.List;
 
 @Getter
 public class CustomWorkbench extends Workbench {
-    private final boolean square;
     private final List<Integer> quickCraftSlots;
     private final List<Integer> completionIndicatorSlots;
     private MenuOptions menuOptions;
@@ -28,7 +26,6 @@ public class CustomWorkbench extends Workbench {
         super(id, resultSlot, matrixSlots);
         this.quickCraftSlots = quickCraftSlots == null ? List.of() : quickCraftSlots;
         this.completionIndicatorSlots = completionIndicatorSlots == null ? List.of() : completionIndicatorSlots;
-        this.square = Square.isSquareCraftingArea(matrixSlots);
         this.menuOptions = menuOptions.clone().setDefaults();
     }
 

@@ -23,4 +23,4 @@ custom-items:
     lore:
       - "&7Click to open a crafting table"
     on-click:
-      - "[player] auroracrafting:craft"
+      - "[player] craft"

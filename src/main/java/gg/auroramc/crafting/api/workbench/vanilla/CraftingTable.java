@@ -8,6 +8,8 @@ import java.util.List;
 public class CraftingTable extends VanillaWorkbench<CraftingBlueprint<?>> {
     public CraftingTable() {
         super("vanilla-crafting-table", 0, List.of(1, 2, 3, 4, 5, 6, 7, 8, 9), VanillaType.CRAFTING_TABLE);
+        this.square = true;
+        this.craftingSize = 3;
     }
 
     @Override

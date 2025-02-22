@@ -10,6 +10,7 @@ softdepend:
   - AuroraQuests
   - Quests
   - BetonQuest
+  - Jobs
 
 permissions:
   aurora.crafting.*:

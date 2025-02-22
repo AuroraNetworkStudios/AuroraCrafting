@@ -275,7 +275,7 @@ public class CraftMenu implements InventoryHolder {
                     blueprint.quickCraft(context(inventory), 1, true);
                     setUpQuickCraft();
                     player.updateInventory();
-                    plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount());
+                    plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount(), blueprint);
                 }, null);
                 return;
             }
@@ -285,7 +285,7 @@ public class CraftMenu implements InventoryHolder {
                 blueprint.quickCraft(context(inventory), timesCrafted, true);
                 setUpQuickCraft();
                 player.updateInventory();
-                plugin.callCraftEvent(player, currentItem, timesCrafted * blueprint.getResult().amount());
+                plugin.callCraftEvent(player, currentItem, timesCrafted * blueprint.getResult().amount(), blueprint);
             }, null);
         } else {
             if (event.getCursor().isEmpty()) {
@@ -296,7 +296,7 @@ public class CraftMenu implements InventoryHolder {
                             blueprint.quickCraft(context(inventory), 1, true);
                             setUpQuickCraft();
                             player.updateInventory();
-                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount());
+                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount(), blueprint);
                         }, null);
             } else {
                 var cursor = event.getCursor();
@@ -313,7 +313,7 @@ public class CraftMenu implements InventoryHolder {
                             blueprint.quickCraft(context(inventory), 1, true);
                             setUpQuickCraft();
                             player.updateInventory();
-                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount());
+                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount(), blueprint);
                         }, null);
                     }
                 }
@@ -345,7 +345,9 @@ public class CraftMenu implements InventoryHolder {
             var vanillaRecipe = Bukkit.getServer().getCraftingRecipe(context.getMatrix(), player.getWorld());
             if (vanillaRecipe instanceof CraftingRecipe craftingRecipe) {
                 if (craftingRecipe.getKey().getNamespace().equals("minecraft") || plugin.getConfigManager().getConfig().getIncludeOtherPluginRecipes().contains(workbench.getId())) {
-                    maybeBlueprint = new RecipeWrapperBlueprint(workbench, craftingRecipe);
+                    if (isVanillaOnlyMatrix(context)) {
+                        maybeBlueprint = new RecipeWrapperBlueprint(workbench, craftingRecipe);
+                    }
                 }
             }
         }
@@ -393,7 +395,7 @@ public class CraftMenu implements InventoryHolder {
                 player.getScheduler().run(plugin, (t) -> {
                     setUpQuickCraft();
                     updateMatrix(blueprint, timesCraftable, 1, context);
-                    plugin.callCraftEvent(player, event.getCurrentItem(), blueprint.getResult().amount());
+                    plugin.callCraftEvent(player, event.getCurrentItem(), blueprint.getResult().amount(), blueprint);
                 }, null);
                 return;
             }
@@ -405,7 +407,7 @@ public class CraftMenu implements InventoryHolder {
                 player.getInventory().addItem(stacks);
                 setUpQuickCraft();
                 updateMatrix(blueprint, timesCraftable, timesCrafted, context);
-                plugin.callCraftEvent(player, currentItem, amount + blueprint.getResult().amount());
+                plugin.callCraftEvent(player, currentItem, amount + blueprint.getResult().amount(), blueprint);
             }, null);
 
             // Handle crafting for regular clicks
@@ -417,7 +419,7 @@ public class CraftMenu implements InventoryHolder {
                         (t) -> {
                             setUpQuickCraft();
                             updateMatrix(blueprint, timesCraftable, 1, context);
-                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount());
+                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount(), blueprint);
                         }, null);
             } else {
                 var cursor = event.getCursor();
@@ -434,7 +436,7 @@ public class CraftMenu implements InventoryHolder {
                             }
                             setUpQuickCraft();
                             updateMatrix(blueprint, timesCraftable, 1, context);
-                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount());
+                            plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount(), blueprint);
                         }, null);
                     }
                 }
@@ -446,11 +448,12 @@ public class CraftMenu implements InventoryHolder {
 
     public void onDrag(InventoryDragEvent event) {
         for (var rawSlot : event.getRawSlots()) {
-            var inv = event.getView().getInventory(rawSlot);
-            if (inv == inventory) {
-                if (!matrixLookup.contains(rawSlot)) {
-                    event.setCancelled(true);
-                    return;
+            if (rawSlot < event.getInventory().getSize()) {
+                if (event.getInventory() == inventory) {
+                    if (!matrixLookup.contains(rawSlot)) {
+                        event.setCancelled(true);
+                        return;
+                    }
                 }
             }
         }
@@ -507,6 +510,8 @@ public class CraftMenu implements InventoryHolder {
             var timesCraftable = blueprint.getTimesCraftable(context);
             if (timesCraftable > 0) {
                 setResult(blueprint.getResultItem(context));
+            } else {
+                setInvalidResult();
             }
         } else {
             if (plugin.getConfigManager().getConfig().getIncludeVanillaRecipes().contains(workbench.getId())) {
@@ -515,8 +520,12 @@ public class CraftMenu implements InventoryHolder {
                     if (!craftingRecipe.getKey().getNamespace().equals("minecraft") && !plugin.getConfigManager().getConfig().getIncludeOtherPluginRecipes().contains(workbench.getId())) {
                         setInvalidResult();
                     } else {
-                        var result = new RecipeWrapperBlueprint(workbench, craftingRecipe).getResultItem(context);
-                        setResult(result);
+                        if (isVanillaOnlyMatrix(context)) {
+                            var result = new RecipeWrapperBlueprint(workbench, craftingRecipe).getResultItem(context);
+                            setResult(result);
+                        } else {
+                            setInvalidResult();
+                        }
                     }
                 } else {
                     setInvalidResult();
@@ -570,5 +579,14 @@ public class CraftMenu implements InventoryHolder {
 
     private BlueprintContext context(Inventory inventory) {
         return new BlueprintContext(player, getMatrix(inventory));
+    }
+
+    private boolean isVanillaOnlyMatrix(BlueprintContext context) {
+        for (var item : context.getIdMatrix()) {
+            if (!item.id().namespace().equals("minecraft")) {
+                return false;
+            }
+        }
+        return true;
     }
 }

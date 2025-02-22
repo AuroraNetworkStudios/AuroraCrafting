@@ -46,12 +46,6 @@ public class SmithingRecipesConfig extends AuroraConfig {
     }
 
     @Getter
-    public static final class MergeOptions {
-        private Boolean enchants = false;
-        private Boolean trim = false;
-    }
-
-    @Getter
     public static final class VanillaOptions {
         private String choiceType = ChoiceType.ITEM_TYPE.name();
     }
@@ -61,7 +55,7 @@ public class SmithingRecipesConfig extends AuroraConfig {
         var target = "blueprints" + File.separator;
         var absPath = file.getAbsolutePath();
         var index = absPath.indexOf(target);
-        this.sourcePath = absPath.substring(index + target.length()).replace(".yml", "");
+        this.sourcePath = absPath.substring(index + target.length()).replace(".yml", "").replace(File.separator, "/");
     }
 
     @Override
@@ -78,7 +72,7 @@ public class SmithingRecipesConfig extends AuroraConfig {
                 it.remove();
                 AuroraCrafting.logger().severe("Smithing transform recipe in " + sourcePath + " has no id removing...");
             }
-            if(recipe.result == null) {
+            if (recipe.result == null) {
                 it.remove();
                 AuroraCrafting.logger().severe("Smithing transform Recipe in " + sourcePath + " with id " + recipe.id + " has no result removing...");
             }

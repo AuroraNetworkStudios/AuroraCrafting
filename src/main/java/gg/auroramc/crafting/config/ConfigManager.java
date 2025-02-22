@@ -53,6 +53,7 @@ public class ConfigManager {
     private SmokerRecipeViewConfig smokerRecipeViewConfig;
 
     private List<CraftingRecipesConfig> customRecipes;
+    private List<CraftingRecipesConfig> craftingTableRecipes;
 
     private List<CookingRecipesConfig.RecipeConfig> blastingRecipes;
     private List<CauldronRecipesConfig.RecipeConfig> cauldronRecipes;
@@ -137,7 +138,8 @@ public class ConfigManager {
 
         workbenchConfig = loadWorkBenches();
 
-        customRecipes = getRecipesConfigs();
+        customRecipes = getCraftingRecipesConfigs("blueprints/aurora", false);
+        craftingTableRecipes = getCraftingRecipesConfigs("blueprints/vanilla/crafting_table", true);
 
         blastingRecipes = getCookingRecipesConfigs("blueprints/vanilla/blast_furnace").stream()
                 .flatMap(recipesConfig -> recipesConfig.getRecipes().stream())
@@ -243,13 +245,13 @@ public class ConfigManager {
         return workbenchConfig;
     }
 
-    private List<CraftingRecipesConfig> getRecipesConfigs() {
-        Path recipesFolder = Path.of(plugin.getDataFolder().getPath(), "blueprints/aurora");
+    private List<CraftingRecipesConfig> getCraftingRecipesConfigs(String basePath, boolean vanilla) {
+        Path recipesFolder = Path.of(plugin.getDataFolder().getPath(), basePath);
 
         if (Files.notExists(recipesFolder)) {
             try {
                 Files.createDirectories(recipesFolder); // Create folder if it doesn't exist
-                plugin.saveResource("blueprints/aurora/_example.yml", false);
+                plugin.saveResource(basePath + "/_example.yml", false);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -266,7 +268,7 @@ public class ConfigManager {
 
             for (var file : fileList) {
                 try {
-                    CraftingRecipesConfig recipesConfig = new CraftingRecipesConfig(file);
+                    CraftingRecipesConfig recipesConfig = new CraftingRecipesConfig(file, vanilla);
                     recipesConfig.load();
                     recipes.add(recipesConfig);
                 } catch (Exception e) {

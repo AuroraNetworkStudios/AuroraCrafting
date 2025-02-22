@@ -2,6 +2,7 @@ package gg.auroramc.crafting.hooks;
 
 import gg.auroramc.crafting.hooks.auroraquests.AuroraQuestsHook;
 import gg.auroramc.crafting.hooks.betonquests.BetonQuestHook;
+import gg.auroramc.crafting.hooks.jobsreborn.JobsRebornHook;
 import gg.auroramc.crafting.hooks.quests.QuestsHook;
 import gg.auroramc.crafting.hooks.quests2.QuestsLmBishopHook;
 import lombok.Getter;
@@ -15,6 +16,7 @@ public enum Hooks {
     QUESTS(QuestsHook.class, "Quests"),
     QUESTS_LMBISHOP(QuestsLmBishopHook.class, "Quests"),
     BETON_QUEST(BetonQuestHook.class, "BetonQuest"),
+    JOBS_REBORN(JobsRebornHook.class, "Jobs"),
     ;
 
     private final Class<? extends Hook> clazz;

@@ -1,16 +1,15 @@
 package gg.auroramc.crafting.parser;
 
-import gg.auroramc.crafting.api.book.Book;
 import gg.auroramc.crafting.api.book.BookCategory;
 import gg.auroramc.crafting.config.RecipeBookConfig;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class BookParser {
-    private final Book book;
+    private final BookCategory book;
     private final RecipeBookConfig.RecipeCategory config;
 
-    public static BookParser from(Book book, RecipeBookConfig.RecipeCategory config) {
+    public static BookParser from(BookCategory book, RecipeBookConfig.RecipeCategory config) {
         return new BookParser(book, config);
     }
 
@@ -22,7 +21,7 @@ public class BookParser {
 
         if (!config.getCategories().isEmpty()) {
             for (var category : config.getCategories()) {
-                bookCategory.addSubCategory(BookParser.from(book, category).parse());
+                bookCategory.addSubCategory(BookParser.from(bookCategory, category).parse());
             }
         }
 

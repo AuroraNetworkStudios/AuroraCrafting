@@ -5,14 +5,21 @@ import gg.auroramc.aurora.api.item.TypeId;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.ItemPair;
 import gg.auroramc.crafting.api.workbench.Workbench;
+import gg.auroramc.crafting.util.FireworkRecipeMaker;
+import gg.auroramc.crafting.util.PotteryRecipeMaker;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.block.ShulkerBox;
-import org.bukkit.inventory.*;
+import org.bukkit.inventory.CraftingRecipe;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.RecipeChoice;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -87,15 +94,41 @@ public class RecipeWrapperBlueprint extends Blueprint {
 
     @Override
     public ItemStack getResultItem(BlueprintContext context) {
-        if (backingRecipe.getKey().getNamespace().equals("minecraft") && backingRecipe.getKey().getKey().equals("armor_dye")) {
+        if (matches("armor_dye")) {
             return getDyeResult(context.getMatrix());
-        } else if (backingRecipe.getResult().getType().name().endsWith("SHULKER_BOX")) {
+
+        } else if (matches("firework_star")) {
+            return FireworkRecipeMaker.craftFireStar(filterEmpty(context.getMatrix()));
+
+        } else if (matches("firework_star_fade")) {
+            return FireworkRecipeMaker.craftFadeFireStar(filterEmpty(context.getMatrix()));
+
+        } else if (matches("firework_rocket")) {
+            return FireworkRecipeMaker.craftFireworkRocket(filterEmpty(context.getMatrix()));
+
+        } else if (matches("decorated_pot")) {
+            return PotteryRecipeMaker.create(context.getMatrix());
+
+        } else if (endsWith("SHULKER_BOX")) {
             return getShulkerResult(context.getMatrix());
-        } else if (backingRecipe.getResult().getType().name().endsWith("BUNDLE")) {
+
+        } else if (endsWith("BUNDLE")) {
             return getBundleResult(context.getMatrix());
         }
 
         return resultItem.clone();
+    }
+
+    private ItemStack[] filterEmpty(ItemStack[] matrix) {
+        return Arrays.stream(matrix).filter(v -> !v.isEmpty()).toArray(ItemStack[]::new);
+    }
+
+    private boolean matches(String key) {
+        return backingRecipe.getKey().getNamespace().equals("minecraft") && backingRecipe.getKey().getKey().equals(key);
+    }
+
+    private boolean endsWith(String key) {
+        return backingRecipe.getResult().getType().name().endsWith(key);
     }
 
     private ItemStack getBundleResult(ItemStack[] matrix) {

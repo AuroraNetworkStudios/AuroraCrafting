@@ -9,6 +9,7 @@ import org.bukkit.inventory.recipe.CraftingBookCategory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 @Getter
 public class ShapelessBlueprint extends CraftingBlueprint<ShapelessBlueprint> {
@@ -28,13 +29,13 @@ public class ShapelessBlueprint extends CraftingBlueprint<ShapelessBlueprint> {
         var currentMatrix = context.getMatrix();
 
         Arrays.sort(items, Comparator.comparing(a -> a.id().toString()));
-        ingredients.sort(Comparator.comparing(a -> a.id().toString()));
+        ingredients.sort(Comparator.comparing(a -> a.getItemPair().id().toString()));
 
         int maxCraftable = Integer.MAX_VALUE;
         var matches = true;
 
         for (int i = 0; i < currentMatrix.length; i++) {
-            var ingredient = ingredients.size() > i ? ingredients.get(i) : BlueprintContext.AIR;
+            var ingredient = ingredients.size() > i ? ingredients.get(i).getItemPair() : BlueprintContext.AIR;
             var item = items.length > i && items[i] != null ? items[i] : BlueprintContext.AIR;
             var itemTypeId = item.id();
             if (!itemTypeId.equals(ingredient.id())) {
@@ -62,17 +63,16 @@ public class ShapelessBlueprint extends CraftingBlueprint<ShapelessBlueprint> {
         // Copy the matrix to maintain the order, then process each item to deduct ingredients
         for (int i = 0; i < currentMatrix.length; i++) {
             var item = currentMatrix[i];
+            var itemId = context.getIdMatrix()[i].id();
             if (item == null || item.getAmount() == 0) {
                 remainingItems[i] = null;
                 continue;
             }
 
-            var itemId = AuroraAPI.getItemManager().resolveId(item);
-
             // Find matching ingredient for the current item
             for (var ingredient : ingredientsCopy) {
-                if (ingredient.id().equals(itemId)) {
-                    int requiredAmount = ingredient.amount() * timesCrafted;
+                if (ingredient.getItemPair().id().equals(itemId)) {
+                    int requiredAmount = ingredient.getItemPair().amount() * timesCrafted;
                     int currentAmount = item.getAmount();
 
                     if (currentAmount <= requiredAmount) {
@@ -91,5 +91,11 @@ public class ShapelessBlueprint extends CraftingBlueprint<ShapelessBlueprint> {
         }
 
         return remainingItems;
+    }
+
+    @Override
+    public Blueprint complete() {
+        this.mergeOptionsEnabled = false;
+        return this;
     }
 }

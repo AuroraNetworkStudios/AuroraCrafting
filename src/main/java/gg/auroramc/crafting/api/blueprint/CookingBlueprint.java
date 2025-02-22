@@ -97,7 +97,7 @@ public class CookingBlueprint extends Blueprint {
         return this;
     }
 
-    public ItemStack input() {
+    public ItemStack getInputItem() {
         return this.ingredientItems.getFirst();
     }
 
@@ -109,5 +109,11 @@ public class CookingBlueprint extends Blueprint {
     @Override
     public ItemStack[] calcRemainingIngredientMatrix(BlueprintContext context, int timesCrafted) {
         return new ItemStack[0];
+    }
+
+    @Override
+    public Blueprint complete() {
+        this.mergeOptionsEnabled = false;
+        return this;
     }
 }

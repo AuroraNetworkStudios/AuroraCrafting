@@ -1,9 +1,8 @@
 package gg.auroramc.crafting.api.workbench;
 
-import gg.auroramc.crafting.api.blueprint.Blueprint;
-import gg.auroramc.crafting.api.blueprint.BlueprintContext;
-import gg.auroramc.crafting.api.blueprint.BlueprintLookupGenerator;
-import gg.auroramc.crafting.api.blueprint.BlueprintType;
+import gg.auroramc.crafting.AuroraCrafting;
+import gg.auroramc.crafting.api.blueprint.*;
+import gg.auroramc.crafting.util.Square;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -18,19 +17,29 @@ public abstract class Workbench {
     @Getter
     private boolean frozen = false;
 
-    protected final Map<String, Blueprint> blueprints = new HashMap<>();
+    protected final Map<String, Blueprint> blueprints = new LinkedHashMap<>();
     protected final Map<BlueprintType, Map<String, Blueprint>> categorizedBlueprints = new HashMap<>();
     protected final Map<BlueprintType, Map<String, Blueprint>> matrixLookup = new HashMap<>();
     @Getter
     protected final int resultSlot;
     @Getter
     protected final List<Integer> matrixSlots;
-
+    @Getter
+    protected boolean square;
+    @Getter
+    protected int craftingSize;
 
     public Workbench(String id, int resultSlot, List<Integer> matrixSlots) {
         this.id = id;
         this.resultSlot = resultSlot;
         this.matrixSlots = matrixSlots;
+        this.square = Square.isSquareCraftingArea(matrixSlots, 9);
+
+        if (square) {
+            this.craftingSize = (int) Math.sqrt(matrixSlots.size());
+        } else {
+            this.craftingSize = -1;
+        }
     }
 
     public void addBlueprint(BlueprintType type, Blueprint blueprint) {
@@ -41,6 +50,15 @@ public abstract class Workbench {
         blueprints.put(blueprint.getId(), blueprint);
         categorizedBlueprints.computeIfAbsent(type, t -> new HashMap<>()).put(blueprint.getId(), blueprint);
         matrixLookup.computeIfAbsent(type, t -> new HashMap<>()).put(BlueprintLookupGenerator.toKey(blueprint), blueprint);
+
+        if (blueprint instanceof ShapedBlueprint shapedBlueprint && square) {
+            AuroraCrafting.logger().debug("Generating shifted recipes for shaped blueprint: " + shapedBlueprint.getId());
+            var keys = BlueprintLookupGenerator.toShapedVariations(shapedBlueprint);
+            for (var key : keys) {
+                AuroraCrafting.logger().debug(key);
+                matrixLookup.computeIfAbsent(type, t -> new HashMap<>()).put(key, blueprint);
+            }
+        }
     }
 
     public Collection<Blueprint> getBlueprints() {
@@ -67,12 +85,10 @@ public abstract class Workbench {
             if (lookup == null) continue;
 
             if (type == BlueprintType.SHAPELESS) {
-                var shapelessKey = BlueprintLookupGenerator.toShapelessKey(context.getIdMatrix());
-                var res = lookup.get(shapelessKey);
+                var res = lookup.get(context.getShapelessLookupKey());
                 if (res != null) return res;
             } else {
-                var shapedKey = BlueprintLookupGenerator.toShapedKey(context.getIdMatrix());
-                var res = lookup.get(shapedKey);
+                var res = lookup.get(context.getShapedLookupKey());
                 if (res != null) return res;
             }
         }

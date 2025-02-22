@@ -5,8 +5,8 @@ import gg.auroramc.aurora.api.menu.ItemBuilder;
 import gg.auroramc.aurora.api.message.Placeholder;
 import gg.auroramc.aurora.api.message.Text;
 import gg.auroramc.crafting.AuroraCrafting;
-import gg.auroramc.crafting.api.AuroraRecipe;
-import gg.auroramc.crafting.config.RecipeBookConfig;
+import gg.auroramc.crafting.api.blueprint.Blueprint;
+import gg.auroramc.crafting.api.book.BookCategory;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -15,31 +15,31 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RecipeCategoryMenu {
+public class BookBlueprintListMenu {
     private final AuroraCrafting plugin;
     private final Player player;
-    private final RecipeBookConfig.RecipeCategory category;
+    private final BookCategory category;
     private int page = 0;
 
-    public RecipeCategoryMenu(AuroraCrafting plugin, Player player, RecipeBookConfig.RecipeCategory category, int page) {
+    public BookBlueprintListMenu(AuroraCrafting plugin, Player player, BookCategory category, int page) {
         this.plugin = plugin;
         this.player = player;
         this.category = category;
         this.page = page;
     }
 
-    public static RecipeCategoryMenu recipeCategoryMenu(AuroraCrafting plugin, Player player, RecipeBookConfig.RecipeCategory category) {
-        return new RecipeCategoryMenu(plugin, player, category, 0);
+    public static BookBlueprintListMenu bookBlueprintListMenu(AuroraCrafting plugin, Player player, BookCategory category) {
+        return new BookBlueprintListMenu(plugin, player, category, 0);
     }
 
-    public static RecipeCategoryMenu recipeCategoryMenu(AuroraCrafting plugin, Player player, RecipeBookConfig.RecipeCategory category, int page) {
-        return new RecipeCategoryMenu(plugin, player, category, page);
+    public static BookBlueprintListMenu bookBlueprintListMenu(AuroraCrafting plugin, Player player, BookCategory category, int page) {
+        return new BookBlueprintListMenu(plugin, player, category, page);
     }
 
     public void open() {
         var mc = plugin.getConfigManager().getRecipeBookCategoryConfig();
 
-        var menu = new AuroraMenu(player, category.getMenu().getTitle(), mc.getRows() * 9, false);
+        var menu = new AuroraMenu(player, category.getMenuOptions().getTitle(), mc.getRows() * 9, false);
         menu.addFiller(ItemBuilder.of(mc.getFiller()).toItemStack(player));
 
         for (var item : mc.getCustomItems().values()) {
@@ -47,12 +47,12 @@ public class RecipeCategoryMenu {
         }
 
         if (mc.getCategoryIcon().getEnabled()) {
-            var itemConfig = category.getMenu().getItem().merge(mc.getCategoryIcon().getItem());
+            var itemConfig = category.getMenuOptions().getItem().merge(mc.getCategoryIcon().getItem());
             menu.addItem(ItemBuilder.of(itemConfig).defaultSlot(4).build(player));
         }
 
         menu.addItem(ItemBuilder.of(mc.getItems().get("back")).build(player), (e) -> {
-            RecipeBookMenu.recipeBookMenu(plugin, player).open();
+            BookCategoryListMenu.bookCategoryListMenu(plugin, player, category.getParent()).open();
         });
 
         var recipes = getPageRecipes(mc.getDisplayArea().size());
@@ -60,51 +60,54 @@ public class RecipeCategoryMenu {
         for (int i = 0; i < mc.getDisplayArea().size(); i++) {
             var slot = mc.getDisplayArea().get(i);
             if (i < recipes.size()) {
-                var recipe = recipes.get(i);
-                var item = recipe.getResultItem();
+                var blueprint = recipes.get(i);
+                var item = blueprint.getResultItem();
                 if (item.getType() == Material.AIR) {
                     item = new ItemStack(Material.BARRIER);
                     var meta = item.getItemMeta();
-                    meta.displayName(Text.component("&c&lInvalid recipe result"));
+                    meta.displayName(Text.component("&c&lInvalid blueprint result"));
                     item.setItemMeta(meta);
                 }
-                if (recipe.hasPermission(player) || !mc.getSecretRecipeDisplay().getEnabled()) {
+                if (mc.getSecretRecipeDisplay().getEnabled() && !blueprint.hasAccess(player)) {
+                    menu.addItem(ItemBuilder.of(mc.getSecretRecipeDisplay().getItem()).slot(slot).loreCompute(() -> {
+                        var lore = new ArrayList<>(mc.getSecretRecipeDisplay().getItem().getLore());
+                        lore.addAll(blueprint.getDisplayOptions().getLockedLore());
+                        return lore.stream().map(l -> Text.component(player, l)).toList();
+                    }).build(player));
+                } else {
                     var builder = ItemBuilder.item(item).slot(slot);
 
                     if (item.hasItemMeta()) {
                         ItemStack finalItem = item;
                         builder.loreCompute(() -> {
                             var lore = new ArrayList<Component>();
-                            if (finalItem.hasItemMeta()) {
-                                var meta = finalItem.getItemMeta();
-                                if (meta.hasLore()) {
-                                    lore.addAll(meta.lore());
-                                }
+                            var meta = finalItem.getItemMeta();
+                            if (meta.hasLore()) {
+                                lore.addAll(meta.lore());
                             }
+
+                            if (!blueprint.hasAccess(player)) {
+                                lore.addAll(blueprint.getDisplayOptions().getLockedLore().stream().map(l -> Text.component(player, l)).toList());
+                            }
+
                             lore.addAll(mc.getAppendLore().stream().map(l -> Text.component(player, l)).toList());
                             return lore;
                         });
                     }
 
                     menu.addItem(builder.build(player), (e) -> {
-                        RecipeMenu.recipeMenu(plugin, player, recipe, () -> RecipeCategoryMenu.recipeCategoryMenu(plugin, player, recipe.getCategory(), page).open()).open();
+                        BlueprintMenu.blueprintMenu(plugin, player, blueprint, () -> BookBlueprintListMenu.bookBlueprintListMenu(plugin, player, category, page).open()).open();
                     });
-                } else {
-                    menu.addItem(ItemBuilder.of(mc.getSecretRecipeDisplay().getItem()).slot(slot).loreCompute(() -> {
-                        var lore = new ArrayList<>(mc.getSecretRecipeDisplay().getItem().getLore());
-                        lore.addAll(recipe.getLockedLore());
-                        return lore.stream().map(l -> Text.component(player, l)).toList();
-                    }).build(player));
                 }
             } else {
                 menu.addItem(ItemBuilder.item(ItemBuilder.filler(Material.AIR)).slot(slot).build(player));
             }
         }
 
-        var recipesInCategory = plugin.getRecipeManager().getRecipesByCategory(category.getId());
+        var blueprints = category.getBlueprints();
 
-        if (recipesInCategory.size() > mc.getDisplayArea().size()) {
-            var maxPage = (int) Math.ceil(recipesInCategory.size() / (double) mc.getDisplayArea().size());
+        if (blueprints.size() > mc.getDisplayArea().size()) {
+            var maxPage = (int) Math.ceil(blueprints.size() / (double) mc.getDisplayArea().size());
 
             List<Placeholder<?>> placeholders = List.of(
                     Placeholder.of("{current}", page + 1),
@@ -132,8 +135,8 @@ public class RecipeCategoryMenu {
         menu.open();
     }
 
-    public List<AuroraRecipe> getPageRecipes(int pageSize) {
-        var recipes = plugin.getRecipeManager().getRecipesByCategory(category.getId());
+    public List<Blueprint> getPageRecipes(int pageSize) {
+        var recipes = category.getBlueprints();
         int startIndex = page * pageSize;
         int endIndex = Math.min(startIndex + pageSize, recipes.size());
         return recipes.subList(startIndex, endIndex);

@@ -21,9 +21,9 @@ public class SmokerRecipeViewConfig extends AuroraConfig {
 
     @Getter
     public static final class Slots {
-        private Integer result = 16;
-        private Integer fuel = 19;
-        private Integer input = 10;
+        private Integer result = 15;
+        private Integer fuel = 20;
+        private Integer input = 11;
     }
 
     @Getter

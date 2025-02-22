@@ -10,8 +10,8 @@ import java.util.Map;
 public class Book extends BookCategory {
     private final Map<String, BookCategory> registry = new HashMap<>();
 
-    public Book() {
-        super("root", null, null);
+    public Book(MenuOptions menuOptions) {
+        super("root", null, menuOptions);
     }
 
     @Override
@@ -34,6 +34,10 @@ public class Book extends BookCategory {
         categories.clear();
         registry.clear();
         frozen = false;
+    }
+
+    public void setMenuOptions(MenuOptions menuOptions) {
+        this.menuOptions = menuOptions;
     }
 
     @Override

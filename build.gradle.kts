@@ -15,6 +15,7 @@ plugins {
     id("java")
     id("com.gradleup.shadow") version "8.3.3"
     id("maven-publish")
+    id("xyz.jpenilla.run-paper") version "2.3.1"
 }
 
 group = "gg.auroramc"
@@ -28,7 +29,7 @@ repositories {
         dirs("libs")
     }
     mavenCentral()
-    maven("https://papermc.io/repo/repository/maven-public/")
+    maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.auroramc.gg/repository/maven-public/")
     maven("https://repo.aikar.co/content/groups/aikar/")
     // Quests (pikamug)
@@ -39,7 +40,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
     compileOnly("gg.auroramc:Aurora:2.1.5")
     compileOnly("gg.auroramc:AuroraQuests:1.3.14")
     // Quests
@@ -49,6 +50,8 @@ dependencies {
     // BetonQuest (2)
     compileOnly("org.betonquest:betonquest:2.1.3")
     compileOnly("com.comphenix.protocol:ProtocolLib:5.3.0")
+    // Jobs
+    compileOnly(name = "Jobs5.2.4.6", group = "com.github.Zrips", version = "5.2.4.6")
 
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
     implementation("org.bstats:bstats-bukkit:3.0.2")
@@ -92,6 +95,12 @@ tasks.processResources {
 tasks {
     build {
         dependsOn(shadowJar)
+    }
+    runServer {
+        downloadPlugins {
+            modrinth("AuroraLib", "2.1.3")
+        }
+        minecraftVersion("1.21.4")
     }
 }
 

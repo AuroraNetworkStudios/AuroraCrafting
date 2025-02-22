@@ -17,7 +17,7 @@ public class SmithingBlueprint extends Blueprint {
     @Getter
     private VanillaOptions vanillaOptions = VanillaOptions.builder().build();
 
-    private static final ItemPair air = new ItemPair(TypeId.from(Material.AIR), 0);
+    private static final Ingredient air = new Ingredient(new ItemPair(TypeId.from(Material.AIR), 0));
 
     private final boolean[] slots = new boolean[3];
 
@@ -51,7 +51,7 @@ public class SmithingBlueprint extends Blueprint {
         }
 
         slots[index] = true;
-        ingredients.set(index, itemPair);
+        ingredients.set(index, new Ingredient(itemPair));
         ingredientItems.set(index, item);
         this.ingredientCount.merge(itemPair.id(), itemPair.amount(), Integer::sum);
         if (itemPair.id().equals(TypeId.from(Material.AIR))) {
@@ -69,7 +69,7 @@ public class SmithingBlueprint extends Blueprint {
         var items = context.getMatrix();
 
         for (int i = 0; i < items.length; i++) {
-            var ingredient = ingredients.size() > i ? ingredients.get(i) : new ItemPair(TypeId.from(Material.AIR), 0);
+            var ingredient = ingredients.size() > i ? ingredients.get(i).getItemPair() : new ItemPair(TypeId.from(Material.AIR), 0);
             var item = items[i];
             var itemTypeId = item.isEmpty() ? TypeId.from(Material.AIR) : AuroraAPI.getItemManager().resolveId(item);
             if (!itemTypeId.equals(ingredient.id())) {
@@ -94,7 +94,7 @@ public class SmithingBlueprint extends Blueprint {
         var currentMatrix = context.getMatrix();
 
         for (int i = 0; i < context.getMatrix().length; i++) {
-            var ingredient = ingredients.size() > i ? ingredients.get(i) : new ItemPair(TypeId.from(Material.AIR), 0);
+            var ingredient = ingredients.size() > i ? ingredients.get(i).getItemPair() : new ItemPair(TypeId.from(Material.AIR), 0);
             var item = currentMatrix[i];
             if (item.getAmount() <= ingredient.amount() * timesCrafted) {
                 items[i] = null;
@@ -108,7 +108,7 @@ public class SmithingBlueprint extends Blueprint {
         return items;
     }
 
-    public ItemPair getTemplate() {
+    public Ingredient getTemplate() {
         return ingredients.getFirst();
     }
 
@@ -116,7 +116,7 @@ public class SmithingBlueprint extends Blueprint {
         var item = AuroraAPI.getItemManager().resolveItem(itemPair.id());
         item.setAmount(itemPair.amount());
 
-        ingredients.set(0, itemPair);
+        ingredients.set(0, new Ingredient(itemPair));
         ingredientItems.set(0, item);
         return this;
     }
@@ -125,7 +125,7 @@ public class SmithingBlueprint extends Blueprint {
         return ingredientItems.getFirst();
     }
 
-    public ItemPair getBase() {
+    public Ingredient getBase() {
         return ingredients.get(1);
     }
 
@@ -133,7 +133,7 @@ public class SmithingBlueprint extends Blueprint {
         var item = AuroraAPI.getItemManager().resolveItem(itemPair.id());
         item.setAmount(itemPair.amount());
 
-        ingredients.set(1, itemPair);
+        ingredients.set(1, new Ingredient(itemPair));
         ingredientItems.set(1, item);
         return this;
     }
@@ -142,7 +142,7 @@ public class SmithingBlueprint extends Blueprint {
         return ingredientItems.get(1);
     }
 
-    public ItemPair getAddition() {
+    public Ingredient getAddition() {
         return ingredients.getLast();
     }
 
@@ -150,7 +150,7 @@ public class SmithingBlueprint extends Blueprint {
         var item = AuroraAPI.getItemManager().resolveItem(itemPair.id());
         item.setAmount(itemPair.amount());
 
-        ingredients.set(2, itemPair);
+        ingredients.set(2, new Ingredient(itemPair));
         ingredientItems.set(2, item);
         return this;
     }

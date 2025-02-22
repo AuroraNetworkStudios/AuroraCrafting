@@ -27,7 +27,7 @@ public class BlueprintAdapter {
     }
 
     public static ShapedRecipe adapt(ShapedBlueprint blueprint) {
-        return ShapedRecipeBuilder.shapedRecipe(blueprint.getId(), blueprint.getVanillaOptions().getChoiceType())
+        return ShapedRecipeBuilder.shapedRecipe(blueprint.getId(), blueprint.getVanillaOptions().getChoiceType(), blueprint.isSymmetrical())
                 .category(blueprint.getVanillaOptions().getCategory())
                 .group(blueprint.getVanillaOptions().getGroup())
                 .ingredients(blueprint.getIngredientItems())
@@ -54,7 +54,7 @@ public class BlueprintAdapter {
 
         return builder.cookingTime(blueprint.getVanillaOptions().getCookingTime())
                 .experience(blueprint.getVanillaOptions().getExperience())
-                .input(blueprint.input())
+                .input(blueprint.getInputItem())
                 .result(blueprint.getResultItem())
                 .build();
     }

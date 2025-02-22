@@ -19,14 +19,18 @@ public class CraftingRecipesConfig extends AuroraConfig {
     @IgnoreField
     private String sourcePath;
 
+    @IgnoreField
+    private boolean vanilla;
+
     private List<RecipeConfig> recipes = new ArrayList<>();
 
     @Getter
     public static final class RecipeConfig {
         private String id;
         private String permission;
-        private String workbench;
+        private String workbench = "default";
         private Boolean shapeless = false;
+        private Boolean symmetry = false;
         private String result;
         private VanillaOptions vanillaOptions = new VanillaOptions();
         private DisplayOptions displayOptions = new DisplayOptions();
@@ -49,23 +53,18 @@ public class CraftingRecipesConfig extends AuroraConfig {
     }
 
     @Getter
-    public static final class MergeOptions {
-        private Boolean enchants = false;
-        private Boolean trim = false;
-    }
-
-    @Getter
     public static final class DisplayOptions {
         private Map<String, ItemConfig> items = new HashMap<>();
         private List<String> lockedLore = new ArrayList<>();
     }
 
-    public CraftingRecipesConfig(File file) {
+    public CraftingRecipesConfig(File file, boolean vanilla) {
         super(file);
+        this.vanilla = vanilla;
         var target = "blueprints" + File.separator;
         var absPath = file.getAbsolutePath();
         var index = absPath.indexOf(target);
-        this.sourcePath = absPath.substring(index + target.length()).replace(".yml", "");
+        this.sourcePath = absPath.substring(index + target.length()).replace(".yml", "").replace(File.separator, "/");
     }
 
     @Override
@@ -73,8 +72,12 @@ public class CraftingRecipesConfig extends AuroraConfig {
         super.load();
         recipes.forEach(recipe -> {
             recipe.setSourcePath(sourcePath);
-            var matrixSize = AuroraCrafting.getInstance().getConfigManager().getWorkbenchConfig().stream().filter(w -> w.getId().equals(recipe.getWorkbench())).findFirst().get().getMatrixSlots().size();
-            if (!recipe.getShapeless() && recipe.getIngredients().size() < matrixSize) {
+            var matrix = AuroraCrafting.getInstance().getConfigManager().getWorkbenchConfig().stream().filter(w -> w.getId().equals(recipe.getWorkbench())).findFirst();
+            int matrixSize = 9;
+            if (matrix.isPresent() && !vanilla) {
+                matrixSize = matrix.get().getMatrixSlots().size();
+            }
+            if (recipe.getIngredients().size() < matrixSize) {
                 for (int i = recipe.getIngredients().size(); i < matrixSize; i++) {
                     recipe.getIngredients().add("");
                 }

@@ -36,7 +36,11 @@ public class BlueprintParser {
         ChoiceType choiceType;
 
         try {
-            vanillaCategory = CraftingBookCategory.valueOf(config.getVanillaOptions().getCategory().toUpperCase());
+            if (config.getVanillaOptions().getCategory() == null) {
+                vanillaCategory = CraftingBookCategory.MISC;
+            } else {
+                vanillaCategory = CraftingBookCategory.valueOf(config.getVanillaOptions().getCategory().toUpperCase());
+            }
         } catch (IllegalArgumentException e) {
             vanillaCategory = CraftingBookCategory.MISC;
             AuroraCrafting.logger().warning("Invalid cooking category: " + config.getVanillaOptions().getCategory() + " in recipe: " + recipeId);
@@ -54,7 +58,7 @@ public class BlueprintParser {
         if (config.getShapeless()) {
             blueprint = ShapelessBlueprint.shapelessBlueprint(workbench, config.getId());
         } else {
-            blueprint = ShapedBlueprint.shapedBlueprint(workbench, config.getId());
+            blueprint = ShapedBlueprint.shapedBlueprint(workbench, config.getId()).symmetrical(config.getSymmetry());
         }
 
         var ret = blueprint.vanillaOptions(CraftingBlueprint.VanillaOptions.builder()
@@ -83,7 +87,13 @@ public class BlueprintParser {
             for (var entry : config.getMergeOptions().entrySet()) {
                 var mergeOptions = entry.getValue();
                 var index = entry.getKey() - 1;
-                ret.mergeOptions(index, new Blueprint.MergeOptions(mergeOptions.getEnchants(), mergeOptions.getTrim()));
+                ret.mergeOptions(index, new Blueprint.MergeOptions(
+                        mergeOptions.getEnchants(),
+                        mergeOptions.getTrim(),
+                        mergeOptions.getPdc(),
+                        mergeOptions.getRestoreDurability(),
+                        mergeOptions.getMergeDurability())
+                );
             }
         }
 
@@ -94,7 +104,11 @@ public class BlueprintParser {
         CookingBookCategory vanillaCategory;
 
         try {
-            vanillaCategory = CookingBookCategory.valueOf(config.getCategory().toUpperCase());
+            if (config.getCategory() == null) {
+                vanillaCategory = CookingBookCategory.MISC;
+            } else {
+                vanillaCategory = CookingBookCategory.valueOf(config.getCategory().toUpperCase());
+            }
         } catch (IllegalArgumentException e) {
             vanillaCategory = CookingBookCategory.MISC;
             AuroraCrafting.logger().warning("Invalid cooking category: " + config.getCategory() + " in recipe: " + recipeId);
@@ -116,7 +130,7 @@ public class BlueprintParser {
                         .items(config.getDisplayOptions().getItems())
                         .lockedLore(config.getDisplayOptions().getLockedLore())
                         .build())
-                .result(parseItemPair(config.getResult(), Material.AIR));
+                .result(parseItemPair(config.getResult(), Material.AIR)).complete();
     }
 
     public Blueprint parse(CauldronRecipesConfig.RecipeConfig config) {
@@ -174,7 +188,13 @@ public class BlueprintParser {
             for (var entry : config.getMergeOptions().entrySet()) {
                 var mergeOptions = entry.getValue();
                 var index = entry.getKey() - 1;
-                ret.mergeOptions(index, new Blueprint.MergeOptions(mergeOptions.getEnchants(), mergeOptions.getTrim()));
+                ret.mergeOptions(index, new Blueprint.MergeOptions(
+                        mergeOptions.getEnchants(),
+                        mergeOptions.getTrim(),
+                        mergeOptions.getPdc(),
+                        mergeOptions.getRestoreDurability(),
+                        mergeOptions.getMergeDurability())
+                );
             }
         }
 
@@ -188,7 +208,7 @@ public class BlueprintParser {
         } else {
             blueprint.result(parseItemPair(result, Material.AIR));
         }
-        return blueprint;
+        return blueprint.complete();
     }
 
     private Integer parseResultIngredientIndex(String result) {

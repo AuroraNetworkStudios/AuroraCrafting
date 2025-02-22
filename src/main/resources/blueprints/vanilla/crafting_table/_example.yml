@@ -1,15 +1,14 @@
 recipes:
   # Unique ID of the recipe
-  - id: emerald-recipe
+  - id: emerald-recipe2
     # Type of the custom recipe (shaped or shapeless)
-    type: shaped
-    # workbench the recipe is craftable on
-    workbench: default
+    shapeless: false
+    symmetry: true
     # Permission to unlock/craft the recipe
     permission: "craft.emerald"
     # Result item of the recipe
     # (can reference the ingredient item from the crafting inventory by using ingredient:2 for the 2nd ingredient)
-    result: "minecraft:diamond/32"
+    result: "minecraft:emerald/32"
     # Ingredients required to craft the recipe
     ingredients:
       - ""
@@ -31,40 +30,16 @@ recipes:
       category: "equipment"
       group: "vanilla grouping stuff"
       # item-type for dynamic choice or exact for items that doesn't change
-      choice-type: "item-type"
+      choice-type: "item_type"
     # Stuff to customize looks in various menus
     display-options:
-      # context based menu item definitions
-      items:
-        locked:
-          name: "aaa"
-          material: "aaa"
       locked-lore:
         - "&7You need &aEmerald collection level 5 &7to unlock this recipe."
     # Defines how to merge data from the ingredients into the result item (optional)
     # This is basically smithing/anvil heaven
     merge-options:
       # Stuff from the second 2nd will be merged into the result item
-      # Can be a range like 2-4 or "all" for all ingredients
       2:
-        # Can be override or merge
-        # Usually override is used in smithing table and merge in anvil
-        enchants: "merge"
+        enchants: true
         # Transfers the trim state from the ingredient to the result item (if applicable)
         trim: true
-        durability:
-          # Restores 100 durability on the result item (useful for anvil like behavior)
-          add: 100
-          # Restores the ingredient current durability on the result item
-          # Useful when you try to do anvil stuff in custom guis
-          merge: true
-        pdc:
-          # Basically don't override/add string keys or known plugin keys
-          # But add every number key from the ingredient to the result item
-          # if the key is not already present, or it is 0 on the result item
-          smart-merge: true
-          # Specify how to merge concrete paths
-          keys:
-            "plugin.key.some.value.stattrak": "override"
-            "plugin.key.some.value.stattrak2": "merge"
-            "plugin.key.some.value.stattrak3": "merge"

@@ -1,37 +1,74 @@
 config-version: 0
 
 categories:
-  - id: example
-    # Include every recipes from these files
+  - id: custom_recipes
     files:
-      - example
-    # You can use specific recipe ids here from any file
-    recipes:
-      - amber
-      - diamond
+      - "aurora/_example"
     menu:
-      title: "Example recipes"
+      title: "Custom recipes"
       item:
         material: diamond
-        name: "&6Example"
+        name: "&6Custom recipes"
         slot: 10
-  - id: example2
+  - id: vanilla_recipes
+    menu:
+      title: "Vanilla recipes"
+      item:
+        material: emerald
+        name: "&6Vanilla recipes"
+        slot: 11
     categories:
-      - id: subcatid
+      - id: my_smithing_recipes
         files:
-          - example
-        recipes:
-          - amber
+          - "vanilla/smithing_table/_example"
         menu:
-          title: "Example recipes"
+          title: "Smithing recipes"
+          item:
+            material: smithing_table
+            name: "&6Smithing recipes"
+            slot: 10
+      - id: my_crafting_recipes
+        files:
+          - "vanilla/crafting_table/_example"
+        menu:
+          title: "Crafting recipes"
+          item:
+            material: crafting_table
+            name: "&6Crafting recipes"
+            slot: 11
+      - id: my_furnace_recipes
+        files:
+          - "vanilla/furnace/_example"
+        menu:
+          title: "Furnace recipes"
+          item:
+            material: furnace
+            name: "&6Furnace recipes"
+            slot: 12
+      - id: my_blast_furnace_recipes
+        files:
+          - "vanilla/blast_furnace/_example"
+        menu:
+          title: "Blast furnace recipes"
           item:
             material: diamond
-            name: "&6Example"
-            slot: 10
-    menu:
-      title: "Example recipes"
-      item:
-        material: diamond
-        name: "&6Example"
-        slot: 10
-
+            name: "&6Blast furnace recipes"
+            slot: 13
+      - id: my_smoker_recipes
+        files:
+          - "vanilla/smoker/_example"
+        menu:
+          title: "Smoker recipes"
+          item:
+            material: smoker
+            name: "&6Smoker recipes"
+            slot: 14
+      - id: my_campfire_recipes
+        files:
+          - "vanilla/campfire/_example"
+        menu:
+          title: "Campfire recipes"
+          item:
+            material: campfire
+            name: "&6Campfire recipes"
+            slot: 15

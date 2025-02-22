@@ -11,7 +11,7 @@ public class BookCategory {
     private final String id;
     private final BookCategory parent;
     private final List<Blueprint> blueprints = new ArrayList<>();
-    private final MenuOptions menuOptions;
+    protected MenuOptions menuOptions;
     protected boolean frozen = false;
 
     @Getter(AccessLevel.NONE)
@@ -44,8 +44,12 @@ public class BookCategory {
         blueprints.add(blueprint);
     }
 
-    public Collection<BookCategory> getRegistry() {
+    public Collection<BookCategory> getCategories() {
         return categories.values();
+    }
+
+    public boolean hasSubCategories() {
+        return !categories.isEmpty();
     }
 
     public void freeze() {

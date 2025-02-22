@@ -5,15 +5,18 @@ import gg.auroramc.aurora.api.config.premade.ItemConfig;
 import gg.auroramc.aurora.api.item.TypeId;
 import gg.auroramc.aurora.api.util.ItemUtils;
 import gg.auroramc.aurora.api.util.TriConsumer;
+import gg.auroramc.aurora.api.util.Version;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.ItemPair;
 import gg.auroramc.crafting.api.book.BookCategory;
 import gg.auroramc.crafting.api.workbench.Workbench;
+import gg.auroramc.crafting.util.PersistentDataUtils;
 import lombok.*;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
+import org.bukkit.inventory.meta.Damageable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,10 +33,10 @@ public abstract class Blueprint {
     protected String permission;
     protected final Workbench workbench;
     protected DisplayOptions displayOptions;
-    protected Map<Integer, MergeOptions> mergeOptions;
-    protected Integer resultIngredientIndex = null;
+    protected boolean mergeOptionsEnabled = false;
+    protected boolean ingredientAsResult = false;
     protected final List<TriConsumer<Player, ItemStack, Integer>> craftActions = new ArrayList<>();
-    protected final List<ItemPair> ingredients = new ArrayList<>();
+    protected final List<Ingredient> ingredients = new ArrayList<>();
     protected final List<ItemStack> ingredientItems = new ArrayList<>();
     protected final Map<TypeId, Integer> ingredientCount = new HashMap<>();
 
@@ -50,18 +53,33 @@ public abstract class Blueprint {
      * @return the result item
      */
     public ItemStack getResultItem(BlueprintContext context) {
-        if (context.getMatrix().length == 0 || mergeOptions == null) {
+        if (context.getMatrix().length == 0 || !mergeOptionsEnabled) {
             return resultItem.clone();
         }
 
-        var result = resultIngredientIndex != null ? context.getMatrix()[resultIngredientIndex].clone() : resultItem.clone();
+        var matchedIngredients = getMatchedIngredientList(context);
+
+        ItemStack result;
+
+        if (ingredientAsResult) {
+            int index = 0;
+            for (int i = 0; i < matchedIngredients.size(); i++) {
+                if (matchedIngredients.get(i).isResult()) {
+                    index = i;
+                    break;
+                }
+            }
+            result = context.getMatrix()[index].clone();
+        } else {
+            result = resultItem.clone();
+        }
 
         for (int i = 0; i < context.getMatrix().length; i++) {
             var ingredient = context.getMatrix()[i];
             if (ingredient == null) {
                 continue;
             }
-            var mergeOption = mergeOptions.get(i);
+            var mergeOption = matchedIngredients.get(i).getMergeOptions();
             if (mergeOption == null) {
                 continue;
             }
@@ -71,25 +89,78 @@ public abstract class Blueprint {
         return result;
     }
 
+    protected List<Ingredient> getMatchedIngredientList(BlueprintContext context) {
+        return ingredients;
+    }
+
     protected ItemStack mergeToResult(ItemStack result, ItemStack ingredient, MergeOptions options) {
+        var ingredientMeta = ingredient.getItemMeta();
+        var resultMeta = result.getItemMeta();
+
         if (options.enchants) {
-            for (var enchant : ingredient.getEnchantments().entrySet()) {
-                if (result.getEnchantments().containsKey(enchant.getKey())) {
-                    result.addEnchantment(enchant.getKey(), enchant.getValue() + result.getEnchantmentLevel(enchant.getKey()));
+            for (var enchant : ingredientMeta.getEnchants().entrySet()) {
+                if (resultMeta.getEnchants().containsKey(enchant.getKey())) {
+                    var currentLevel = resultMeta.getEnchantLevel(enchant.getKey());
+                    var otherLevel = enchant.getValue();
+                    resultMeta.removeEnchant(enchant.getKey());
+                    if (currentLevel == otherLevel) {
+                        resultMeta.addEnchant(enchant.getKey(), Math.min(currentLevel + 1, enchant.getKey().getMaxLevel()), true);
+                    } else {
+                        resultMeta.addEnchant(enchant.getKey(), Math.max(currentLevel, otherLevel), true);
+                    }
                 } else {
-                    result.addEnchantment(enchant.getKey(), enchant.getValue());
+                    resultMeta.addEnchant(enchant.getKey(), enchant.getValue(), true);
                 }
             }
         }
 
         if (options.trim) {
-            if (ingredient.getItemMeta() instanceof ArmorMeta armorMeta && armorMeta.hasTrim()) {
-                if (result.getItemMeta() instanceof ArmorMeta resultArmorMeta) {
-                    resultArmorMeta.setTrim(armorMeta.getTrim());
-                    result.setItemMeta(resultArmorMeta);
+            if (ingredientMeta instanceof ArmorMeta ingredientArmorMeta && ingredientArmorMeta.hasTrim()) {
+                if (resultMeta instanceof ArmorMeta) {
+                    ((ArmorMeta) resultMeta).setTrim(ingredientArmorMeta.getTrim());
                 }
             }
         }
+
+        if (!options.pdc.isEmpty()) {
+            PersistentDataUtils.mergePaths(ingredient, resultMeta, options.pdc);
+        }
+
+        if (options.mergeDurability || options.restoreDurability != null) {
+            if (options.restoreDurability != null) {
+                if (result.getItemMeta() instanceof Damageable d && d.hasDamage()) {
+                    var damageable = (Damageable) resultMeta;
+                    damageable.setDamage(Math.max(damageable.getDamage() - options.getRestoreDurability(), 0));
+                    if (!damageable.hasDamage() && Version.isAtLeastVersion(21)) {
+                        damageable.resetDamage();
+                    }
+                }
+            } else {
+                if (result.getItemMeta() instanceof Damageable r && r.hasDamage()) {
+                    var resultDamageable = (Damageable) resultMeta;
+                    if (ingredient.getItemMeta() instanceof Damageable ingredientDamageable) {
+                        var restoreDurability = 0;
+
+                        if (Version.isAtLeastVersion(20, 5) && ingredientDamageable.hasMaxDamage()) {
+                            restoreDurability = ingredientDamageable.hasDamage()
+                                    ? ingredientDamageable.getMaxDamage() - ingredientDamageable.getDamage()
+                                    : ingredientDamageable.getMaxDamage();
+                        } else {
+                            restoreDurability = ingredientDamageable.hasDamage()
+                                    ? ingredient.getType().getMaxDurability() - ingredientDamageable.getDamage()
+                                    : ingredient.getType().getMaxDurability();
+                        }
+
+                        resultDamageable.setDamage(Math.max(resultDamageable.getDamage() - restoreDurability, 0));
+                        if (!resultDamageable.hasDamage() && Version.isAtLeastVersion(21)) {
+                            resultDamageable.resetDamage();
+                        }
+                    }
+                }
+            }
+        }
+
+        result.setItemMeta(resultMeta);
 
         return result;
     }
@@ -125,9 +196,13 @@ public abstract class Blueprint {
         if (ingredientItems.get(index).isEmpty()) {
             throw new IllegalArgumentException("Invalid ingredient index: " + index + " for blueprint: " + id + ". Ingredient is empty/air.");
         }
-        this.result = ingredients.get(index);
+        if (ingredientAsResult) {
+            throw new IllegalArgumentException("Another ingredient is already set as result." + " for blueprint: " + id);
+        }
+        ingredients.get(index).setResult(true);
+        this.result = ingredients.get(index).getItemPair();
         this.resultItem = ingredientItems.get(index).clone();
-        this.resultIngredientIndex = index;
+        this.ingredientAsResult = true;
         return this;
     }
 
@@ -185,10 +260,11 @@ public abstract class Blueprint {
      * @return the blueprint
      */
     public Blueprint mergeOptions(int index, MergeOptions mergeOptions) {
-        if (this.mergeOptions == null) {
-            this.mergeOptions = new HashMap<>();
+        if (this.ingredients.size() <= index) {
+            throw new IllegalArgumentException("Invalid ingredient index: " + index + " for blueprint merge options: " + id + " with " + ingredients.size() + " ingredients");
         }
-        this.mergeOptions.put(index, mergeOptions);
+        this.ingredients.get(index).setMergeOptions(mergeOptions);
+        this.mergeOptionsEnabled = true;
         return this;
     }
 
@@ -201,7 +277,7 @@ public abstract class Blueprint {
     public Blueprint addIngredient(ItemPair itemPair) {
         var item = AuroraAPI.getItemManager().resolveItem(itemPair.id());
         item.setAmount(itemPair.amount());
-        this.ingredients.add(itemPair);
+        this.ingredients.add(new Ingredient(itemPair));
         this.ingredientItems.add(item);
         this.ingredientCount.merge(itemPair.id(), itemPair.amount(), Integer::sum);
         if (itemPair.id().equals(TypeId.from(Material.AIR))) {
@@ -351,7 +427,7 @@ public abstract class Blueprint {
 
     public boolean isStacked() {
         for (var ingredient : ingredients) {
-            if (ingredient.amount() > 1) {
+            if (ingredient.getItemPair().amount() > 1) {
                 return true;
             }
         }
@@ -375,6 +451,13 @@ public abstract class Blueprint {
      */
     public abstract ItemStack[] calcRemainingIngredientMatrix(BlueprintContext context, int timesCrafted);
 
+    /**
+     * Should be called when the blueprint is fully completed
+     */
+    public Blueprint complete() {
+        return this;
+    }
+
     @Getter
     @Setter
     @AllArgsConstructor
@@ -389,9 +472,23 @@ public abstract class Blueprint {
     @Setter
     @AllArgsConstructor
     @NoArgsConstructor
+    @ToString
     @Builder
     public static final class MergeOptions {
         private boolean enchants;
         private boolean trim;
+        private List<String> pdc;
+        private Integer restoreDurability;
+        private boolean mergeDurability;
+    }
+
+    @Getter
+    @Setter
+    @RequiredArgsConstructor
+    @ToString
+    public static class Ingredient {
+        private final ItemPair itemPair;
+        private MergeOptions mergeOptions;
+        private boolean result;
     }
 }
