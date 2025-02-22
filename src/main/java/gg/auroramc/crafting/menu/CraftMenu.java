@@ -100,7 +100,7 @@ public class CraftMenu implements InventoryHolder {
         for (int i = 0; i < quickCraftSlots.size(); i++) {
             var slot = quickCraftSlots.get(i);
             if (i < quickCraftRecipes.size()) {
-                if (player.hasPermission("aurora.quickcraft." + slot)) {
+                if (player.hasPermission("aurora.quickcraft." + workbench.getId() + "." + slot)) {
                     var recipe = quickCraftRecipes.get(i);
                     inventory.setItem(slot, recipe.getResultItem());
                     this.quickCraftBlueprints.put(slot, recipe);
@@ -108,7 +108,7 @@ public class CraftMenu implements InventoryHolder {
                     inventory.setItem(slot, noPermQuickCraftItem);
                 }
             } else {
-                if (player.hasPermission("aurora.quickcraft." + slot)) {
+                if (player.hasPermission("aurora.quickcraft." + workbench.getId() + "." + slot)) {
                     inventory.setItem(slot, emptyQuickCraftItem);
                 } else {
                     inventory.setItem(slot, noPermQuickCraftItem);
@@ -234,7 +234,7 @@ public class CraftMenu implements InventoryHolder {
             return;
         }
 
-        if (!player.hasPermission("aurora.quickcraft." + event.getSlot())) {
+        if (!player.hasPermission("aurora.quickcraft." + workbench.getId() + "." + event.getSlot())) {
             event.setCancelled(true);
             return;
         }
