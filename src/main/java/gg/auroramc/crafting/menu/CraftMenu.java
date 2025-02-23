@@ -395,7 +395,7 @@ public class CraftMenu implements InventoryHolder {
                 player.getScheduler().run(plugin, (t) -> {
                     setUpQuickCraft();
                     updateMatrix(blueprint, timesCraftable, 1, context);
-                    plugin.callCraftEvent(player, event.getCurrentItem(), blueprint.getResult().amount(), blueprint);
+                    plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount(), blueprint);
                 }, null);
                 return;
             }
