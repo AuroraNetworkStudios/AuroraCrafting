@@ -14,28 +14,16 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
-import org.bukkit.inventory.*;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.SmithingInventory;
 
 public class SmithingListener implements Listener {
     private final AuroraCrafting plugin;
     private final NamespacedKey smithingSoundKey = NamespacedKey.minecraft("block.smithing_table.use");
-    private final List<SmithingRecipeWrapper> vanillaRecipes = new ArrayList<>();
 
     public SmithingListener(AuroraCrafting plugin) {
         this.plugin = plugin;
-        for (@NotNull Iterator<Recipe> it = Bukkit.recipeIterator(); it.hasNext(); ) {
-            var recipe = it.next();
-            if (recipe instanceof SmithingTransformRecipe smithingRecipe) {
-                vanillaRecipes.add(new SmithingTransformRecipeWrapper(smithingRecipe));
-            } else if (recipe instanceof SmithingTrimRecipe smithingRecipe) {
-                vanillaRecipes.add(new SmithingTrimRecipeWrapper(smithingRecipe));
-            }
-        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -48,20 +36,9 @@ public class SmithingListener implements Listener {
 
         // Just because the blueprint is null, it doesn't mean vanilla didn't match our material choice recipes
         if (blueprint == null) {
-            // If there is an actual vanilla recipe, we should let it go through
-            var vanillaRecipe = getVanillaRecipe(event.getInventory());
-            if (vanillaRecipe != null) {
-                if (vanillaRecipe.getResult() != null && !vanillaRecipe.getResult().isEmpty()) {
-                    // Trimming is hardcoded by mojang, so we only set the result if it is not empty
-                    event.setResult(vanillaRecipe.getResult());
-                } else if (workbench.matchesRegisteredVanillaRecipe(context)) {
-                    // Users might register a recipe that overlaps with a vanilla trim recipe
-                    // In this case we don't really have a choice, have to set the result to null
-                    // Because I won't reimplement vanilla trimming logic
-                    event.setResult(null);
-                }
-            } else {
-                // If we don't have a vanilla recipe, just set the result to null
+            // We handle vanilla overlaps by not registering overlapping material choice recipes :)
+            // So we can safely set the result to null here if vanilla matched our recipe but we don't.
+            if (workbench.matchesRegisteredVanillaRecipe(context)) {
                 event.setResult(null);
             }
             return;
@@ -164,67 +141,5 @@ public class SmithingListener implements Listener {
     private void run(Player player, Runnable runnable) {
         runnable.run();
         Bukkit.getRegionScheduler().run(plugin, player.getLocation(), (t) -> runnable.run());
-    }
-
-    private SmithingRecipeWrapper getVanillaRecipe(SmithingInventory inventory) {
-        for (var recipe : vanillaRecipes) {
-            if (recipe.matches(inventory)) {
-                return recipe;
-            }
-        }
-        return null;
-    }
-
-    public interface SmithingRecipeWrapper {
-        boolean matches(SmithingInventory inventory);
-
-        ItemStack getResult();
-    }
-
-    public static class SmithingTransformRecipeWrapper implements SmithingRecipeWrapper {
-        private final SmithingTransformRecipe recipe;
-
-        public SmithingTransformRecipeWrapper(SmithingTransformRecipe recipe) {
-            this.recipe = recipe;
-        }
-
-        @Override
-        public boolean matches(SmithingInventory inventory) {
-            return matchesChoice(recipe.getTemplate(), inventory.getItem(0)) &&
-                    matchesChoice(recipe.getBase(), inventory.getItem(1)) &&
-                    matchesChoice(recipe.getAddition(), inventory.getItem(2));
-        }
-
-        @Override
-        public ItemStack getResult() {
-            return recipe.getResult();
-        }
-    }
-
-    public static class SmithingTrimRecipeWrapper implements SmithingRecipeWrapper {
-        private final SmithingTrimRecipe recipe;
-
-        public SmithingTrimRecipeWrapper(SmithingTrimRecipe recipe) {
-            this.recipe = recipe;
-        }
-
-        @Override
-        public boolean matches(SmithingInventory inventory) {
-            return matchesChoice(recipe.getTemplate(), inventory.getItem(0)) &&
-                    matchesChoice(recipe.getBase(), inventory.getItem(1)) &&
-                    matchesChoice(recipe.getAddition(), inventory.getItem(2));
-        }
-
-        @Override
-        public ItemStack getResult() {
-            return null;
-        }
-    }
-
-    private static boolean matchesChoice(RecipeChoice choice, ItemStack item) {
-        if (choice == null || item == null) {
-            return false;
-        }
-        return choice.test(item);
     }
 }

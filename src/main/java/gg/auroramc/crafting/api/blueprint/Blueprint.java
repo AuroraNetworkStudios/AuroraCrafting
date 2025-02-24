@@ -126,6 +126,12 @@ public abstract class Blueprint {
             PersistentDataUtils.mergePaths(ingredient, resultMeta, options.pdc);
         }
 
+        if (options.copyDurability) {
+            if (ingredientMeta instanceof Damageable i && i.hasDamage() && resultMeta instanceof Damageable) {
+                ((Damageable) resultMeta).setDamage(i.getDamage());
+            }
+        }
+
         if (options.mergeDurability || options.restoreDurability != null) {
             if (options.restoreDurability != null) {
                 if (result.getItemMeta() instanceof Damageable d && d.hasDamage()) {
@@ -480,6 +486,7 @@ public abstract class Blueprint {
         private List<String> pdc;
         private Integer restoreDurability;
         private boolean mergeDurability;
+        private boolean copyDurability;
     }
 
     @Getter

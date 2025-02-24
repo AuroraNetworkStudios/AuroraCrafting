@@ -1,6 +1,9 @@
 package gg.auroramc.crafting.api.workbench.vanilla;
 
 import gg.auroramc.crafting.api.blueprint.*;
+import org.bukkit.Bukkit;
+import org.bukkit.inventory.CraftingRecipe;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -29,5 +32,20 @@ public class CraftingTable extends VanillaWorkbench<CraftingBlueprint<?>> {
 
     public @Nullable ShapelessBlueprint getShapelessBlueprint(BlueprintContext context) {
         return (ShapelessBlueprint) this.lookupBlueprint(context, BlueprintType.SHAPELESS);
+    }
+
+    @Override
+    protected boolean shouldRegisterVanillaRecipeFor(Blueprint blueprint) {
+        if (blueprint instanceof CraftingBlueprint<?> craftingBlueprint) {
+            if (craftingBlueprint.getVanillaOptions().getChoiceType() == ChoiceType.ITEM_TYPE) {
+                var vanillaVariant = Bukkit.getCraftingRecipe(blueprint.getIngredientItems().toArray(new ItemStack[0]), Bukkit.getWorlds().getFirst());
+                if (vanillaVariant instanceof CraftingRecipe craftingRecipe) {
+                    return !craftingRecipe.getKey().getNamespace().equals("minecraft");
+                }
+            }
+            return true;
+        }
+
+        return false;
     }
 }

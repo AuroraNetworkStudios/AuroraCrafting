@@ -33,6 +33,7 @@ public class WorkbenchConfig extends AuroraConfig {
     private ItemConfig nextRecipeItem;
     private ItemConfig previousRecipeItem;
     private String commandCompletion;
+    private Boolean includeVanillaRecipesInQuickCrafting = false;
 
     public WorkbenchConfig(File file, String id) {
         super(file);

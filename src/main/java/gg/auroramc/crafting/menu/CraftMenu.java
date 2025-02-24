@@ -100,7 +100,7 @@ public class CraftMenu implements InventoryHolder {
         for (int i = 0; i < quickCraftSlots.size(); i++) {
             var slot = quickCraftSlots.get(i);
             if (i < quickCraftRecipes.size()) {
-                if (player.hasPermission("aurora.quickcraft." + slot)) {
+                if (player.hasPermission("aurora.quickcraft." + workbench.getId() + "." + slot)) {
                     var recipe = quickCraftRecipes.get(i);
                     inventory.setItem(slot, recipe.getResultItem());
                     this.quickCraftBlueprints.put(slot, recipe);
@@ -108,7 +108,7 @@ public class CraftMenu implements InventoryHolder {
                     inventory.setItem(slot, noPermQuickCraftItem);
                 }
             } else {
-                if (player.hasPermission("aurora.quickcraft." + slot)) {
+                if (player.hasPermission("aurora.quickcraft." + workbench.getId() + "." + slot)) {
                     inventory.setItem(slot, emptyQuickCraftItem);
                 } else {
                     inventory.setItem(slot, noPermQuickCraftItem);
@@ -234,7 +234,7 @@ public class CraftMenu implements InventoryHolder {
             return;
         }
 
-        if (!player.hasPermission("aurora.quickcraft." + event.getSlot())) {
+        if (!player.hasPermission("aurora.quickcraft." + workbench.getId() + "." + event.getSlot())) {
             event.setCancelled(true);
             return;
         }
@@ -395,7 +395,7 @@ public class CraftMenu implements InventoryHolder {
                 player.getScheduler().run(plugin, (t) -> {
                     setUpQuickCraft();
                     updateMatrix(blueprint, timesCraftable, 1, context);
-                    plugin.callCraftEvent(player, event.getCurrentItem(), blueprint.getResult().amount(), blueprint);
+                    plugin.callCraftEvent(player, currentItem, blueprint.getResult().amount(), blueprint);
                 }, null);
                 return;
             }
@@ -540,11 +540,7 @@ public class CraftMenu implements InventoryHolder {
     private void setInvalidResult() {
         inventory.setItem(resultSlot, invalidResultItem);
 
-        for (var slot : completedItem.getSlots()) {
-            inventory.setItem(slot, fillerItem);
-        }
-
-        for (var slot : notCompletedItem.getSlots()) {
+        for (var slot : workbench.getCompletionIndicatorSlots()) {
             inventory.setItem(slot, notCompletedItem.getItemStack());
         }
     }
@@ -552,11 +548,7 @@ public class CraftMenu implements InventoryHolder {
     private void setResult(ItemStack item) {
         inventory.setItem(resultSlot, item);
 
-        for (var slot : notCompletedItem.getSlots()) {
-            inventory.setItem(slot, fillerItem);
-        }
-
-        for (var slot : completedItem.getSlots()) {
+        for (var slot : workbench.getCompletionIndicatorSlots()) {
             inventory.setItem(slot, completedItem.getItemStack());
         }
     }

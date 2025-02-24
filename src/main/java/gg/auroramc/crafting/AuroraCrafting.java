@@ -58,9 +58,6 @@ public class AuroraCrafting extends AuroraCraftingPlugin {
         configManager.reload();
         l = AuroraAPI.createLogger("AuroraCrafting", () -> configManager.getConfig().getDebug());
 
-        book = new Book(BookCategory.MenuOptions.builder().title(configManager.getRecipeBookMenuConfig().getTitle()).build());
-        workbenchRegistry = new WorkbenchRegistry();
-
         HookManager.loadHooks(this);
     }
 
@@ -68,6 +65,10 @@ public class AuroraCrafting extends AuroraCraftingPlugin {
     public void onEnable() {
         commandManager = new CommandManager(this);
         commandManager.reload();
+
+        book = new Book(BookCategory.MenuOptions.builder().title(configManager.getRecipeBookMenuConfig().getTitle()).build());
+        workbenchRegistry = new WorkbenchRegistry();
+
         Bukkit.getPluginManager().registerEvents(new MenuListener(this), this);
         Bukkit.getPluginManager().registerEvents(new RecipeDiscoverListener(this), this);
         Bukkit.getPluginManager().registerEvents(new SmithingListener(this), this);

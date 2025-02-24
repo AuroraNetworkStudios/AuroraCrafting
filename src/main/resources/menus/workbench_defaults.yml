@@ -32,13 +32,11 @@ blueprint-completed-item:
   material: lime_stained_glass_pane
   name: ""
   hide-tooltip: true
-  slots: [45, 46, 47, 48, 49, 50, 51, 52, 53]
 
 blueprint-not-completed-item:
   material: red_stained_glass_pane
   name: ""
   hide-tooltip: true
-  slots: [45, 46, 47, 48, 49, 50, 51, 52, 53]
 
 next-recipe-item:
   material: arrow

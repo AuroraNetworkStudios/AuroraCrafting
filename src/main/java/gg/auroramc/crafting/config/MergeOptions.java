@@ -12,4 +12,5 @@ public class MergeOptions {
     private List<String> pdc = new ArrayList<>();
     private Integer restoreDurability = null;
     private Boolean mergeDurability = false;
+    private Boolean copyDurability = false;
 }

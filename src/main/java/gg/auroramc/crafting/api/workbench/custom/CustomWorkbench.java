@@ -1,15 +1,23 @@
 package gg.auroramc.crafting.api.workbench.custom;
 
+import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.blueprint.Blueprint;
 import gg.auroramc.crafting.api.blueprint.BlueprintType;
+import gg.auroramc.crafting.api.blueprint.RecipeWrapperBlueprint;
 import gg.auroramc.crafting.api.workbench.Workbench;
 import gg.auroramc.crafting.util.InventoryUtils;
 import lombok.Getter;
+import lombok.Setter;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 @Getter
@@ -17,6 +25,9 @@ public class CustomWorkbench extends Workbench {
     private final List<Integer> quickCraftSlots;
     private final List<Integer> completionIndicatorSlots;
     private MenuOptions menuOptions;
+    @Setter
+    private boolean includeVanillaRecipesInQuickCrafting = false;
+    private List<RecipeWrapperBlueprint> vanillaRecipes = new ArrayList<>();
 
     public CustomWorkbench(String id, int resultSlot, List<Integer> matrixSlots, List<Integer> quickCraftSlots, List<Integer> completionIndicatorSlots) {
         this(id, resultSlot, matrixSlots, quickCraftSlots, completionIndicatorSlots, MenuOptions.builder().build());
@@ -43,6 +54,17 @@ public class CustomWorkbench extends Workbench {
             }
         }
 
+        if (craftableBlueprints.size() >= maxCount) return craftableBlueprints;
+
+        for (var vanillaRecipe : vanillaRecipes) {
+            if (vanillaRecipe.getQuickCraftTimes(itemCount) > 0) {
+                craftableBlueprints.add(vanillaRecipe);
+                if (craftableBlueprints.size() >= maxCount) {
+                    return craftableBlueprints;
+                }
+            }
+        }
+
         return craftableBlueprints;
     }
 
@@ -64,6 +86,28 @@ public class CustomWorkbench extends Workbench {
 
     public void setMenuOptions(MenuOptions menuOptions) {
         this.menuOptions = menuOptions.clone().setDefaults().validate();
+    }
+
+    @Override
+    public void freeze() {
+        super.freeze();
+        AuroraCrafting.logger().info("Registered " + blueprints.size() + " recipes for workbench: " + id);
+
+        if (includeVanillaRecipesInQuickCrafting) {
+            for (@NotNull Iterator<Recipe> it = Bukkit.recipeIterator(); it.hasNext(); ) {
+                var recipe = it.next();
+                if (recipe instanceof ShapedRecipe shapedRecipe) {
+                    if (shapedRecipe.getKey().getNamespace().equals("minecraft") && !recipe.getResult().isEmpty()) {
+                        vanillaRecipes.add(new RecipeWrapperBlueprint(this, shapedRecipe));
+                    }
+                } else if (recipe instanceof ShapelessRecipe shapelessRecipe && !recipe.getResult().isEmpty()) {
+                    if (shapelessRecipe.getKey().getNamespace().equals("minecraft")) {
+                        vanillaRecipes.add(new RecipeWrapperBlueprint(this, shapelessRecipe));
+                    }
+                }
+            }
+            AuroraCrafting.logger().info("Registered " + vanillaRecipes.size() + " vanilla recipes for quick crafting in workbench: " + id);
+        }
     }
 
     public static Builder builder() {

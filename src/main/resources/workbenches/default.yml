@@ -1,11 +1,30 @@
 config-version: 0
 
-
-rows: 6
+# Title of the workbench inventory
 title: "Craft Item"
+
+# How many rows should the workbench inventory have?
+rows: 6
+
+# Result slot is where the result of the recipe will be placed.
 result-slot: 23
+
+# Matrix slots are used to assemble the recipe.
 matrix-slots: [ 10, 11, 12, 19, 20, 21, 28, 29, 30 ]
+
+# Quick crafting slots are used to craft items without assembling the recipe in the recipe.
 quick-crafting-slots: [ 16, 25, 34 ]
+
+# Where should we put the items that indicate the completion of a recipe?
 completion-indicator-slots: [ 45, 46, 47, 48, 49, 50, 51, 52, 53 ]
 
-custom-items: {}
+# This is an experimental feature and it will probably be experimental forever.
+# Turning this on might cause performance issues.
+include-vanilla-recipes-in-quick-crafting: false
+
+# Other custom items to add to the workbench inventory
+# For example some cosmetic stuff
+custom-items: { }
+
+# You can also override every default item here for this workbench that are
+# defined in the menus/workbench_defaults.yml

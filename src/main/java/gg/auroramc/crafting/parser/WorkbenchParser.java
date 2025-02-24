@@ -29,6 +29,8 @@ public class WorkbenchParser {
                 .previousRecipeItem(config.getPreviousRecipeItem())
                 .build());
 
+        workbench.setIncludeVanillaRecipesInQuickCrafting(config.getIncludeVanillaRecipesInQuickCrafting());
+
         workbench.validate();
 
         return workbench;
