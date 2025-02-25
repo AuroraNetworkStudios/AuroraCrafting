@@ -53,6 +53,10 @@ public class WorkbenchRegistry {
         return (Campfire) vanillaWorkbenches.get(VanillaType.CAMPFIRE);
     }
 
+    public StoneCutter getStoneCutter() {
+        return (StoneCutter) vanillaWorkbenches.get(VanillaType.STONE_CUTTER);
+    }
+
     public Collection<CustomWorkbench> getCustomWorkbenches() {
         return workbenches.values();
     }
@@ -79,7 +83,7 @@ public class WorkbenchRegistry {
         frozen = false;
         workbenches.clear();
 
-        for(var workbench : vanillaWorkbenches.values()) {
+        for (var workbench : vanillaWorkbenches.values()) {
             workbench.dispose();
         }
 
@@ -93,7 +97,8 @@ public class WorkbenchRegistry {
                 VanillaType.FURNACE, new Furnace(),
                 VanillaType.SMOKER, new Smoker(),
                 VanillaType.BLAST_FURNACE, new BlastFurnace(),
-                VanillaType.CAMPFIRE, new Campfire()
+                VanillaType.CAMPFIRE, new Campfire(),
+                VanillaType.STONE_CUTTER, new StoneCutter()
         );
     }
 }

@@ -3,12 +3,7 @@ package gg.auroramc.crafting.config;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.workbench.custom.MenuOptions;
 import gg.auroramc.crafting.config.menu.*;
-import gg.auroramc.crafting.config.menu.vanilla.BlastFurnaceRecipeViewConfig;
-import gg.auroramc.crafting.config.menu.vanilla.CampfireRecipeViewConfig;
-import gg.auroramc.crafting.config.menu.vanilla.CraftingTableRecipeViewConfig;
-import gg.auroramc.crafting.config.menu.vanilla.FurnaceRecipeViewConfig;
-import gg.auroramc.crafting.config.menu.vanilla.SmithingRecipeViewConfig;
-import gg.auroramc.crafting.config.menu.vanilla.SmokerRecipeViewConfig;
+import gg.auroramc.crafting.config.menu.vanilla.*;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +46,7 @@ public class ConfigManager {
     private FurnaceRecipeViewConfig furnaceRecipeViewConfig;
     private SmithingRecipeViewConfig smithingRecipeViewConfig;
     private SmokerRecipeViewConfig smokerRecipeViewConfig;
+    private StoneCutterRecipeViewConfig stoneCutterRecipeViewConfig;
 
     private List<CraftingRecipesConfig> customRecipes;
     private List<CraftingRecipesConfig> craftingTableRecipes;
@@ -60,6 +56,7 @@ public class ConfigManager {
     private List<CookingRecipesConfig.RecipeConfig> furnaceRecipes;
     private List<CookingRecipesConfig.RecipeConfig> campfireRecipes;
     private List<SmithingRecipesConfig.RecipeConfig> smithingRecipes;
+    private List<StoneCutterRecipesConfig.RecipeConfig> stoneCutterRecipes;
 
     public ConfigManager(AuroraCrafting plugin) {
         this.plugin = plugin;
@@ -132,6 +129,9 @@ public class ConfigManager {
         smokerRecipeViewConfig = new SmokerRecipeViewConfig(plugin);
         smokerRecipeViewConfig.load();
 
+        StoneCutterRecipeViewConfig.saveDefault(plugin);
+        stoneCutterRecipeViewConfig = new StoneCutterRecipeViewConfig(plugin);
+        stoneCutterRecipeViewConfig.load();
 
         MenuOptions.setDefaultSupplier(workbenchDefaultConfig);
 
@@ -157,6 +157,10 @@ public class ConfigManager {
                 .collect(Collectors.toList());
 
         smithingRecipes = getSmithingRecipesConfigs().stream()
+                .flatMap(recipesConfig -> recipesConfig.getRecipes().stream())
+                .collect(Collectors.toList());
+
+        stoneCutterRecipes = getStoneCutterRecipesConfigs().stream()
                 .flatMap(recipesConfig -> recipesConfig.getRecipes().stream())
                 .collect(Collectors.toList());
     }
@@ -318,6 +322,29 @@ public class ConfigManager {
                     .map(Path::toFile)
                     .map((file) -> {
                         SmithingRecipesConfig recipesConfig = new SmithingRecipesConfig(file);
+                        recipesConfig.load();
+                        return recipesConfig;
+                    })
+                    .collect(Collectors.toList());
+        }
+    }
+
+    @SneakyThrows
+    private List<StoneCutterRecipesConfig> getStoneCutterRecipesConfigs() {
+        Path recipesFolder = Path.of(plugin.getDataFolder().getPath(), "blueprints/vanilla/stone_cutter");
+
+        if (Files.notExists(recipesFolder)) {
+            Files.createDirectories(recipesFolder); // Create folder if it doesn't exist
+            plugin.saveResource("blueprints/vanilla/stone_cutter/_example.yml", false);
+        }
+
+        try (Stream<Path> paths = Files.walk(recipesFolder, 10)) {
+            return paths
+                    .filter(Files::isRegularFile)
+                    .filter(path -> path.toString().endsWith(".yml") || path.toString().endsWith(".yaml"))
+                    .map(Path::toFile)
+                    .map((file) -> {
+                        StoneCutterRecipesConfig recipesConfig = new StoneCutterRecipesConfig(file);
                         recipesConfig.load();
                         return recipesConfig;
                     })

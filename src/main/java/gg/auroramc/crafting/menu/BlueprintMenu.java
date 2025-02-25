@@ -34,8 +34,41 @@ public class BlueprintMenu {
                 case CAMPFIRE -> openCampfire();
                 case SMITHING_TABLE -> openSmithingTable();
                 case CRAFTING_TABLE -> openCraftingTable();
+                case STONE_CUTTER -> openStoneCutter();
             }
         }
+    }
+
+    private void openStoneCutter() {
+        var config = plugin.getConfigManager().getStoneCutterRecipeViewConfig();
+
+        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false);
+        menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
+
+        if (backAction != null) {
+            menu.addItem(ItemBuilder.of(config.getItems().getBack()).build(player), (e) -> {
+                backAction.run();
+            });
+        }
+
+        menu.addItem(ItemBuilder.item(blueprint.getResultItem()).slot(config.getSlots().getResult()).build(player));
+
+        var input = ItemBuilder.item(blueprint.getIngredientItems().getFirst()).slot(config.getSlots().getInput()).build(player);
+        var recipe = plugin.getBlueprintRegistry().getBlueprintFor(blueprint.getIngredients().getFirst().getItemPair().id());
+
+        if (recipe != null) {
+            menu.addItem(input, (e) -> {
+                BlueprintMenu.blueprintMenu(plugin, player, recipe, () -> BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction).open()).open();
+            });
+        } else {
+            menu.addItem(input);
+        }
+
+        for (var customItem : config.getCustomItems().values()) {
+            menu.addItem(ItemBuilder.of(customItem).build(player));
+        }
+
+        menu.open();
     }
 
     private void openFurnace() {

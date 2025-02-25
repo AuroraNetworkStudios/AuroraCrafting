@@ -20,6 +20,7 @@ public class BlueprintLookupGenerator {
             case ShapelessBlueprint shapelessBlueprint -> toKey(shapelessBlueprint);
             case CookingBlueprint cookingBlueprint -> toKey(cookingBlueprint);
             case SmithingBlueprint smithingBlueprint -> toKey(smithingBlueprint);
+            case StoneCutterBlueprint stoneCutterBlueprint -> toKey(stoneCutterBlueprint);
             case null, default ->
                     throw new IllegalArgumentException("Unknown blueprint type: " + blueprint.getClass().getSimpleName());
         };
@@ -54,7 +55,11 @@ public class BlueprintLookupGenerator {
     }
 
     public static String toKey(CookingBlueprint cookingBlueprint) {
-        return cookingBlueprint.getIngredients().getFirst().getItemPair().id().toString();
+        return cookingBlueprint.getIngredients().getFirst().getItemPair().id().toString() + ";";
+    }
+
+    public static String toKey(StoneCutterBlueprint stoneCutterBlueprint) {
+        return stoneCutterBlueprint.getIngredients().getFirst().getItemPair().id().toString() + ";";
     }
 
     /**

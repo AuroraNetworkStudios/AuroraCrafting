@@ -12,6 +12,7 @@ import gg.auroramc.crafting.api.workbench.Workbench;
 import gg.auroramc.crafting.config.CookingRecipesConfig;
 import gg.auroramc.crafting.config.CraftingRecipesConfig;
 import gg.auroramc.crafting.config.SmithingRecipesConfig;
+import gg.auroramc.crafting.config.StoneCutterRecipesConfig;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
@@ -180,6 +181,19 @@ public class BlueprintParser {
         }
 
         return withResult(ret, config.getResult());
+    }
+
+    public Blueprint parse(StoneCutterRecipesConfig.RecipeConfig config) {
+        return StoneCutterBlueprint.stoneCutterBlueprint(workbench, config.getId())
+                .input(parseItemPair(config.getInput(), Material.BARRIER))
+                .vanillaOptions(StoneCutterBlueprint.VanillaOptions.builder().group(config.getVanillaOptions().getGroup()).build())
+                .category(category)
+                .source(config.getSourcePath())
+                .displayOptions(Blueprint.DisplayOptions.builder()
+                        .items(config.getDisplayOptions().getItems())
+                        .lockedLore(config.getDisplayOptions().getLockedLore())
+                        .build())
+                .result(parseItemPair(config.getResult(), Material.AIR)).complete();
     }
 
     private Blueprint withResult(Blueprint blueprint, String result) {

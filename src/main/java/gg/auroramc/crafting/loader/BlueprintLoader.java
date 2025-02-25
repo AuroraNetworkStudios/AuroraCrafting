@@ -145,5 +145,21 @@ public class BlueprintLoader {
                 AuroraCrafting.logger().severe("Failed to load blueprint " + recipe.getId() + " in source: " + recipe.getSourcePath() + ", reason: " + e.getMessage());
             }
         }
+
+        for (var recipe : manager.getStoneCutterRecipes()) {
+            if (duplicates.containsKey(recipe.getId())) {
+                duplicates.get(recipe.getId()).add(recipe.getSourcePath());
+                AuroraCrafting.logger().severe("Failed to load blueprint " + recipe.getId() + ": Duplicate recipe ID, skipping... Source: " + recipe.getSourcePath() + " other sources: " + duplicates.get(recipe.getId()));
+                continue;
+            }
+            var workbench = plugin.getWorkbenchRegistry().getStoneCutter();
+            try {
+                var blueprint = BlueprintParser.from(workbench, null, recipe.getId()).parse(recipe);
+                workbench.addBlueprint(BlueprintType.STONE_CUTTER, blueprint);
+                duplicates.computeIfAbsent(recipe.getId(), k -> new ArrayList<>()).add(recipe.getSourcePath());
+            } catch (Exception e) {
+                AuroraCrafting.logger().severe("Failed to load blueprint " + recipe.getId() + " in source: " + recipe.getSourcePath() + ", reason: " + e.getMessage());
+            }
+        }
     }
 }
