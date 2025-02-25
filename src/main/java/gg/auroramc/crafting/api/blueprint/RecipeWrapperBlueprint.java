@@ -87,6 +87,9 @@ public class RecipeWrapperBlueprint extends Blueprint {
             if (BUCKET.contains(clone.getType())) {
                 return clone.withType(Material.BUCKET);
             }
+            if (clone.getType() == Material.HONEY_BOTTLE) {
+                return clone.withType(Material.GLASS_BOTTLE);
+            }
             clone.setAmount(Math.max(clone.getAmount() - timesCrafted, 0));
             return clone;
         }).toArray(ItemStack[]::new);
