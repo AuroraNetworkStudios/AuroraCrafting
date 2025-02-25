@@ -7,21 +7,16 @@ import gg.auroramc.crafting.api.ItemPair;
 import gg.auroramc.crafting.api.workbench.Workbench;
 import gg.auroramc.crafting.util.FireworkRecipeMaker;
 import gg.auroramc.crafting.util.PotteryRecipeMaker;
+import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.block.ShulkerBox;
-import org.bukkit.inventory.CraftingRecipe;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.RecipeChoice;
-import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.ShapelessRecipe;
+import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class RecipeWrapperBlueprint extends Blueprint {
@@ -214,35 +209,36 @@ public class RecipeWrapperBlueprint extends Blueprint {
 
     private ItemStack getDyeResult(ItemStack[] matrix) {
         ItemStack armor = null;
-        ItemStack dye = null;
+        List<ItemStack> dyes = new ArrayList<>();
 
         for (var item : matrix) {
             if (LEATHER_ARMOR.contains(item.getType())) {
                 armor = item.clone();
                 armor.setAmount(1);
             } else if (item.getType().name().endsWith("_DYE")) {
-                dye = item;
+                dyes.add(item);
             }
         }
 
-        if (armor == null || dye == null) {
-            AuroraCrafting.logger().warning("Failed to find armor or dye in matrix");
+        if (armor == null || dyes.isEmpty()) {
+            AuroraCrafting.logger().warning("Failed to find armor or dyes in matrix");
             return null;
         }
 
         var armorMeta = armor.getItemMeta();
-        var dyeMeta = dye.getItemMeta();
-
-        AuroraCrafting.logger().info(dyeMeta.getClass().getSimpleName());
 
         if (armorMeta instanceof LeatherArmorMeta leatherArmorMeta) {
             try {
-                var color = DyeColor.valueOf(dye.getType().name().replace("_DYE", "")).getColor();
+                Color color = leatherArmorMeta.getColor();
+                DyeColor[] colors = dyes.stream().map(dye -> DyeColor.valueOf(dye.getType().name().replace("_DYE", ""))).toArray(DyeColor[]::new);
+
+                color = color.mixDyes(colors);
+
                 leatherArmorMeta.setColor(color);
                 armor.setItemMeta(leatherArmorMeta);
                 return armor;
             } catch (Exception e) {
-                AuroraCrafting.logger().warning("Failed to parse dye color for " + dye.getType().name());
+                AuroraCrafting.logger().warning("Failed to parse dye colors");
                 return null;
             }
         } else {
