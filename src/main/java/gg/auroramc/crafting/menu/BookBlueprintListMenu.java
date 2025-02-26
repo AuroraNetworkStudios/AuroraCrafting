@@ -4,6 +4,7 @@ import gg.auroramc.aurora.api.menu.AuroraMenu;
 import gg.auroramc.aurora.api.menu.ItemBuilder;
 import gg.auroramc.aurora.api.message.Placeholder;
 import gg.auroramc.aurora.api.message.Text;
+import gg.auroramc.aurora.api.util.NamespacedId;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.blueprint.Blueprint;
 import gg.auroramc.crafting.api.book.BookCategory;
@@ -37,9 +38,11 @@ public class BookBlueprintListMenu {
     }
 
     public void open() {
+        if (AuroraCrafting.isLoading()) return;
+
         var mc = plugin.getConfigManager().getRecipeBookCategoryConfig();
 
-        var menu = new AuroraMenu(player, category.getMenuOptions().getTitle(), mc.getRows() * 9, false);
+        var menu = new AuroraMenu(player, category.getMenuOptions().getTitle(), mc.getRows() * 9, false, NamespacedId.of("auroracrafting", "book_blueprint_list"));
         menu.addFiller(ItemBuilder.of(mc.getFiller()).toItemStack(player));
 
         for (var item : mc.getCustomItems().values()) {

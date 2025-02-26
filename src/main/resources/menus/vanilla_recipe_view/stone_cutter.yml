@@ -1,0 +1,27 @@
+title: "Stonecutter recipe"
+rows: 3
+
+slots:
+  input: 11
+  result: 15
+
+items:
+  filler:
+    material: black_stained_glass_pane
+    name: ""
+    hide-tooltip: true
+  back:
+    material: arrow
+    name: "&fBack"
+    slot: 18
+    lore:
+      - "&7Click to go back"
+
+custom-items:
+  arrow:
+    name: ""
+    hide-tooltip: true
+    material: player_head
+    skull:
+      base64: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTdiMDNiNzFkM2Y4NjIyMGVmMTIyZjk4MzFhNzI2ZWIyYjI4MzMxOWM3YjYyZTdkY2QyZDY0ZDk2ODIifX19"
+    slot: 13

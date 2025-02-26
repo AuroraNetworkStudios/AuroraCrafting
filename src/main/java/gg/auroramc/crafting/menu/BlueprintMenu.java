@@ -2,6 +2,7 @@ package gg.auroramc.crafting.menu;
 
 import gg.auroramc.aurora.api.menu.AuroraMenu;
 import gg.auroramc.aurora.api.menu.ItemBuilder;
+import gg.auroramc.aurora.api.util.NamespacedId;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.blueprint.Blueprint;
 import gg.auroramc.crafting.api.workbench.custom.CustomWorkbench;
@@ -12,6 +13,8 @@ import org.bukkit.inventory.ItemStack;
 
 @AllArgsConstructor
 public class BlueprintMenu {
+    private static final NamespacedId key = NamespacedId.of("auroracrafting", "blueprint_view");
+
     private final AuroraCrafting plugin;
     private final Player player;
     private final Blueprint blueprint;
@@ -22,6 +25,7 @@ public class BlueprintMenu {
     }
 
     public void open() {
+        if (AuroraCrafting.isLoading()) return;
         var workbench = blueprint.getWorkbench();
 
         if (workbench instanceof CustomWorkbench customWorkbench) {
@@ -34,14 +38,47 @@ public class BlueprintMenu {
                 case CAMPFIRE -> openCampfire();
                 case SMITHING_TABLE -> openSmithingTable();
                 case CRAFTING_TABLE -> openCraftingTable();
+                case STONE_CUTTER -> openStoneCutter();
             }
         }
+    }
+
+    private void openStoneCutter() {
+        var config = plugin.getConfigManager().getStoneCutterRecipeViewConfig();
+
+        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
+        menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
+
+        if (backAction != null) {
+            menu.addItem(ItemBuilder.of(config.getItems().getBack()).build(player), (e) -> {
+                backAction.run();
+            });
+        }
+
+        menu.addItem(ItemBuilder.item(blueprint.getResultItem()).slot(config.getSlots().getResult()).build(player));
+
+        var input = ItemBuilder.item(blueprint.getIngredientItems().getFirst()).slot(config.getSlots().getInput()).build(player);
+        var recipe = plugin.getBlueprintRegistry().getBlueprintFor(blueprint.getIngredients().getFirst().getItemPair().id());
+
+        if (recipe != null) {
+            menu.addItem(input, (e) -> {
+                BlueprintMenu.blueprintMenu(plugin, player, recipe, () -> BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction).open()).open();
+            });
+        } else {
+            menu.addItem(input);
+        }
+
+        for (var customItem : config.getCustomItems().values()) {
+            menu.addItem(ItemBuilder.of(customItem).build(player));
+        }
+
+        menu.open();
     }
 
     private void openFurnace() {
         var config = plugin.getConfigManager().getFurnaceRecipeViewConfig();
 
-        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false);
+        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
         menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
 
         if (backAction != null) {
@@ -74,7 +111,7 @@ public class BlueprintMenu {
     private void openBlastFurnace() {
         var config = plugin.getConfigManager().getBlastFurnaceRecipeViewConfig();
 
-        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false);
+        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
         menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
 
         if (backAction != null) {
@@ -107,7 +144,7 @@ public class BlueprintMenu {
     private void openSmoker() {
         var config = plugin.getConfigManager().getSmokerRecipeViewConfig();
 
-        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false);
+        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
         menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
 
         if (backAction != null) {
@@ -140,7 +177,7 @@ public class BlueprintMenu {
     private void openCampfire() {
         var config = plugin.getConfigManager().getCampfireRecipeViewConfig();
 
-        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false);
+        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
         menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
 
         if (backAction != null) {
@@ -172,7 +209,7 @@ public class BlueprintMenu {
     private void openSmithingTable() {
         var config = plugin.getConfigManager().getSmithingRecipeViewConfig();
 
-        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false);
+        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
         menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
 
         if (backAction != null) {
@@ -226,7 +263,7 @@ public class BlueprintMenu {
     private void openCraftingTable() {
         var config = plugin.getConfigManager().getCraftingTableRecipeViewConfig();
 
-        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false);
+        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
         menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
 
         if (backAction != null) {
@@ -264,7 +301,7 @@ public class BlueprintMenu {
         var mc = plugin.getConfigManager().getRecipeViewConfig();
         var mcc = plugin.getConfigManager().getRecipeBookCategoryConfig();
 
-        var menu = new AuroraMenu(player, mc.getTitle(), workbench.getMenuOptions().getRows() * 9, false);
+        var menu = new AuroraMenu(player, mc.getTitle(), workbench.getMenuOptions().getRows() * 9, false, key);
         menu.addFiller(ItemBuilder.of(workbench.getMenuOptions().getFillerItem()).toItemStack(player));
 
         var ingredientItems = blueprint.getIngredientItems();

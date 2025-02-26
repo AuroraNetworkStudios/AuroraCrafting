@@ -13,6 +13,8 @@ public class BlueprintAdapter {
             return adapt(smithingBlueprint);
         } else if (blueprint instanceof CookingBlueprint cookingBlueprint) {
             return adapt(cookingBlueprint);
+        } else if (blueprint instanceof StoneCutterBlueprint stoneCutterBlueprint) {
+            return adapt(stoneCutterBlueprint);
         }
         return null;
     }
@@ -54,6 +56,14 @@ public class BlueprintAdapter {
 
         return builder.cookingTime(blueprint.getVanillaOptions().getCookingTime())
                 .experience(blueprint.getVanillaOptions().getExperience())
+                .input(blueprint.getInputItem())
+                .result(blueprint.getResultItem())
+                .build();
+    }
+
+    public static StonecuttingRecipe adapt(StoneCutterBlueprint blueprint) {
+        return StoneCutterRecipeBuilder.stoneCutterRecipe(blueprint.getId())
+                .group(blueprint.getVanillaOptions().getGroup())
                 .input(blueprint.getInputItem())
                 .result(blueprint.getResultItem())
                 .build();
