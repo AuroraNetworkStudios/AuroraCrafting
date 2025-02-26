@@ -47,6 +47,7 @@ public class ConfigManager {
     private SmithingRecipeViewConfig smithingRecipeViewConfig;
     private SmokerRecipeViewConfig smokerRecipeViewConfig;
     private StoneCutterRecipeViewConfig stoneCutterRecipeViewConfig;
+    private CauldronRecipeViewConfig cauldronRecipeViewConfig;
 
     private List<CraftingRecipesConfig> customRecipes;
     private List<CraftingRecipesConfig> craftingTableRecipes;
@@ -133,6 +134,10 @@ public class ConfigManager {
         StoneCutterRecipeViewConfig.saveDefault(plugin);
         stoneCutterRecipeViewConfig = new StoneCutterRecipeViewConfig(plugin);
         stoneCutterRecipeViewConfig.load();
+
+        CauldronRecipeViewConfig.saveDefault(plugin);
+        cauldronRecipeViewConfig = new CauldronRecipeViewConfig(plugin);
+        cauldronRecipeViewConfig.load();
 
         MenuOptions.setDefaultSupplier(workbenchDefaultConfig);
 

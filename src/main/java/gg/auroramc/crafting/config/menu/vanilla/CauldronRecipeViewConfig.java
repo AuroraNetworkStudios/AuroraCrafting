@@ -19,9 +19,10 @@ public class CauldronRecipeViewConfig extends AuroraConfig {
 
     private Items items;
     private Slots slots;
-    private Fluids fluids;
+    private Fluids fluidMaterials;
 
-    private static final class Fluids {
+    @Getter
+    public static final class Fluids {
         private ItemConfig water;
         private ItemConfig lava;
         private ItemConfig powderSnow;
@@ -31,8 +32,16 @@ public class CauldronRecipeViewConfig extends AuroraConfig {
     public static final class Slots {
         private Integer input = 10;
         private Integer result = 16;
-        private List<Integer> fluidLevel = List.of(22, 23, 25);
+        private FluidSlots fluidSlots;
     }
+
+    @Getter
+    public static final class FluidSlots {
+        private List<Integer> one;
+        private List<Integer> two;
+        private List<Integer> three;
+    }
+
 
     @Getter
     public static final class Items {

@@ -44,7 +44,7 @@ public class CauldronInteractEvent implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onCauldronInteract(PlayerInteractEvent event) {
         Action action = event.getAction();
         // only trigger on right click block, we dont need anything else

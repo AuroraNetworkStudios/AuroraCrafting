@@ -1,15 +1,23 @@
 package gg.auroramc.crafting.menu;
 
+import gg.auroramc.aurora.api.config.premade.ItemConfig;
 import gg.auroramc.aurora.api.menu.AuroraMenu;
 import gg.auroramc.aurora.api.menu.ItemBuilder;
+import gg.auroramc.aurora.api.menu.MenuItem;
 import gg.auroramc.aurora.api.util.NamespacedId;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.blueprint.Blueprint;
+import gg.auroramc.crafting.api.blueprint.CauldronBlueprint;
 import gg.auroramc.crafting.api.workbench.custom.CustomWorkbench;
 import gg.auroramc.crafting.api.workbench.vanilla.VanillaWorkbench;
 import lombok.AllArgsConstructor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.checkerframework.checker.units.qual.C;
+
+import java.util.List;
+import java.util.Map;
 
 @AllArgsConstructor
 public class BlueprintMenu {
@@ -39,6 +47,7 @@ public class BlueprintMenu {
                 case SMITHING_TABLE -> openSmithingTable();
                 case CRAFTING_TABLE -> openCraftingTable();
                 case STONE_CUTTER -> openStoneCutter();
+                case CAULDRON -> openCauldron();
             }
         }
     }
@@ -67,6 +76,67 @@ public class BlueprintMenu {
         } else {
             menu.addItem(input);
         }
+
+        for (var customItem : config.getCustomItems().values()) {
+            menu.addItem(ItemBuilder.of(customItem).build(player));
+        }
+
+        menu.open();
+    }
+
+    private void openCauldron() {
+        var config = plugin.getConfigManager().getCauldronRecipeViewConfig();
+
+        AuroraMenu menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
+        menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
+
+        if (backAction != null) {
+            menu.addItem(ItemBuilder.of(config.getItems().getBack()).build(player), (e) -> {
+                backAction.run();
+            });
+        }
+
+        menu.addItem(ItemBuilder.item(blueprint.getResultItem()).slot(config.getSlots().getResult()).build(player));
+
+        MenuItem input = ItemBuilder.item(blueprint.getIngredientItems().getFirst()).slot(config.getSlots().getInput()).build(player);
+        Blueprint ingredientRecipe = plugin.getBlueprintRegistry().getBlueprintFor(blueprint.getIngredients().getFirst().getItemPair().id());
+
+        if (ingredientRecipe != null) {
+            menu.addItem(input, (e) -> {
+                BlueprintMenu.blueprintMenu(plugin, player, ingredientRecipe, () -> BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction).open()).open();
+            });
+        } else {
+            menu.addItem(input);
+        }
+
+
+
+        if (blueprint instanceof CauldronBlueprint cauldronBlueprint) {
+            List<Integer> fluidSlots = switch (cauldronBlueprint.getVanillaOptions().getFluidLevel()) {
+                case 1 -> config.getSlots().getFluidSlots().getOne();
+                case 2 -> config.getSlots().getFluidSlots().getTwo();
+                case 3 -> config.getSlots().getFluidSlots().getThree();
+                default -> throw new IllegalArgumentException("Invalid fluid level: " + cauldronBlueprint.getVanillaOptions().getFluidLevel());
+            };
+
+
+            String fluidKey = cauldronBlueprint.getVanillaOptions().getFluid();
+            for(int fluidSlot : fluidSlots) {
+                ItemConfig fluidConfig = null;
+                switch (fluidKey) {
+                    case "WATER_CAULDRON" -> fluidConfig = config.getFluidMaterials().getWater();
+                    case "LAVA_CAULDRON" -> fluidConfig = config.getFluidMaterials().getLava();
+                    case "POWDERED_SNOW_CAULDRON" -> fluidConfig = config.getFluidMaterials().getPowderSnow();
+                }
+
+                if (fluidConfig != null) {
+                    fluidConfig.setSlot(fluidSlot);
+                    menu.addItem(ItemBuilder.of(fluidConfig).build(player));
+                }
+            }
+        }
+
+
 
         for (var customItem : config.getCustomItems().values()) {
             menu.addItem(ItemBuilder.of(customItem).build(player));

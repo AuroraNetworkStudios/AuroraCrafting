@@ -1,10 +1,13 @@
-title: "Campfire recipe"
+title: "Cauldron recipe"
 rows: 4
 
 slots:
   input: 10
-  result: 43
-  fluid-level: [ 13, 22, 31 ]
+  result: 16
+  fluid-slots:
+    one: [ 22 ]
+    two: [ 21, 23 ]
+    three: [ 21, 22, 23 ]
 
 fluid-materials:
   water:
@@ -15,7 +18,7 @@ fluid-materials:
     material: LAVA_BUCKET
     name: ""
     hide-tooltip: true
-  powder_snow:
+  powder-snow:
     material: POWDER_SNOW_BUCKET
     name: ""
     hide-tooltip: true
@@ -27,9 +30,14 @@ items:
     hide-tooltip: true
   back:
     material: arrow
-    name: "&7Back"
+    name: "&fBack"
     slot: 27
     lore:
       - "&7Click to go back"
 
-custom-items: { }
+custom-items:
+  cauldron:
+    material: CAULDRON
+    name: ""
+    slot: 13
+    hide-tooltip: true
