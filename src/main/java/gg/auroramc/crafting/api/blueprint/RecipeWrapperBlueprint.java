@@ -12,10 +12,7 @@ import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.inventory.*;
-import org.bukkit.inventory.meta.BlockStateMeta;
-import org.bukkit.inventory.meta.BundleMeta;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.*;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -118,7 +115,7 @@ public class RecipeWrapperBlueprint extends Blueprint {
             return getTippedArrow(context.getMatrix());
 
         } else if (matches("shield_decoration")) {
-            return resultItem.clone();
+            return getDecoratedShield(context.getMatrix());
 
         } else if (endsWith("SHULKER_BOX")) {
             return getShulkerResult(context.getMatrix());
@@ -140,6 +137,30 @@ public class RecipeWrapperBlueprint extends Blueprint {
 
     private boolean endsWith(String key) {
         return backingRecipe.getResult().getType().name().endsWith(key);
+    }
+
+    private ItemStack getDecoratedShield(ItemStack[] matrix) {
+        ItemStack shield = null;
+        ItemStack banner = null;
+
+        for (var item : matrix) {
+            if (item.getType() == Material.SHIELD) {
+                shield = item.clone();
+            } else if (item.getType().name().endsWith("BANNER")) {
+                banner = item.clone();
+            }
+        }
+
+        var shieldMeta = (ShieldMeta) shield.getItemMeta();
+        var bannerMeta = (BannerMeta) banner.getItemMeta();
+
+        for (var pattern : bannerMeta.getPatterns()) {
+            shieldMeta.addPattern(pattern);
+        }
+
+        shield.setItemMeta(shieldMeta);
+
+        return shield;
     }
 
     private ItemStack getTippedArrow(ItemStack[] matrix) {
