@@ -3,6 +3,7 @@ package gg.auroramc.crafting;
 import gg.auroramc.aurora.api.AuroraAPI;
 import gg.auroramc.aurora.api.AuroraLogger;
 import gg.auroramc.aurora.api.command.CommandDispatcher;
+import gg.auroramc.aurora.api.menu.AuroraMenu;
 import gg.auroramc.aurora.api.message.Chat;
 import gg.auroramc.aurora.api.util.Version;
 import gg.auroramc.crafting.api.AuroraCraftingPlugin;
@@ -21,10 +22,10 @@ import gg.auroramc.crafting.listener.*;
 import gg.auroramc.crafting.loader.BlueprintLoader;
 import gg.auroramc.crafting.loader.BookLoader;
 import gg.auroramc.crafting.loader.WorkbenchLoader;
+import gg.auroramc.crafting.menu.BlueprintMenu;
+import gg.auroramc.crafting.menu.BookCategoryListMenu;
 import gg.auroramc.crafting.menu.CraftMenu;
 import gg.auroramc.crafting.menu.MenuListener;
-import gg.auroramc.crafting.menu.BookCategoryListMenu;
-import gg.auroramc.crafting.menu.BlueprintMenu;
 import gg.auroramc.crafting.util.RecipeFolderMigrator;
 import gg.auroramc.crafting.util.RecipeUtil;
 import lombok.Getter;
@@ -33,7 +34,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class AuroraCrafting extends AuroraCraftingPlugin {
+    private static final AtomicBoolean loading = new AtomicBoolean(true);
+
+    public static boolean isLoading() {
+        return loading.get();
+    }
+
     @Getter
     private ConfigManager configManager;
 
@@ -81,7 +91,11 @@ public class AuroraCrafting extends AuroraCraftingPlugin {
             Bukkit.getPluginManager().registerEvents(new CraftingTableInteractListener(this), this);
         }
 
-        Bukkit.getGlobalRegionScheduler().runDelayed(this, (t) -> initState(), 2);
+        // Have to delay the initialization because mythic doesn't initialize enchants and some other stuff before
+        Bukkit.getGlobalRegionScheduler().runDelayed(this, (t) -> {
+            initState();
+            loading.set(false);
+        }, 40);
 
         HookManager.enableHooks(this);
 
@@ -121,9 +135,28 @@ public class AuroraCrafting extends AuroraCraftingPlugin {
     }
 
     public void reload() {
+        loading.set(true);
+
+        if (Version.isAtLeastVersion(21) && !Version.isFolia()) {
+            for (var player : Bukkit.getOnlinePlayers()) {
+                if (player.getOpenInventory().getTopInventory().getHolder() instanceof AuroraMenu menu) {
+                    var id = menu.getId();
+                    if (id != null && id.getNamespace().equals("auroracrafting")) {
+                        player.closeInventory();
+                    }
+                } else if (player.getOpenInventory().getTopInventory().getHolder() instanceof CraftMenu menu) {
+                    player.closeInventory();
+                }
+            }
+        }
+
+        var start = System.currentTimeMillis();
         configManager.reload();
         commandManager.reload();
         initState();
+        loading.set(false);
+        var end = System.currentTimeMillis();
+        l.info("Reloaded configs in " + (end - start) + "ms");
     }
 
     private void initState() {

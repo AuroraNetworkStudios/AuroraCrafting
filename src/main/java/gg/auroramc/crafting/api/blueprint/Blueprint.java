@@ -17,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,7 +99,12 @@ public abstract class Blueprint {
         var resultMeta = result.getItemMeta();
 
         if (options.enchants) {
-            for (var enchant : ingredientMeta.getEnchants().entrySet()) {
+            var ingredientEnchants = ingredientMeta.getEnchants();
+            if (ingredientMeta instanceof EnchantmentStorageMeta ingredientStorageMeta) {
+                ingredientEnchants = ingredientStorageMeta.getStoredEnchants();
+            }
+
+            for (var enchant : ingredientEnchants.entrySet()) {
                 if (resultMeta.getEnchants().containsKey(enchant.getKey())) {
                     var currentLevel = resultMeta.getEnchantLevel(enchant.getKey());
                     var otherLevel = enchant.getValue();
@@ -109,7 +115,16 @@ public abstract class Blueprint {
                         resultMeta.addEnchant(enchant.getKey(), Math.max(currentLevel, otherLevel), true);
                     }
                 } else {
-                    resultMeta.addEnchant(enchant.getKey(), enchant.getValue(), true);
+                    boolean conflict = false;
+                    for (var otherEnchant : resultMeta.getEnchants().keySet()) {
+                        if (enchant.getKey().conflictsWith(otherEnchant)) {
+                            conflict = true;
+                            break;
+                        }
+                    }
+                    if (!conflict) {
+                        resultMeta.addEnchant(enchant.getKey(), enchant.getValue(), true);
+                    }
                 }
             }
         }

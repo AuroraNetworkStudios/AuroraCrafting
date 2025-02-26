@@ -3,6 +3,7 @@ package gg.auroramc.crafting.menu;
 import gg.auroramc.aurora.api.menu.AuroraMenu;
 import gg.auroramc.aurora.api.menu.ItemBuilder;
 import gg.auroramc.aurora.api.message.Text;
+import gg.auroramc.aurora.api.util.NamespacedId;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.book.BookCategory;
 import lombok.AllArgsConstructor;
@@ -21,11 +22,13 @@ public class BookCategoryListMenu {
     }
 
     public void open() {
+        if (AuroraCrafting.isLoading()) return;
+
         var mc = plugin.getConfigManager().getRecipeBookMenuConfig();
         var mcc = plugin.getConfigManager().getRecipeBookCategoryConfig();
         var categories = category.getCategories();
 
-        var menu = new AuroraMenu(player, category.getMenuOptions().getTitle(), mc.getRows() * 9, false);
+        var menu = new AuroraMenu(player, category.getMenuOptions().getTitle(), mc.getRows() * 9, false, NamespacedId.of("auroracrafting", "book_category_list"));
 
         menu.addFiller(ItemBuilder.of(mc.getFiller()).toItemStack(player));
 

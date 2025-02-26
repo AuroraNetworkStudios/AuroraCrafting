@@ -72,3 +72,12 @@ categories:
             material: campfire
             name: "&6Campfire recipes"
             slot: 15
+      - id: my_stone_cutter_recipes
+        files:
+          - "vanilla/stone_cutter/_example"
+        menu:
+          title: "Stonecutter recipes"
+          item:
+            material: stonecutter
+            name: "&6Stonecutter recipes"
+            slot: 15

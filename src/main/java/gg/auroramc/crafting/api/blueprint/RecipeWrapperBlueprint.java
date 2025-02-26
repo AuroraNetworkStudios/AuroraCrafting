@@ -7,21 +7,14 @@ import gg.auroramc.crafting.api.ItemPair;
 import gg.auroramc.crafting.api.workbench.Workbench;
 import gg.auroramc.crafting.util.FireworkRecipeMaker;
 import gg.auroramc.crafting.util.PotteryRecipeMaker;
+import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.block.ShulkerBox;
-import org.bukkit.inventory.CraftingRecipe;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.RecipeChoice;
-import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.ShapelessRecipe;
-import org.bukkit.inventory.meta.BlockStateMeta;
-import org.bukkit.inventory.meta.BundleMeta;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.*;
+import org.bukkit.inventory.meta.*;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class RecipeWrapperBlueprint extends Blueprint {
@@ -87,6 +80,12 @@ public class RecipeWrapperBlueprint extends Blueprint {
             if (BUCKET.contains(clone.getType())) {
                 return clone.withType(Material.BUCKET);
             }
+            if (clone.getType() == Material.HONEY_BOTTLE) {
+                return clone.withType(Material.GLASS_BOTTLE);
+            }
+            if (clone.getType().name().endsWith("BANNER") && clone.getItemMeta() instanceof BannerMeta bannerMeta && !bannerMeta.getPatterns().isEmpty()) {
+                return clone;
+            }
             clone.setAmount(Math.max(clone.getAmount() - timesCrafted, 0));
             return clone;
         }).toArray(ItemStack[]::new);
@@ -109,6 +108,18 @@ public class RecipeWrapperBlueprint extends Blueprint {
         } else if (matches("decorated_pot")) {
             return PotteryRecipeMaker.create(context.getMatrix());
 
+        } else if (matches("banner_duplicate")) {
+            return getBannerDuplication(context.getMatrix());
+
+        } else if (matches("map_cloning")) {
+            return getMapCloning(context.getMatrix());
+
+        } else if (matches("tipped_arrow")) {
+            return getTippedArrow(context.getMatrix());
+
+        } else if (matches("shield_decoration")) {
+            return getDecoratedShield(context.getMatrix());
+
         } else if (endsWith("SHULKER_BOX")) {
             return getShulkerResult(context.getMatrix());
 
@@ -129,6 +140,73 @@ public class RecipeWrapperBlueprint extends Blueprint {
 
     private boolean endsWith(String key) {
         return backingRecipe.getResult().getType().name().endsWith(key);
+    }
+
+    private ItemStack getBannerDuplication(ItemStack[] matrix) {
+        ItemStack banner = null;
+
+        for (var item : matrix) {
+            if (item.getType().name().endsWith("BANNER") && item.getItemMeta() instanceof BannerMeta bannerMeta && !bannerMeta.getPatterns().isEmpty()) {
+                banner = item.clone();
+                banner.setAmount(1);
+            }
+        }
+
+        return banner;
+    }
+
+    private ItemStack getMapCloning(ItemStack[] matrix) {
+        ItemStack map = null;
+        int extraCount = 0;
+
+        for (var item : matrix) {
+            if (item.getType() == Material.FILLED_MAP) {
+                map = item.clone();
+            } else if (item.getType() == Material.MAP) {
+                extraCount++;
+            }
+        }
+
+        map.setAmount(extraCount + 1);
+
+        return map;
+    }
+
+    private ItemStack getDecoratedShield(ItemStack[] matrix) {
+        ItemStack shield = null;
+        ItemStack banner = null;
+
+        for (var item : matrix) {
+            if (item.getType() == Material.SHIELD) {
+                shield = item.clone();
+            } else if (item.getType().name().endsWith("BANNER")) {
+                banner = item.clone();
+            }
+        }
+
+        var shieldMeta = (ShieldMeta) shield.getItemMeta();
+        var bannerMeta = (BannerMeta) banner.getItemMeta();
+
+        for (var pattern : bannerMeta.getPatterns()) {
+            shieldMeta.addPattern(pattern);
+        }
+
+        shield.setItemMeta(shieldMeta);
+
+        return shield;
+    }
+
+    private ItemStack getTippedArrow(ItemStack[] matrix) {
+        var lingeringPotion = matrix[4];
+
+        var arrow = new ItemStack(Material.TIPPED_ARROW, 8);
+        var meta = (PotionMeta) arrow.getItemMeta();
+
+        meta.setBasePotionType(((PotionMeta) lingeringPotion.getItemMeta()).getBasePotionType());
+
+        arrow.setItemMeta(meta);
+
+        return arrow;
     }
 
     private ItemStack getBundleResult(ItemStack[] matrix) {
@@ -211,35 +289,36 @@ public class RecipeWrapperBlueprint extends Blueprint {
 
     private ItemStack getDyeResult(ItemStack[] matrix) {
         ItemStack armor = null;
-        ItemStack dye = null;
+        List<ItemStack> dyes = new ArrayList<>();
 
         for (var item : matrix) {
             if (LEATHER_ARMOR.contains(item.getType())) {
                 armor = item.clone();
                 armor.setAmount(1);
             } else if (item.getType().name().endsWith("_DYE")) {
-                dye = item;
+                dyes.add(item);
             }
         }
 
-        if (armor == null || dye == null) {
-            AuroraCrafting.logger().warning("Failed to find armor or dye in matrix");
+        if (armor == null || dyes.isEmpty()) {
+            AuroraCrafting.logger().warning("Failed to find armor or dyes in matrix");
             return null;
         }
 
         var armorMeta = armor.getItemMeta();
-        var dyeMeta = dye.getItemMeta();
-
-        AuroraCrafting.logger().info(dyeMeta.getClass().getSimpleName());
 
         if (armorMeta instanceof LeatherArmorMeta leatherArmorMeta) {
             try {
-                var color = DyeColor.valueOf(dye.getType().name().replace("_DYE", "")).getColor();
+                Color color = leatherArmorMeta.getColor();
+                DyeColor[] colors = dyes.stream().map(dye -> DyeColor.valueOf(dye.getType().name().replace("_DYE", ""))).toArray(DyeColor[]::new);
+
+                color = color.mixDyes(colors);
+
                 leatherArmorMeta.setColor(color);
                 armor.setItemMeta(leatherArmorMeta);
                 return armor;
             } catch (Exception e) {
-                AuroraCrafting.logger().warning("Failed to parse dye color for " + dye.getType().name());
+                AuroraCrafting.logger().warning("Failed to parse dye colors");
                 return null;
             }
         } else {
