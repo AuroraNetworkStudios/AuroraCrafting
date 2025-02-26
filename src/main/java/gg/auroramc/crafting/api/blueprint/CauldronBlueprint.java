@@ -57,20 +57,22 @@ public class CauldronBlueprint extends Blueprint {
 
     @Override
     public ItemStack[] calcRemainingIngredientMatrix(BlueprintContext context, int timesCrafted) {
-        var items = new ItemStack[context.getMatrix().length];
-        var currentMatrix = context.getMatrix();
+        ItemStack[] items = new ItemStack[1];
+        ItemStack item = context.getMatrix()[0];
 
-        for (int i = 0; i < context.getMatrix().length; i++) {
-            ItemPair ingredient = ingredients.size() > i ? ingredients.get(i).getItemPair() : new ItemPair(TypeId.from(Material.AIR), 0);
-            var item = currentMatrix[i];
-            if (item.getAmount() <= ingredient.amount() * timesCrafted) {
-                items[i] = null;
-            } else {
-                var newItem = item.clone();
-                newItem.setAmount(item.getAmount() - ingredient.amount() * timesCrafted);
-                items[i] = newItem;
-            }
+        if (ingredients.isEmpty()) return items;
+
+        ItemPair ingredient = ingredients.getFirst().getItemPair();
+        int requiredAmount = ingredient.amount() * timesCrafted;
+
+        if(item.getAmount() <= requiredAmount) {
+            items[0] = null;
+        } else {
+            ItemStack clone = item.clone();
+            clone.setAmount(item.getAmount() - requiredAmount);
+            items[0] = item;
         }
+
 
         return items;
     }
