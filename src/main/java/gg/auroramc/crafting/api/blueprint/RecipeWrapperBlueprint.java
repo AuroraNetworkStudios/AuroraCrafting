@@ -15,6 +15,7 @@ import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -107,6 +108,18 @@ public class RecipeWrapperBlueprint extends Blueprint {
         } else if (matches("decorated_pot")) {
             return PotteryRecipeMaker.create(context.getMatrix());
 
+        } else if (matches("banner_duplicate")) {
+            return resultItem.clone();
+
+        } else if (matches("map_cloning")) {
+            return resultItem.clone();
+
+        } else if (matches("tipped_arrow")) {
+            return getTippedArrow(context.getMatrix());
+
+        } else if (matches("shield_decoration")) {
+            return resultItem.clone();
+
         } else if (endsWith("SHULKER_BOX")) {
             return getShulkerResult(context.getMatrix());
 
@@ -127,6 +140,19 @@ public class RecipeWrapperBlueprint extends Blueprint {
 
     private boolean endsWith(String key) {
         return backingRecipe.getResult().getType().name().endsWith(key);
+    }
+
+    private ItemStack getTippedArrow(ItemStack[] matrix) {
+        var lingeringPotion = matrix[4];
+
+        var arrow = new ItemStack(Material.TIPPED_ARROW, 8);
+        var meta = (PotionMeta) arrow.getItemMeta();
+
+        meta.setBasePotionType(((PotionMeta) lingeringPotion.getItemMeta()).getBasePotionType());
+
+        arrow.setItemMeta(meta);
+
+        return arrow;
     }
 
     private ItemStack getBundleResult(ItemStack[] matrix) {
