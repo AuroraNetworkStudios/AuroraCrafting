@@ -142,7 +142,6 @@ public class BlueprintParser {
                                 .experience(config.getExperience())
                                 .fluidLevel(config.getFluidLevel())
                                 .fluid(config.getFluid())
-                                .input(config.getInput())
                                 .build()
                 )
                 .category(category)

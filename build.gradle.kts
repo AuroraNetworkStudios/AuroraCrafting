@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import xyz.jpenilla.runtask.task.AbstractRun
 import java.net.URI
 import java.util.*
 
@@ -100,7 +101,7 @@ tasks {
         downloadPlugins {
             modrinth("AuroraLib", "2.1.3")
         }
-        minecraftVersion("1.21.4")
+        minecraftVersion("1.21.3")
     }
 }
 
@@ -129,4 +130,24 @@ publishing {
 
         from(components["java"])
     }
+}
+
+tasks.register("buildAndRunServer") {
+    dependsOn("shadowJar", "runServer")
+}
+
+tasks.named<xyz.jpenilla.runpaper.task.RunServer>("runServer") {
+    dependsOn("shadowJar")
+    pluginJars.from(tasks.named("shadowJar"))
+}
+
+tasks.withType<AbstractRun>().configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        vendor.set(JvmVendorSpec.JETBRAINS)
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+    jvmArgs(
+        "-XX:+AllowEnhancedClassRedefinition", //
+        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005" // Enable remote debugging
+    )
 }

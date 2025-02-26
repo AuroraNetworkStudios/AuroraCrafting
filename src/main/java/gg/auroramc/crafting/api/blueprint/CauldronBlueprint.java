@@ -10,13 +10,10 @@ import lombok.Setter;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.List;
-
 @Getter
 public class CauldronBlueprint extends Blueprint {
 
     private VanillaOptions vanillaOptions = VanillaOptions.builder().build();
-    private static final ItemPair air = new ItemPair(TypeId.from(Material.AIR), 0);
     private final boolean[] slots = new boolean[3];
 
     public static CauldronBlueprint cauldronBlueprint(Workbench workbench, String id) {
@@ -25,8 +22,6 @@ public class CauldronBlueprint extends Blueprint {
 
     public CauldronBlueprint(Workbench workbench, String id) {
         super(workbench, id);
-        this.ingredients.addAll(List.of(air, air, air));
-        this.ingredientItems.addAll(List.of(new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR)));
     }
 
     @Override
@@ -39,7 +34,8 @@ public class CauldronBlueprint extends Blueprint {
             throw new IllegalArgumentException("Cauldron recipes can only have 1 ingredient");
         }
 
-        this.ingredients.add(itemPair);
+        this.ingredients.add(new Ingredient(itemPair));
+        this.ingredientItems.add(AuroraAPI.getItemManager().resolveItem(itemPair.id()));
         return this;
     }
 
@@ -55,7 +51,7 @@ public class CauldronBlueprint extends Blueprint {
         var items = context.getMatrix();
 
         for (int i = 0; i < items.length; i++) {
-            var ingredient = ingredients.size() > i ? ingredients.get(i) : new ItemPair(TypeId.from(Material.AIR), 0);
+            ItemPair ingredient = ingredients.size() > i ? ingredients.get(i).getItemPair() : new ItemPair(TypeId.from(Material.AIR), 0);
             var item = items[i];
             var itemTypeId = item.isEmpty() ? TypeId.from(Material.AIR) : AuroraAPI.getItemManager().resolveId(item);
             if (!itemTypeId.equals(ingredient.id())) {
@@ -80,7 +76,7 @@ public class CauldronBlueprint extends Blueprint {
         var currentMatrix = context.getMatrix();
 
         for (int i = 0; i < context.getMatrix().length; i++) {
-            var ingredient = ingredients.size() > i ? ingredients.get(i) : new ItemPair(TypeId.from(Material.AIR), 0);
+            ItemPair ingredient = ingredients.size() > i ? ingredients.get(i).getItemPair() : new ItemPair(TypeId.from(Material.AIR), 0);
             var item = currentMatrix[i];
             if (item.getAmount() <= ingredient.amount() * timesCrafted) {
                 items[i] = null;
@@ -100,7 +96,8 @@ public class CauldronBlueprint extends Blueprint {
     public static final class VanillaOptions {
         private ChoiceType choiceType;
         private float experience = 0.0F;
-        private ItemPair input = new ItemPair(TypeId.from(Material.AIR), 0);
+        private int fluidLevel = 0;
+        private String fluid = "WATER_CAULDRON";
 
 
         private VanillaOptions experience(float experience) {
@@ -120,7 +117,6 @@ public class CauldronBlueprint extends Blueprint {
         public static class VanillaOptionsBuilder {
             private ChoiceType choiceType = ChoiceType.ITEM_TYPE;
             private float experience = 0.0F;
-            private String input = "AIR";
             private int fluidLevel = 0;
             private String fluid = "WATER_CAULDRON";
 
@@ -131,11 +127,6 @@ public class CauldronBlueprint extends Blueprint {
 
             public VanillaOptionsBuilder experience(float experience) {
                 this.experience = experience;
-                return this;
-            }
-
-            public VanillaOptionsBuilder input(String input) {
-                this.input = input;
                 return this;
             }
 
@@ -150,7 +141,7 @@ public class CauldronBlueprint extends Blueprint {
             }
 
             public VanillaOptions build() {
-                return new VanillaOptions(choiceType);
+                return new VanillaOptions(choiceType, experience, fluidLevel, fluid);
             }
         }
     }

@@ -104,6 +104,16 @@ public abstract class Workbench {
         return new BlueprintContext(player, matrix);
     }
 
+    public BlueprintContext createContext(Player player, ItemStack... items) {
+        return new BlueprintContext(player, items);
+    }
+
+    public BlueprintContext createContext(Player player, ItemStack item) {
+        var items = new ItemStack[1];
+        items[0] = item;
+        return new BlueprintContext(player, items);
+    }
+
     public void freeze() {
         frozen = true;
     }

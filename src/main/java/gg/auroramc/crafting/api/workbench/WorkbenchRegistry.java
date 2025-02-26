@@ -95,7 +95,8 @@ public class WorkbenchRegistry {
                 VanillaType.FURNACE, new Furnace(),
                 VanillaType.SMOKER, new Smoker(),
                 VanillaType.BLAST_FURNACE, new BlastFurnace(),
-                VanillaType.CAMPFIRE, new Campfire()
+                VanillaType.CAMPFIRE, new Campfire(),
+                VanillaType.CAULDRON, new Cauldron()
         );
     }
 }

@@ -73,6 +73,7 @@ public class AuroraCrafting extends AuroraCraftingPlugin {
         Bukkit.getPluginManager().registerEvents(new RecipeDiscoverListener(this), this);
         Bukkit.getPluginManager().registerEvents(new SmithingListener(this), this);
         Bukkit.getPluginManager().registerEvents(new CraftingListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new CauldronInteractEvent(this), this);
         if (Version.isAtLeastVersion(21)) {
             Bukkit.getPluginManager().registerEvents(new AutoCrafterListener(this), this);
         }
