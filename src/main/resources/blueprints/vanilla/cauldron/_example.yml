@@ -3,6 +3,6 @@ recipes:
     input: "minecraft:diamond"
     result: "minecraft:prismarine_shard"
     fluid-level: 1
-    fluid: POWDERED_SNOW_BUCKET
+    fluid: POWDER_SNOW_CAULDRON
     # Every field is optional below
     experience: 10

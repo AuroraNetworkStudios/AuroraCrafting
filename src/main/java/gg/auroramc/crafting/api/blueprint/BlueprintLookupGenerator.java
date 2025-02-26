@@ -45,14 +45,7 @@ public class BlueprintLookupGenerator {
     }
 
     public static String toKey(CauldronBlueprint blueprint) {
-        var key = new StringBuilder();
-
-        for (var ingredient : blueprint.getIngredients()) {
-            key.append(ingredient.getItemPair().id().toString());
-            key.append(";");
-        }
-
-        return key.toString();
+        return blueprint.getIngredients().getFirst().getItemPair().id().toString() + ";";
     }
 
     public static String toKey(SmithingBlueprint blueprint) {

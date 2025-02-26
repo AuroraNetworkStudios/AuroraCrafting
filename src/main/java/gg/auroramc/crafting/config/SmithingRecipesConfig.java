@@ -62,20 +62,5 @@ public class SmithingRecipesConfig extends AuroraConfig {
     public void load() {
         super.load();
         recipes.forEach(recipe -> recipe.setSourcePath(sourcePath));
-
-        var it = recipes.iterator();
-
-        while (it.hasNext()) {
-            var recipe = it.next();
-
-            if (recipe.id == null) {
-                it.remove();
-                AuroraCrafting.logger().severe("Smithing transform recipe in " + sourcePath + " has no id removing...");
-            }
-            if (recipe.result == null) {
-                it.remove();
-                AuroraCrafting.logger().severe("Smithing transform Recipe in " + sourcePath + " with id " + recipe.id + " has no result removing...");
-            }
-        }
     }
 }

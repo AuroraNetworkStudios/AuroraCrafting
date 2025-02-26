@@ -101,7 +101,7 @@ tasks {
         downloadPlugins {
             modrinth("AuroraLib", "2.1.3")
         }
-        minecraftVersion("1.21.3")
+        minecraftVersion("1.21.4")
     }
 }
 

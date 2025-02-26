@@ -54,22 +54,5 @@ public class CookingRecipesConfig extends AuroraConfig {
     public void load() {
         super.load();
         recipes.forEach(recipe -> recipe.setSourcePath(sourcePath));
-
-        var it = recipes.iterator();
-
-        while (it.hasNext()) {
-            var recipe = it.next();
-
-            if (recipe.id == null) {
-                it.remove();
-                AuroraCrafting.logger().severe("Cooking recipe in " + sourcePath + " has no id, removing...");
-            } else if (recipe.result == null) {
-                it.remove();
-                AuroraCrafting.logger().severe("Cooking recipe in " + sourcePath + " with id " + recipe.id + " has no result, removing...");
-            } else if (recipe.input == null) {
-                it.remove();
-                AuroraCrafting.logger().severe("Cooking recipe in " + sourcePath + " with id " + recipe.id + " has no input, removing...");
-            }
-        }
     }
 }

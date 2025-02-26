@@ -21,6 +21,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 public class CauldronInteractEvent implements Listener {
 
@@ -32,13 +33,13 @@ public class CauldronInteractEvent implements Listener {
     );
 
     // vanilla cauldron is not in the list since that is the empty variant
-    private final List<Material> cauldronItems = List.of(
+    private final Set<Material> cauldronItems = Set.of(
         Material.WATER_CAULDRON,
         Material.LAVA_CAULDRON,
         Material.POWDER_SNOW_CAULDRON
     );
 
-    private final List<Action> acceptedActions = List.of(Action.RIGHT_CLICK_BLOCK);
+    private final Set<Action> acceptedActions = Set.of(Action.RIGHT_CLICK_BLOCK);
 
     public CauldronInteractEvent(AuroraCrafting plugin) {
         this.plugin = plugin;
@@ -51,7 +52,7 @@ public class CauldronInteractEvent implements Listener {
         if(!acceptedActions.contains(action)) return;
 
         // to avoid duplicate crafting / too little delay we ignore offhand interacts
-        if(EquipmentSlot.OFF_HAND.equals(event.getHand())) return;
+        if(EquipmentSlot.OFF_HAND == event.getHand()) return;
 
         Player player = event.getPlayer();
         Block block = event.getClickedBlock();
@@ -74,16 +75,13 @@ public class CauldronInteractEvent implements Listener {
             return;
         }
 
+        if(!blockType.name().equalsIgnoreCase(blueprint.getVanillaOptions().getFluid())) {
+            return;
+        }
+
         // if we can craft 0 or less items, we ignore
         var timesCraftable = blueprint.getTimesCraftable(context);
         if (timesCraftable <= 0) return;
-
-        // if the result item cant be resolved somehow, we show error and ignore
-        ItemStack result = blueprint.getResultItem(context);
-        if(result == null) {
-            AuroraCrafting.getInstance().getLogger().warning("Failed to resolve result item for blueprint: " + blueprint.getSource());
-            return;
-        }
 
         // if the cauldron level cannot be decremented (not enough fluid, we ignore)
         // remove required amount of fluid from the block
@@ -98,6 +96,7 @@ public class CauldronInteractEvent implements Listener {
 
         // remove every ingredient from the player's inventory
         // add the result (if there is space, if not drop to the ground) to the player inventory
+        ItemStack result = blueprint.getResultItem(context);
         HashMap<Integer, ItemStack> remaining = player.getInventory().addItem(result);
         remaining.values().forEach(i -> player.getWorld().dropItemNaturally(player.getLocation(), i));
 
@@ -139,10 +138,6 @@ public class CauldronInteractEvent implements Listener {
 
         // lava cauldron has only one leve, either full or "empty" (regular cauldron)
         if(blockMaterial == Material.LAVA_CAULDRON) {
-            if(level != 1) {
-                AuroraCrafting.getInstance().getLogger().warning("Lava cauldron can only be decremented by 1 level! Given value: " + level + " for blueprint: " + blueprintPath);
-                return false;
-            }
             b.setType(Material.CAULDRON);
             return true;
         }

@@ -3,14 +3,12 @@ package gg.auroramc.crafting.config;
 import gg.auroramc.aurora.api.config.AuroraConfig;
 import gg.auroramc.aurora.api.config.decorators.IgnoreField;
 import gg.auroramc.aurora.api.config.premade.ItemConfig;
-import gg.auroramc.crafting.AuroraCrafting;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +42,7 @@ public class CauldronRecipesConfig extends AuroraConfig {
         var target = "blueprints" + File.separator;
         var absPath = file.getAbsolutePath();
         var index = absPath.indexOf(target);
-        this.sourcePath = absPath.substring(index + target.length()).replace(".yml", "");
+        this.sourcePath = absPath.substring(index + target.length()).replace(".yml", "").replace(File.separator, "/");
     }
 
     @Getter
@@ -56,25 +54,7 @@ public class CauldronRecipesConfig extends AuroraConfig {
     @Override
     public void load() {
         super.load();
-
         recipes.forEach(recipe -> recipe.setSourcepath(sourcePath));
-
-        Iterator<RecipeConfig> iterator = recipes.iterator();
-
-        while (iterator.hasNext()) {
-            RecipeConfig recipe = iterator.next();
-
-            if (recipe.id == null) {
-                iterator.remove();
-                AuroraCrafting.logger().severe("Cauldron recipe in " + sourcePath + " has no id, removing...");
-            } else if (recipe.result == null) {
-                iterator.remove();
-                AuroraCrafting.logger().severe("Cauldron recipe in " + sourcePath + " with id " + recipe.id + " has no result, removing...");
-            } else if (recipe.input == null) {
-                iterator.remove();
-                AuroraCrafting.logger().severe("Cauldron recipe in " + sourcePath + " with id " + recipe.id + " has no input, removing...");
-            }
-        }
     }
 
 }

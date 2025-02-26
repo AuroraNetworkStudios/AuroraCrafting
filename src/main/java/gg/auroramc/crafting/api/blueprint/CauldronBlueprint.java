@@ -14,7 +14,6 @@ import org.bukkit.inventory.ItemStack;
 public class CauldronBlueprint extends Blueprint {
 
     private VanillaOptions vanillaOptions = VanillaOptions.builder().build();
-    private final boolean[] slots = new boolean[3];
 
     public static CauldronBlueprint cauldronBlueprint(Workbench workbench, String id) {
         return new CauldronBlueprint(workbench, id);
@@ -39,36 +38,22 @@ public class CauldronBlueprint extends Blueprint {
         return this;
     }
 
-    public static enum Type {
-        CAULDRON
-    }
-
     @Override
     public int getTimesCraftable(BlueprintContext context) {
-        int maxCraftable = Integer.MAX_VALUE;
+        if (ingredients.isEmpty()) return 0;
 
-        var matches = true;
-        var items = context.getMatrix();
+        ItemPair ingredient = ingredients.getFirst().getItemPair();
+        ItemStack item = context.getMatrix()[0];
+        TypeId itemTypeId = item.isEmpty() ? TypeId.from(Material.AIR) : AuroraAPI.getItemManager().resolveId(item);
 
-        for (int i = 0; i < items.length; i++) {
-            ItemPair ingredient = ingredients.size() > i ? ingredients.get(i).getItemPair() : new ItemPair(TypeId.from(Material.AIR), 0);
-            var item = items[i];
-            var itemTypeId = item.isEmpty() ? TypeId.from(Material.AIR) : AuroraAPI.getItemManager().resolveId(item);
-            if (!itemTypeId.equals(ingredient.id())) {
-                matches = false;
-                break;
-            } else if (item.getAmount() < ingredient.amount()) {
-                matches = false;
-                break;
-            } else if (!ingredient.id().id().equals("air")) {
-                maxCraftable = Math.min(maxCraftable, Math.max(1, item.getAmount()) / Math.max(1, ingredient.amount()));
-            }
+        if (!itemTypeId.equals(ingredient.id()) || item.getAmount() < ingredient.amount()) {
+            return 0;
         }
 
-        if (!matches) return 0;
-
-        return maxCraftable;
+        return ingredient.id().id().equals("air") ? Integer.MAX_VALUE
+                : item.getAmount() / Math.max(1, ingredient.amount());
     }
+
 
     @Override
     public ItemStack[] calcRemainingIngredientMatrix(BlueprintContext context, int timesCrafted) {
@@ -94,7 +79,6 @@ public class CauldronBlueprint extends Blueprint {
     @Setter
     @AllArgsConstructor
     public static final class VanillaOptions {
-        private ChoiceType choiceType;
         private float experience = 0.0F;
         private int fluidLevel = 0;
         private String fluid = "WATER_CAULDRON";
@@ -105,25 +89,14 @@ public class CauldronBlueprint extends Blueprint {
             return this;
         }
 
-
-        private VanillaOptions(ChoiceType choiceType) {
-            this.choiceType = choiceType;
-        }
-
         public static VanillaOptionsBuilder builder() {
             return new VanillaOptionsBuilder();
         }
 
         public static class VanillaOptionsBuilder {
-            private ChoiceType choiceType = ChoiceType.ITEM_TYPE;
             private float experience = 0.0F;
             private int fluidLevel = 0;
             private String fluid = "WATER_CAULDRON";
-
-            public VanillaOptionsBuilder choiceType(ChoiceType choiceType) {
-                this.choiceType = choiceType;
-                return this;
-            }
 
             public VanillaOptionsBuilder experience(float experience) {
                 this.experience = experience;
@@ -131,6 +104,14 @@ public class CauldronBlueprint extends Blueprint {
             }
 
             public VanillaOptionsBuilder fluidLevel(int fluidLevel) {
+                if(fluid == null) {
+                    throw new IllegalArgumentException("Fluid cannot be null when setting fluid level");
+                }
+
+                if("LAVA_CAULDRON".equals(fluid) && fluidLevel != 1) {
+                    throw new IllegalArgumentException("Lava cauldrons can only have a fluid level of 1");
+                }
+
                 this.fluidLevel = fluidLevel;
                 return this;
             }
@@ -141,7 +122,7 @@ public class CauldronBlueprint extends Blueprint {
             }
 
             public VanillaOptions build() {
-                return new VanillaOptions(choiceType, experience, fluidLevel, fluid);
+                return new VanillaOptions(experience, fluidLevel, fluid);
             }
         }
     }
