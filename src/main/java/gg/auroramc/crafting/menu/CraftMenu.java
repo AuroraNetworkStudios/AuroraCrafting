@@ -341,7 +341,6 @@ public class CraftMenu implements InventoryHolder {
 
         // If we don't have a blueprint cancel the event
         var maybeBlueprint = workbench.lookupBlueprint(context, BlueprintType.SHAPED, BlueprintType.SHAPELESS);
-        boolean isVanilla = false;
 
         if (maybeBlueprint == null && plugin.getConfigManager().getConfig().getIncludeVanillaRecipes().contains(workbench.getId())) {
             var vanillaRecipe = Bukkit.getServer().getCraftingRecipe(context.getMatrix(), player.getWorld());
@@ -349,11 +348,11 @@ public class CraftMenu implements InventoryHolder {
                 if (craftingRecipe.getKey().getNamespace().equals("minecraft")) {
                     if (isVanillaCompatibleMatrix(context, craftingRecipe)) {
                         maybeBlueprint = new RecipeWrapperBlueprint(workbench, craftingRecipe);
-                        isVanilla = true;
                     }
                 } else if (plugin.getConfigManager().getConfig().getIncludeOtherPluginRecipes().contains(workbench.getId())) {
-                    maybeBlueprint = new RecipeWrapperBlueprint(workbench, craftingRecipe);
-                    isVanilla = true;
+                    if (!craftingRecipe.getKey().getNamespace().equals("aurora")) {
+                        maybeBlueprint = new RecipeWrapperBlueprint(workbench, craftingRecipe);
+                    }
                 }
             }
         }
@@ -534,8 +533,13 @@ public class CraftMenu implements InventoryHolder {
                             setInvalidResult();
                         }
                     } else if (plugin.getConfigManager().getConfig().getIncludeOtherPluginRecipes().contains(workbench.getId())) {
-                        var result = new RecipeWrapperBlueprint(workbench, craftingRecipe).getResultItem(context);
-                        setResult(result);
+                        if (craftingRecipe.getKey().getNamespace().equals("aurora")) {
+                            setInvalidResult();
+                        } else {
+                            var result = new RecipeWrapperBlueprint(workbench, craftingRecipe).getResultItem(context);
+                            setResult(result);
+                        }
+
                     } else {
                         setInvalidResult();
                     }
@@ -589,9 +593,9 @@ public class CraftMenu implements InventoryHolder {
         if (recipe.getKey().getNamespace().equals("minecraft")) {
             if (recipe.getKey().getKey().equals("armor_dye")) {
                 return true;
-            } else if(recipe.getResult().getType().name().endsWith("BUNDLE")) {
+            } else if (recipe.getResult().getType().name().endsWith("BUNDLE")) {
                 return true;
-            } else if(recipe.getResult().getType().name().endsWith("SHULKER_BOX")) {
+            } else if (recipe.getResult().getType().name().endsWith("SHULKER_BOX")) {
                 return true;
             }
         }
