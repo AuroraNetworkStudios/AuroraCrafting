@@ -1,6 +1,5 @@
 package gg.auroramc.crafting.api.workbench.vanilla;
 
-import gg.auroramc.crafting.api.blueprint.Blueprint;
 import gg.auroramc.crafting.api.blueprint.CauldronBlueprint;
 
 import java.util.List;
@@ -11,7 +10,7 @@ public class Cauldron extends VanillaWorkbench<CauldronBlueprint> {
     }
 
     @Override
-    protected boolean shouldRegisterVanillaRecipeFor(Blueprint blueprint) {
+    protected boolean shouldRegisterVanillaRecipes() {
         return false;
     }
 }

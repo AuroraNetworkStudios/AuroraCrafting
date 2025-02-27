@@ -39,7 +39,7 @@ public abstract class VanillaWorkbench<T extends Blueprint> extends Workbench {
     @Override
     public void freeze() {
         super.freeze();
-        if (!shouldRegisterRecipes()) return;
+        if (!shouldRegisterVanillaRecipes()) return;
 
         int count = 0;
         for (var blueprint : getBlueprints(type.getBlueprintTypes())) {
@@ -65,13 +65,13 @@ public abstract class VanillaWorkbench<T extends Blueprint> extends Workbench {
     }
 
     public void dispose() {
-        if (!shouldRegisterRecipes()) return;
+        if (!shouldRegisterVanillaRecipes()) return;
         for (var key : registeredRecipes) {
             Bukkit.removeRecipe(key);
         }
     }
 
-    protected boolean shouldRegisterRecipes() {
+    protected boolean shouldRegisterVanillaRecipes() {
         return true;
     }
 

@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-public class CauldronInteractEvent implements Listener {
+public class CauldronListener implements Listener {
 
     private final AuroraCrafting plugin;
     private final List<NamespacedKey> cauldronUseSoundkeys = List.of(
@@ -41,7 +41,7 @@ public class CauldronInteractEvent implements Listener {
 
     private final Set<Action> acceptedActions = Set.of(Action.RIGHT_CLICK_BLOCK);
 
-    public CauldronInteractEvent(AuroraCrafting plugin) {
+    public CauldronListener(AuroraCrafting plugin) {
         this.plugin = plugin;
     }
 

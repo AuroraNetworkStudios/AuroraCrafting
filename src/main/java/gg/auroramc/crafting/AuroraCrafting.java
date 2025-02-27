@@ -34,7 +34,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AuroraCrafting extends AuroraCraftingPlugin {
@@ -83,7 +82,7 @@ public class AuroraCrafting extends AuroraCraftingPlugin {
         Bukkit.getPluginManager().registerEvents(new RecipeDiscoverListener(this), this);
         Bukkit.getPluginManager().registerEvents(new SmithingListener(this), this);
         Bukkit.getPluginManager().registerEvents(new CraftingListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new CauldronInteractEvent(this), this);
+        Bukkit.getPluginManager().registerEvents(new CauldronListener(this), this);
         if (Version.isAtLeastVersion(21)) {
             Bukkit.getPluginManager().registerEvents(new AutoCrafterListener(this), this);
         }
