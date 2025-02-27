@@ -136,13 +136,19 @@ public class BlueprintParser {
     }
 
     public Blueprint parse(CauldronRecipesConfig.RecipeConfig config) {
+        Material fluid = Material.getMaterial(config.getFluid());
+        if(fluid == null) {
+            throw new IllegalArgumentException("Invalid fluid material: " + config.getFluid() + " in recipe: " + recipeId);
+        }
+
+
         return CauldronBlueprint.cauldronBlueprint(workbench, config.getId())
                 .addIngredient(parseItemPair(config.getInput(), Material.BARRIER))
                 .vanillaOptions(
                         CauldronBlueprint.VanillaOptions.builder()
                                 .experience(config.getExperience())
                                 .fluidLevel(config.getFluidLevel())
-                                .fluid(config.getFluid())
+                                .fluid(fluid)
                                 .build()
                 )
                 .category(category)

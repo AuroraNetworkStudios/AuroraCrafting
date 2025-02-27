@@ -75,7 +75,7 @@ public class CauldronInteractEvent implements Listener {
             return;
         }
 
-        if(!blockType.name().equalsIgnoreCase(blueprint.getVanillaOptions().getFluid())) {
+        if(!blockType.equals(blueprint.getVanillaOptions().getFluid())) {
             return;
         }
 
@@ -142,7 +142,7 @@ public class CauldronInteractEvent implements Listener {
             return true;
         }
 
-        throw new IllegalArgumentException("Invalid cauldron type: " + blockMaterial + " for blueprint: " + blueprintPath);
+        return false;
     }
 
     private void playSound(Player p, Material m) {

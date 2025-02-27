@@ -10,6 +10,9 @@ import lombok.Setter;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Getter
 public class CauldronBlueprint extends Blueprint {
 
@@ -43,15 +46,15 @@ public class CauldronBlueprint extends Blueprint {
         if (ingredients.isEmpty()) return 0;
 
         ItemPair ingredient = ingredients.getFirst().getItemPair();
-        ItemStack item = context.getMatrix()[0];
-        TypeId itemTypeId = item.isEmpty() ? TypeId.from(Material.AIR) : AuroraAPI.getItemManager().resolveId(item);
+        ItemPair item = context.getIdMatrix()[0];
+        TypeId itemId = item.id();
 
-        if (!itemTypeId.equals(ingredient.id()) || item.getAmount() < ingredient.amount()) {
+        if (!itemId.equals(ingredient.id()) || item.amount() < ingredient.amount()) {
             return 0;
         }
 
         return ingredient.id().id().equals("air") ? Integer.MAX_VALUE
-                : item.getAmount() / Math.max(1, ingredient.amount());
+                : item.amount() / Math.max(1, ingredient.amount());
     }
 
 
@@ -81,15 +84,9 @@ public class CauldronBlueprint extends Blueprint {
     @Setter
     @AllArgsConstructor
     public static final class VanillaOptions {
-        private float experience = 0.0F;
-        private int fluidLevel = 0;
-        private String fluid = "WATER_CAULDRON";
-
-
-        private VanillaOptions experience(float experience) {
-            this.experience = experience;
-            return this;
-        }
+        private float experience;
+        private int fluidLevel;
+        private Material fluid;
 
         public static VanillaOptionsBuilder builder() {
             return new VanillaOptionsBuilder();
@@ -98,7 +95,9 @@ public class CauldronBlueprint extends Blueprint {
         public static class VanillaOptionsBuilder {
             private float experience = 0.0F;
             private int fluidLevel = 0;
-            private String fluid = "WATER_CAULDRON";
+            private Material fluid = Material.WATER_CAULDRON;
+
+            private final List<Material> fluidMaterials = Arrays.asList(Material.WATER_CAULDRON, Material.LAVA_CAULDRON, Material.POWDER_SNOW_CAULDRON);
 
             public VanillaOptionsBuilder experience(float experience) {
                 this.experience = experience;
@@ -110,7 +109,7 @@ public class CauldronBlueprint extends Blueprint {
                     throw new IllegalArgumentException("Fluid cannot be null when setting fluid level");
                 }
 
-                if("LAVA_CAULDRON".equals(fluid) && fluidLevel != 1) {
+                if(Material.LAVA_CAULDRON.equals(fluid) && fluidLevel != 1) {
                     throw new IllegalArgumentException("Lava cauldrons can only have a fluid level of 1");
                 }
 
@@ -118,7 +117,11 @@ public class CauldronBlueprint extends Blueprint {
                 return this;
             }
 
-            public VanillaOptionsBuilder fluid(String fluid) {
+            public VanillaOptionsBuilder fluid(Material fluid) {
+                if(!fluidMaterials.contains(fluid)) {
+                    throw new IllegalArgumentException("Invalid fluid material: " + fluid);
+                }
+
                 this.fluid = fluid;
                 return this;
             }
