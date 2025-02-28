@@ -132,22 +132,13 @@ publishing {
     }
 }
 
-tasks.register("buildAndRunServer") {
-    dependsOn("shadowJar", "runServer")
-}
-
-tasks.named<xyz.jpenilla.runpaper.task.RunServer>("runServer") {
-    dependsOn("shadowJar")
-    pluginJars.from(tasks.named("shadowJar"))
-}
-
 tasks.withType<AbstractRun>().configureEach {
-    javaLauncher = javaToolchains.launcherFor {
-        vendor.set(JvmVendorSpec.JETBRAINS)
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
+//    javaLauncher = javaToolchains.launcherFor {
+//        vendor.set(JvmVendorSpec.JETBRAINS)
+//        languageVersion.set(JavaLanguageVersion.of(21))
+//    }
     jvmArgs(
-        "-XX:+AllowEnhancedClassRedefinition", //
+        // "-XX:+AllowEnhancedClassRedefinition", //
         "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005" // Enable remote debugging
     )
 }
