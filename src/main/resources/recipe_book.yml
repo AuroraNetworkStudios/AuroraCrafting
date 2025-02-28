@@ -81,3 +81,12 @@ categories:
             material: stonecutter
             name: "&6Stonecutter recipes"
             slot: 15
+      - id: my_cauldron_recipes
+        files:
+          - "vanilla/cauldron/_example"
+        menu:
+          title: "Cauldron recipes"
+          item:
+            material: cauldron
+            name: "&6Cauldron recipes"
+            slot: 16
