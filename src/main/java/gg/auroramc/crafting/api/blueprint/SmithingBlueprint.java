@@ -69,9 +69,9 @@ public class SmithingBlueprint extends Blueprint {
         var items = context.getMatrix();
 
         for (int i = 0; i < items.length; i++) {
-            var ingredient = ingredients.size() > i ? ingredients.get(i).getItemPair() : new ItemPair(TypeId.from(Material.AIR), 0);
+            var ingredient = ingredients.size() > i ? ingredients.get(i).getItemPair() : BlueprintContext.AIR;
             var item = items[i];
-            var itemTypeId = item.isEmpty() ? TypeId.from(Material.AIR) : AuroraAPI.getItemManager().resolveId(item);
+            var itemTypeId = item.isEmpty() ? TypeId.from(Material.AIR) : context.getIdMatrix()[i];
             if (!itemTypeId.equals(ingredient.id())) {
                 matches = false;
                 break;
@@ -94,7 +94,7 @@ public class SmithingBlueprint extends Blueprint {
         var currentMatrix = context.getMatrix();
 
         for (int i = 0; i < context.getMatrix().length; i++) {
-            var ingredient = ingredients.size() > i ? ingredients.get(i).getItemPair() : new ItemPair(TypeId.from(Material.AIR), 0);
+            var ingredient = ingredients.size() > i ? ingredients.get(i).getItemPair() : BlueprintContext.AIR;
             var item = currentMatrix[i];
             if (item.getAmount() <= ingredient.amount() * timesCrafted) {
                 items[i] = null;
