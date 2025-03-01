@@ -1,6 +1,5 @@
 package gg.auroramc.crafting.api.blueprint;
 
-import gg.auroramc.aurora.api.AuroraAPI;
 import gg.auroramc.aurora.api.item.TypeId;
 import gg.auroramc.crafting.api.ItemPair;
 import gg.auroramc.crafting.api.workbench.Workbench;
@@ -40,7 +39,7 @@ public class ShapedBlueprint extends CraftingBlueprint<ShapedBlueprint> {
         for (int i = 0; i < items.length; i++) {
             var ingredient = ingredients.size() > i ? ingredients.get(i).getItemPair() : BlueprintContext.AIR;
             var item = items[i];
-            var itemTypeId = item.isEmpty() ? TypeId.from(Material.AIR) : context.getIdMatrix()[i];
+            var itemTypeId = item.isEmpty() ? TypeId.from(Material.AIR) : context.getIdMatrix()[i].id();
             if (!itemTypeId.equals(ingredient.id())) {
                 matches = false;
                 break;
