@@ -1,4 +1,4 @@
-config-version: 0
+config-version: 1
 
 rows: 6
 
@@ -40,15 +40,21 @@ blueprint-not-completed-item:
 
 next-recipe-item:
   material: arrow
-  name: "&7Next Recipe"
+  name: "&fNext Recipe"
   lore:
     - "&7Click to view the next recipe"
 
 previous-recipe-item:
   material: arrow
-  name: "&7Previous Recipe"
+  name: "&fPrevious Recipe"
   lore:
     - "&7Click to view the previous recipe"
+
+back-item:
+  material: arrow
+  name: "&fBack"
+  lore:
+    - "&7Click to go back"
 
 filler:
   material: black_stained_glass_pane

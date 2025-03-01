@@ -32,7 +32,6 @@ public class ConfigManager {
 
     // menus
     private List<WorkbenchConfig> workbenchConfig;
-    private RecipeViewConfig recipeViewConfig;
     private RecipeBookMenuConfig recipeBookMenuConfig;
     private RecipeBookCategoryConfig recipeBookCategoryConfig;
     private MerchantsMenuConfig merchantsMenuConfig;
@@ -84,10 +83,6 @@ public class ConfigManager {
         RecipeBookConfig.saveDefault(plugin);
         recipeBookConfig = new RecipeBookConfig(plugin);
         recipeBookConfig.load();
-
-        RecipeViewConfig.saveDefault(plugin);
-        recipeViewConfig = new RecipeViewConfig(plugin);
-        recipeViewConfig.load();
 
         RecipeBookMenuConfig.saveDefault(plugin);
         recipeBookMenuConfig = new RecipeBookMenuConfig(plugin);
@@ -173,6 +168,11 @@ public class ConfigManager {
         stoneCutterRecipes = getStoneCutterRecipesConfigs().stream()
                 .flatMap(recipesConfig -> recipesConfig.getRecipes().stream())
                 .collect(Collectors.toList());
+
+        var oldRecipeViewConfigFile = new File(plugin.getDataFolder() + "/menus", "recipe_view.yml");
+        if (oldRecipeViewConfigFile.exists()) {
+            oldRecipeViewConfigFile.delete();
+        }
     }
 
     @SneakyThrows
@@ -221,34 +221,56 @@ public class ConfigManager {
 
         if (workbenchConfig.getFiller() == null) {
             workbenchConfig.setFiller(workbenchDefaultConfig.getFiller());
+        } else {
+            workbenchConfig.setFiller(workbenchDefaultConfig.getFiller().merge(workbenchConfig.getFiller()));
         }
 
         if (workbenchConfig.getInvalidResultItem() == null) {
             workbenchConfig.setInvalidResultItem(workbenchDefaultConfig.getInvalidResultItem());
+        } else {
+            workbenchConfig.setInvalidResultItem(workbenchDefaultConfig.getInvalidResultItem().merge(workbenchConfig.getInvalidResultItem()));
         }
 
         if (workbenchConfig.getEmptyQuickCraftItem() == null) {
             workbenchConfig.setEmptyQuickCraftItem(workbenchDefaultConfig.getEmptyQuickCraftItem());
+        } else {
+            workbenchConfig.setEmptyQuickCraftItem(workbenchDefaultConfig.getEmptyQuickCraftItem().merge(workbenchConfig.getEmptyQuickCraftItem()));
         }
 
         if (workbenchConfig.getNoPermissionQuickCraftItem() == null) {
             workbenchConfig.setNoPermissionQuickCraftItem(workbenchDefaultConfig.getNoPermissionQuickCraftItem());
+        } else {
+            workbenchConfig.setNoPermissionQuickCraftItem(workbenchDefaultConfig.getNoPermissionQuickCraftItem().merge(workbenchConfig.getNoPermissionQuickCraftItem()));
         }
 
         if (workbenchConfig.getBlueprintCompletedItem() == null) {
             workbenchConfig.setBlueprintCompletedItem(workbenchDefaultConfig.getBlueprintCompletedItem());
+        } else {
+            workbenchConfig.setBlueprintCompletedItem(workbenchDefaultConfig.getBlueprintCompletedItem().merge(workbenchConfig.getBlueprintCompletedItem()));
         }
 
         if (workbenchConfig.getBlueprintNotCompletedItem() == null) {
             workbenchConfig.setBlueprintNotCompletedItem(workbenchDefaultConfig.getBlueprintNotCompletedItem());
+        } else {
+            workbenchConfig.setBlueprintNotCompletedItem(workbenchDefaultConfig.getBlueprintNotCompletedItem().merge(workbenchConfig.getBlueprintNotCompletedItem()));
         }
 
         if (workbenchConfig.getNextRecipeItem() == null) {
             workbenchConfig.setNextRecipeItem(workbenchDefaultConfig.getNextRecipeItem());
+        } else {
+            workbenchConfig.setNextRecipeItem(workbenchDefaultConfig.getNextRecipeItem().merge(workbenchConfig.getNextRecipeItem()));
         }
 
         if (workbenchConfig.getPreviousRecipeItem() == null) {
             workbenchConfig.setPreviousRecipeItem(workbenchDefaultConfig.getPreviousRecipeItem());
+        } else {
+            workbenchConfig.setPreviousRecipeItem(workbenchDefaultConfig.getPreviousRecipeItem().merge(workbenchConfig.getPreviousRecipeItem()));
+        }
+
+        if (workbenchConfig.getBackItem() == null) {
+            workbenchConfig.setBackItem(workbenchDefaultConfig.getBackItem());
+        } else {
+            workbenchConfig.setBackItem(workbenchDefaultConfig.getBackItem().merge(workbenchConfig.getBackItem()));
         }
 
         return workbenchConfig;

@@ -1,4 +1,4 @@
-config-version: 0
+config-version: 1
 
 # Title of the workbench inventory
 title: "Craft Item"
@@ -18,15 +18,22 @@ quick-crafting-slots: [ 16, 25, 34 ]
 # Where should we put the items that indicate the completion of a recipe?
 completion-indicator-slots: [ 45, 46, 47, 48, 49, 50, 51, 52, 53 ]
 
-# Previous recipe slot button (only when using grouping (recipebook)
-prev-recipe-slot: 52
-
-# Next recipe slot button (only when using grouping) (recipebook)
-next-recipe-slot: 53
-
 # This is an experimental feature and it will probably be experimental forever.
 # Turning this on might cause performance issues.
 include-vanilla-recipes-in-quick-crafting: false
+
+# Options when a recipe is opened from the recipe book
+recipe-book:
+  # Previous recipe slot button (only when using grouping)
+  prev-recipe-slot: 52
+  # Next recipe slot button (only when using grouping)
+  next-recipe-slot: 53
+  # Recipe result slot
+  result-slot: 25
+  # Back slot if applicable
+  back-slot: 45
+  # Additional custom items to map to the recipe view inventory
+  custom-items: { }
 
 # Other custom items to add to the workbench inventory
 # For example some cosmetic stuff

@@ -2,6 +2,7 @@ package gg.auroramc.crafting.parser;
 
 import gg.auroramc.crafting.api.workbench.custom.CustomWorkbench;
 import gg.auroramc.crafting.api.workbench.custom.MenuOptions;
+import gg.auroramc.crafting.api.workbench.custom.RecipeBookOptions;
 import gg.auroramc.crafting.config.WorkbenchConfig;
 import lombok.RequiredArgsConstructor;
 
@@ -27,10 +28,17 @@ public class WorkbenchParser {
                 .blueprintNotCompletedItem(config.getBlueprintNotCompletedItem())
                 .nextRecipeItem(config.getNextRecipeItem())
                 .previousRecipeItem(config.getPreviousRecipeItem())
+                .backItem(config.getBackItem())
                 .build());
 
-        workbench.setNextBlueprintSlot(config.getNextRecipeSlot());
-        workbench.setPreviousBlueprintSlot(config.getPrevRecipeSlot());
+        workbench.setRecipeBookOptions(RecipeBookOptions.builder()
+                .backSlot(config.getRecipeBook().getBackSlot())
+                .customItems(config.getRecipeBook().getCustomItems())
+                .nextRecipeSlot(config.getRecipeBook().getNextRecipeSlot())
+                .prevRecipeSlot(config.getRecipeBook().getPrevRecipeSlot())
+                .resultSlot(config.getRecipeBook().getResultSlot())
+                .title(config.getRecipeBook().getTitle())
+                .build());
 
         workbench.setIncludeVanillaRecipesInQuickCrafting(config.getIncludeVanillaRecipesInQuickCrafting());
 

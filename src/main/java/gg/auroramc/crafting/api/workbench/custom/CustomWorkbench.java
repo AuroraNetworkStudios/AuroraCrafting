@@ -23,9 +23,7 @@ public class CustomWorkbench extends Workbench {
     private final List<Integer> quickCraftSlots;
     private final List<Integer> completionIndicatorSlots;
     @Setter
-    private Integer previousBlueprintSlot = null;
-    @Setter
-    private Integer nextBlueprintSlot = null;
+    private RecipeBookOptions recipeBookOptions;
     private MenuOptions menuOptions;
     @Setter
     private boolean includeVanillaRecipesInQuickCrafting = false;
@@ -36,10 +34,15 @@ public class CustomWorkbench extends Workbench {
     }
 
     public CustomWorkbench(String id, int resultSlot, List<Integer> matrixSlots, List<Integer> quickCraftSlots, List<Integer> completionIndicatorSlots, MenuOptions menuOptions) {
+        this(id, resultSlot, matrixSlots, quickCraftSlots, completionIndicatorSlots, menuOptions, RecipeBookOptions.builder().build());
+    }
+
+    public CustomWorkbench(String id, int resultSlot, List<Integer> matrixSlots, List<Integer> quickCraftSlots, List<Integer> completionIndicatorSlots, MenuOptions menuOptions, RecipeBookOptions recipeBookOptions) {
         super(id, resultSlot, matrixSlots);
         this.quickCraftSlots = quickCraftSlots == null ? List.of() : quickCraftSlots;
         this.completionIndicatorSlots = completionIndicatorSlots == null ? List.of() : completionIndicatorSlots;
         this.menuOptions = menuOptions.clone().setDefaults();
+        this.recipeBookOptions = recipeBookOptions;
     }
 
     public @NotNull List<Blueprint> getCraftableBlueprints(Player player, int maxCount, BlueprintType... types) {
@@ -131,6 +134,7 @@ public class CustomWorkbench extends Workbench {
         private List<Integer> completionIndicatorSlots;
         private List<Integer> quickCraftSlots;
         private MenuOptions menuOptions;
+        private RecipeBookOptions recipeBookOptions;
 
         public Builder id(String id) {
             this.id = id;

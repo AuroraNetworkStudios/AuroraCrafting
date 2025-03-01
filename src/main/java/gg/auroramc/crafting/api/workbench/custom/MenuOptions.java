@@ -33,6 +33,8 @@ public final class MenuOptions implements Cloneable {
 
         ItemConfig getPreviousRecipe();
 
+        ItemConfig getBack();
+
         Integer getRows();
 
         String getTitle();
@@ -40,6 +42,7 @@ public final class MenuOptions implements Cloneable {
 
     private List<ItemConfig> customItems;
     private ItemConfig fillerItem;
+    private ItemConfig backItem;
     private ItemConfig emptyQuickCraftItem;
     private ItemConfig noPermissionQuickCraftItem;
     private ItemConfig blueprintCompletedItem;
@@ -74,6 +77,9 @@ public final class MenuOptions implements Cloneable {
         }
         if (this.previousRecipeItem == null) {
             this.previousRecipeItem = defaultSupplier.getPreviousRecipe();
+        }
+        if (this.backItem == null) {
+            this.backItem = defaultSupplier.getBack();
         }
         if (this.rows == null) {
             this.rows = defaultSupplier.getRows();

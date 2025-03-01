@@ -622,10 +622,9 @@ public class BlueprintMenu {
 
 
     private void open(CustomWorkbench workbench) {
-        var mc = plugin.getConfigManager().getRecipeViewConfig();
         var mcc = plugin.getConfigManager().getRecipeBookCategoryConfig();
 
-        var menu = new AuroraMenu(player, mc.getTitle(), workbench.getMenuOptions().getRows() * 9, false, key);
+        var menu = new AuroraMenu(player, workbench.getRecipeBookOptions().getTitle(), workbench.getMenuOptions().getRows() * 9, false, key);
         menu.addFiller(ItemBuilder.of(workbench.getMenuOptions().getFillerItem()).toItemStack(player));
 
         var ingredientItems = blueprint.getIngredientItems();
@@ -653,10 +652,7 @@ public class BlueprintMenu {
         }
 
         Integer resultSlot;
-        resultSlot = mc.getResultSlot().get(blueprint.getWorkbench().getId());
-        if (resultSlot == null) {
-            resultSlot = mc.getResultSlot().get("default");
-        }
+        resultSlot = workbench.getRecipeBookOptions().getResultSlot();
         if (resultSlot == null) {
             resultSlot = workbench.getResultSlot();
         }
@@ -664,39 +660,39 @@ public class BlueprintMenu {
         menu.addItem(ItemBuilder.item(blueprint.getResultItem()).amount(blueprint.getResult().amount()).slot(resultSlot).build(player));
 
         if (backAction != null) {
-            menu.addItem(ItemBuilder.of(mc.getItems().get("back")).build(player), (e) -> {
+            menu.addItem(ItemBuilder.of(workbench.getMenuOptions().getBackItem()).defaultSlot(workbench.getRecipeBookOptions().getBackSlot()).build(player), (e) -> {
                 backAction.run();
             });
         }
 
         var group = blueprint.getGroup();
 
-        if (group != null && !group.getBlueprints().isEmpty() && workbench.getNextBlueprintSlot() != null && workbench.getPreviousBlueprintSlot() != null) {
+        if (group != null && group.getBlueprints().size() > 1 && workbench.getRecipeBookOptions().getNextRecipeSlot() != null && workbench.getRecipeBookOptions().getPrevRecipeSlot() != null) {
             var next = group.getBlueprints().size() > groupIndex + 1 ? group.getBlueprints().get(groupIndex + 1) : null;
             var prev = groupIndex > 0 ? group.getBlueprints().get(groupIndex - 1) : null;
 
             if (next != null) {
-                menu.addItem(ItemBuilder.of(workbench.getMenuOptions().getNextRecipeItem()).slot(workbench.getNextBlueprintSlot()).build(player), (e) -> {
+                menu.addItem(ItemBuilder.of(workbench.getMenuOptions().getNextRecipeItem()).slot(workbench.getRecipeBookOptions().getNextRecipeSlot()).build(player), (e) -> {
                     var m = BlueprintMenu.blueprintMenu(plugin, player, next, this.backAction);
                     m.groupIndex = groupIndex + 1;
                     m.open();
                 });
             } else {
-                menu.addItem(ItemBuilder.of(workbench.getMenuOptions().getNextRecipeItem()).slot(workbench.getNextBlueprintSlot()).build(player));
+                menu.addItem(ItemBuilder.of(workbench.getMenuOptions().getNextRecipeItem()).slot(workbench.getRecipeBookOptions().getNextRecipeSlot()).build(player));
             }
 
             if (prev != null) {
-                menu.addItem(ItemBuilder.of(workbench.getMenuOptions().getPreviousRecipeItem()).slot(workbench.getPreviousBlueprintSlot()).build(player), (e) -> {
+                menu.addItem(ItemBuilder.of(workbench.getMenuOptions().getPreviousRecipeItem()).slot(workbench.getRecipeBookOptions().getPrevRecipeSlot()).build(player), (e) -> {
                     var m = BlueprintMenu.blueprintMenu(plugin, player, prev, this.backAction);
                     m.groupIndex = groupIndex - 1;
                     m.open();
                 });
             } else {
-                menu.addItem(ItemBuilder.of(workbench.getMenuOptions().getPreviousRecipeItem()).slot(workbench.getPreviousBlueprintSlot()).build(player));
+                menu.addItem(ItemBuilder.of(workbench.getMenuOptions().getPreviousRecipeItem()).slot(workbench.getRecipeBookOptions().getPrevRecipeSlot()).build(player));
             }
         }
 
-        for (var item : mc.getCustomItems().values()) {
+        for (var item : workbench.getRecipeBookOptions().getCustomItems().values()) {
             menu.addItem(ItemBuilder.of(item).build(player));
         }
 
