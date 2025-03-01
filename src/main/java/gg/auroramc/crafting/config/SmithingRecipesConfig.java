@@ -48,6 +48,7 @@ public class SmithingRecipesConfig extends AuroraConfig {
     @Getter
     public static final class VanillaOptions {
         private String choiceType = ChoiceType.ITEM_TYPE.name();
+        private String group;
     }
 
     public SmithingRecipesConfig(File file) {

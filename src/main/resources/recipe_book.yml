@@ -51,7 +51,7 @@ categories:
         menu:
           title: "Blast furnace recipes"
           item:
-            material: diamond
+            material: blast_furnace
             name: "&6Blast furnace recipes"
             slot: 13
       - id: my_smoker_recipes

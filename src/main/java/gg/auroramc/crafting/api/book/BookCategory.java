@@ -2,6 +2,7 @@ package gg.auroramc.crafting.api.book;
 
 import gg.auroramc.aurora.api.config.premade.ItemConfig;
 import gg.auroramc.crafting.api.blueprint.Blueprint;
+import gg.auroramc.crafting.api.blueprint.BlueprintGroup;
 import lombok.*;
 
 import java.util.*;
@@ -10,7 +11,7 @@ import java.util.*;
 public class BookCategory {
     private final String id;
     private final BookCategory parent;
-    private final List<Blueprint> blueprints = new ArrayList<>();
+    private final List<BlueprintGroup> blueprints = new ArrayList<>();
     protected MenuOptions menuOptions;
     protected boolean frozen = false;
 
@@ -41,7 +42,16 @@ public class BookCategory {
         if (!categories.isEmpty()) {
             throw new IllegalStateException("Cannot add blueprint to category: " + id + " with subcategories");
         }
-        blueprints.add(blueprint);
+
+        if (blueprint.getGroup() != null) {
+            if (!blueprints.contains(blueprint.getGroup())) {
+                blueprints.add(blueprint.getGroup());
+            }
+        } else {
+            var group = new BlueprintGroup();
+            group.addBlueprint(blueprint);
+            blueprints.add(group);
+        }
     }
 
     public Collection<BookCategory> getCategories() {

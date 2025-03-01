@@ -1,3 +1,5 @@
+config-version: 1
+
 title: "Smithing recipe"
 rows: 3
 
@@ -6,6 +8,8 @@ slots:
   base: 11
   addition: 12
   result: 16
+  prev-recipe: 25
+  next-recipe: 26
 
 items:
   filler:

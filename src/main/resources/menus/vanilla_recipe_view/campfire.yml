@@ -1,9 +1,13 @@
+config-version: 1
+
 title: "Campfire recipe"
 rows: 3
 
 slots:
   input: 11
   result: 15
+  prev-recipe: 25
+  next-recipe: 26
 
 items:
   filler:

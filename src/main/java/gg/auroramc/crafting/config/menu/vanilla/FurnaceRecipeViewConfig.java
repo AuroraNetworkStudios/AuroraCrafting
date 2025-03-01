@@ -4,9 +4,12 @@ import gg.auroramc.aurora.api.config.AuroraConfig;
 import gg.auroramc.aurora.api.config.premade.ItemConfig;
 import gg.auroramc.crafting.AuroraCrafting;
 import lombok.Getter;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static gg.auroramc.crafting.config.ConfigManager.VANILLA_RECIPE_VIEW_PATH;
 
@@ -24,6 +27,8 @@ public class FurnaceRecipeViewConfig extends AuroraConfig {
         private Integer result = 15;
         private Integer fuel = 20;
         private Integer input = 11;
+        private Integer prevRecipe = 34;
+        private Integer nextRecipe = 35;
     }
 
     @Getter
@@ -45,5 +50,16 @@ public class FurnaceRecipeViewConfig extends AuroraConfig {
         if (!getFile(plugin).exists()) {
             plugin.saveResource(VANILLA_RECIPE_VIEW_PATH + "/furnace.yml", false);
         }
+    }
+
+    @Override
+    protected List<Consumer<YamlConfiguration>> getMigrationSteps() {
+        return List.of(
+                (yaml) -> {
+                    yaml.set("slots.prev-recipe", 34);
+                    yaml.set("slots.next-recipe", 35);
+                    yaml.set("config-version", 1);
+                }
+        );
     }
 }

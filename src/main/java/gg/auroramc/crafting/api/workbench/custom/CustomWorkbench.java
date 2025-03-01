@@ -2,6 +2,7 @@ package gg.auroramc.crafting.api.workbench.custom;
 
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.blueprint.Blueprint;
+import gg.auroramc.crafting.api.blueprint.BlueprintGroup;
 import gg.auroramc.crafting.api.blueprint.BlueprintType;
 import gg.auroramc.crafting.api.blueprint.RecipeWrapperBlueprint;
 import gg.auroramc.crafting.api.workbench.Workbench;
@@ -15,15 +16,16 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 @Getter
 public class CustomWorkbench extends Workbench {
     private final List<Integer> quickCraftSlots;
     private final List<Integer> completionIndicatorSlots;
+    @Setter
+    private Integer previousBlueprintSlot = null;
+    @Setter
+    private Integer nextBlueprintSlot = null;
     private MenuOptions menuOptions;
     @Setter
     private boolean includeVanillaRecipesInQuickCrafting = false;
@@ -41,6 +43,7 @@ public class CustomWorkbench extends Workbench {
     }
 
     public @NotNull List<Blueprint> getCraftableBlueprints(Player player, int maxCount, BlueprintType... types) {
+        var groups = new HashSet<BlueprintGroup>();
         var craftableBlueprints = new ArrayList<Blueprint>();
 
         var itemCount = InventoryUtils.buildItemCounts(player);
@@ -48,8 +51,15 @@ public class CustomWorkbench extends Workbench {
         for (var type : types) {
             for (var blueprint : categorizedBlueprints.computeIfAbsent(type, (k) -> new HashMap<>()).values()) {
                 if (blueprint.hasAccess(player) && blueprint.getQuickCraftTimes(itemCount) > 0) {
-                    craftableBlueprints.add(blueprint);
-                    if (craftableBlueprints.size() >= maxCount) break;
+                    if (blueprint.getGroup() != null) {
+                        if (groups.add(blueprint.getGroup())) {
+                            craftableBlueprints.add(blueprint);
+                            if (craftableBlueprints.size() >= maxCount) break;
+                        }
+                    } else {
+                        craftableBlueprints.add(blueprint);
+                        if (craftableBlueprints.size() >= maxCount) break;
+                    }
                 }
             }
         }

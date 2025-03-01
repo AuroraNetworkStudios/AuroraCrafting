@@ -7,6 +7,7 @@ import gg.auroramc.aurora.api.message.Text;
 import gg.auroramc.aurora.api.util.NamespacedId;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.blueprint.Blueprint;
+import gg.auroramc.crafting.api.blueprint.BlueprintGroup;
 import gg.auroramc.crafting.api.book.BookCategory;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
@@ -63,7 +64,7 @@ public class BookBlueprintListMenu {
         for (int i = 0; i < mc.getDisplayArea().size(); i++) {
             var slot = mc.getDisplayArea().get(i);
             if (i < recipes.size()) {
-                var blueprint = recipes.get(i);
+                var blueprint = recipes.get(i).getFirst();
                 var item = blueprint.getResultItem();
                 if (item.getType() == Material.AIR) {
                     item = new ItemStack(Material.BARRIER);
@@ -138,7 +139,7 @@ public class BookBlueprintListMenu {
         menu.open();
     }
 
-    public List<Blueprint> getPageRecipes(int pageSize) {
+    public List<BlueprintGroup> getPageRecipes(int pageSize) {
         var recipes = category.getBlueprints();
         int startIndex = page * pageSize;
         int endIndex = Math.min(startIndex + pageSize, recipes.size());

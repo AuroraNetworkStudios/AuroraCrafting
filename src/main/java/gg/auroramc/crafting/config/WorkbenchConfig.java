@@ -22,6 +22,8 @@ public class WorkbenchConfig extends AuroraConfig {
     private String title;
     private Integer rows;
     private Integer resultSlot = 25;
+    private Integer prevRecipeSlot = null;
+    private Integer nextRecipeSlot = null;
     private List<Integer> matrixSlots;
     private List<Integer> completionIndicatorSlots;
     private List<Integer> quickCraftingSlots;

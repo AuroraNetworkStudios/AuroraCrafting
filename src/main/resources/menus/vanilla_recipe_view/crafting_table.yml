@@ -1,9 +1,13 @@
+config-version: 1
+
 title: "Crafting recipe"
 rows: 6
 
 slots:
   result: 25
   matrix: [ 10, 11, 12, 19, 20, 21, 28, 29, 30 ]
+  prev-recipe: 52
+  next-recipe: 53
 
 items:
   filler:

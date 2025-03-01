@@ -23,6 +23,7 @@ public class CauldronRecipesConfig extends AuroraConfig {
     public static final class RecipeConfig {
 
         private String id;
+        private String group;
         private String result;
         private String input;
         private float experience = 0.0F;

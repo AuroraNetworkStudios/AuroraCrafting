@@ -1,9 +1,13 @@
+config-version: 1
+
 title: "Cauldron recipe"
 rows: 4
 
 slots:
   input: 10
   result: 16
+  prev-recipe: 34
+  next-recipe: 35
   fluid-slots:
     one: [ 22 ]
     two: [ 21, 23 ]

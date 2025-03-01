@@ -29,6 +29,9 @@ public class WorkbenchParser {
                 .previousRecipeItem(config.getPreviousRecipeItem())
                 .build());
 
+        workbench.setNextBlueprintSlot(config.getNextRecipeSlot());
+        workbench.setPreviousBlueprintSlot(config.getPrevRecipeSlot());
+
         workbench.setIncludeVanillaRecipesInQuickCrafting(config.getIncludeVanillaRecipesInQuickCrafting());
 
         workbench.validate();

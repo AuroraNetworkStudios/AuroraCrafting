@@ -19,14 +19,12 @@ import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 public abstract class Blueprint {
     protected final String id;
+    protected BlueprintGroup group;
     protected List<BookCategory> category = new ArrayList<>();
     protected String source;
     protected ItemPair result;
@@ -235,6 +233,11 @@ public abstract class Blueprint {
      */
     public Blueprint permission(String permission) {
         this.permission = permission;
+        return this;
+    }
+
+    public Blueprint group(BlueprintGroup group) {
+        this.group = group;
         return this;
     }
 
@@ -477,6 +480,19 @@ public abstract class Blueprint {
      */
     public Blueprint complete() {
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Blueprint blueprint = (Blueprint) o;
+        return Objects.equals(id, blueprint.id) && Objects.equals(source, blueprint.source) && Objects.equals(workbench, blueprint.workbench);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, source, workbench);
     }
 
     @Getter
