@@ -6,7 +6,7 @@ import com.gamingmesh.jobs.actions.ItemNameActionInfo;
 import com.gamingmesh.jobs.container.ActionType;
 import gg.auroramc.aurora.api.util.ItemUtils;
 import gg.auroramc.crafting.AuroraCrafting;
-import gg.auroramc.crafting.api.event.PlayerCraftItemEvent;
+import gg.auroramc.crafting.api.event.BlueprintCraftEvent;
 import gg.auroramc.crafting.hooks.Hook;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.GameMode;
@@ -21,7 +21,7 @@ public class JobsRebornHook implements Hook, Listener {
     }
 
     @EventHandler
-    public void onCraft(PlayerCraftItemEvent event) {
+    public void onCraft(BlueprintCraftEvent event) {
         var player = event.getPlayer();
 
         if (!Jobs.getPermissionHandler().hasWorldPermission(player, player.getLocation().getWorld().getName()))

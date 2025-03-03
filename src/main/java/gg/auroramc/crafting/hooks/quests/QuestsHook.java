@@ -2,7 +2,7 @@ package gg.auroramc.crafting.hooks.quests;
 
 import gg.auroramc.aurora.api.util.ItemUtils;
 import gg.auroramc.crafting.AuroraCrafting;
-import gg.auroramc.crafting.api.event.PlayerCraftItemEvent;
+import gg.auroramc.crafting.api.event.BlueprintCraftEvent;
 import gg.auroramc.crafting.hooks.Hook;
 import me.pikamug.quests.BukkitQuestsPlugin;
 import me.pikamug.quests.enums.ObjectiveType;
@@ -22,7 +22,7 @@ public class QuestsHook implements Hook, Listener {
     }
 
     @EventHandler
-    public void onCraft(PlayerCraftItemEvent event) {
+    public void onCraft(BlueprintCraftEvent event) {
         if (qp.canUseQuests(event.getPlayer().getUniqueId())) return;
 
         var quester = qp.getQuester(event.getPlayer().getUniqueId());

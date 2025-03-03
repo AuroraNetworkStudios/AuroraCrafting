@@ -20,9 +20,6 @@ recipes:
       - ""
       - "minecraft:diamond/32"
       - ""
-    # Commands to run when the recipe is crafted
-    on-craft:
-      - "[message] You crafted {amount}x {result}"
     # This is only relevant if you register the recipe to the vanilla crafting table
     # Fully optional
     vanilla-options:

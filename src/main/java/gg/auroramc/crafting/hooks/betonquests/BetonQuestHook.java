@@ -1,7 +1,7 @@
 package gg.auroramc.crafting.hooks.betonquests;
 
 import gg.auroramc.crafting.AuroraCrafting;
-import gg.auroramc.crafting.api.event.PlayerCraftItemEvent;
+import gg.auroramc.crafting.api.event.BlueprintCraftEvent;
 import gg.auroramc.crafting.hooks.Hook;
 import lombok.SneakyThrows;
 import org.betonquest.betonquest.BetonQuest;
@@ -42,7 +42,7 @@ public class BetonQuestHook implements Hook, Listener {
 
     @SneakyThrows
     @EventHandler
-    public void onCraft(PlayerCraftItemEvent event) {
+    public void onCraft(BlueprintCraftEvent event) {
         OnlineProfile profile = PlayerConverter.getID(event.getPlayer());
 
         for (Objective obj : BetonQuest.getInstance().getPlayerObjectives(profile)) {

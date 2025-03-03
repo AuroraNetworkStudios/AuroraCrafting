@@ -9,14 +9,14 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 @Getter
-public class PlayerCraftItemEvent extends PlayerEvent {
+public class BlueprintCraftEvent extends PlayerEvent {
     private static final HandlerList HANDLERS = new HandlerList();
 
     private final ItemStack item;
     private final int amount;
     private final Blueprint blueprint;
 
-    public PlayerCraftItemEvent(@NotNull Player who, @NotNull ItemStack item, @NotNull Blueprint blueprint, int amount) {
+    public BlueprintCraftEvent(@NotNull Player who, @NotNull ItemStack item, @NotNull Blueprint blueprint, int amount) {
         super(who);
         this.item = item;
         this.amount = amount;

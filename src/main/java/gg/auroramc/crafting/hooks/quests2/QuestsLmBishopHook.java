@@ -8,7 +8,7 @@ import com.leonardobishop.quests.bukkit.item.QuestItem;
 import com.leonardobishop.quests.bukkit.util.TaskUtils;
 import com.leonardobishop.quests.bukkit.util.constraint.TaskConstraintSet;
 import gg.auroramc.crafting.AuroraCrafting;
-import gg.auroramc.crafting.api.event.PlayerCraftItemEvent;
+import gg.auroramc.crafting.api.event.BlueprintCraftEvent;
 import gg.auroramc.crafting.hooks.Hook;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -26,7 +26,7 @@ public class QuestsLmBishopHook implements Hook, Listener {
     }
 
     @EventHandler
-    public void onCraft(PlayerCraftItemEvent event) {
+    public void onCraft(BlueprintCraftEvent event) {
         var player = event.getPlayer();
         var qPlayer = qp.getPlayerManager().getPlayer(event.getPlayer().getUniqueId());
         var item = event.getItem();
