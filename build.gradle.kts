@@ -99,7 +99,7 @@ tasks {
     }
     runServer {
         downloadPlugins {
-            modrinth("AuroraLib", "2.1.3")
+            modrinth("AuroraLib", "2.1.6")
         }
         minecraftVersion("1.21.4")
     }
@@ -112,9 +112,9 @@ publishing {
         maven {
             name = "AuroraMC"
             url = if (version.toString().endsWith("SNAPSHOT")) {
-                URI.create("https://repo.auroramc.gg/repository/maven-snapshots/")
+                URI.create("https://repo.auroramc.gg/snapshots/")
             } else {
-                URI.create("https://repo.auroramc.gg/repository/maven-releases/")
+                URI.create("https://repo.auroramc.gg/releases/")
             }
             credentials {
                 username = publishing.getProperty("username")
