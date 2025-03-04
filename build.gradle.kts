@@ -31,7 +31,7 @@ repositories {
     }
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://repo.auroramc.gg/repository/maven-public/")
+    maven("https://repo.auroramc.gg/releases/")
     maven("https://repo.aikar.co/content/groups/aikar/")
     // Quests (pikamug)
     maven("https://repo.codemc.io/repository/maven-public/")
@@ -42,8 +42,8 @@ repositories {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
-    compileOnly("gg.auroramc:Aurora:2.1.5")
-    compileOnly("gg.auroramc:AuroraQuests:1.3.14")
+    compileOnly("gg.auroramc:Aurora:2.1.6")
+    compileOnly("gg.auroramc:AuroraQuests:1.3.16")
     // Quests
     compileOnly("me.pikamug.quests:quests-core:5.1.4")
     // Quests (LMBishop)
