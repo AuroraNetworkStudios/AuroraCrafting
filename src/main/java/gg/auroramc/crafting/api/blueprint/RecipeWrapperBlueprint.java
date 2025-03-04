@@ -93,6 +93,7 @@ public class RecipeWrapperBlueprint extends Blueprint {
 
     @Override
     public ItemStack getResultItem(BlueprintContext context) {
+        System.out.println(backingRecipe.getKey());
         if (matches("armor_dye")) {
             return getDyeResult(context.getMatrix());
 
@@ -120,10 +121,10 @@ public class RecipeWrapperBlueprint extends Blueprint {
         } else if (matches("shield_decoration")) {
             return getDecoratedShield(context.getMatrix());
 
-        } else if (endsWith("SHULKER_BOX")) {
+        } else if (endsWith("_shulker_box")) {
             return getShulkerResult(context.getMatrix());
 
-        } else if (endsWith("BUNDLE")) {
+        } else if (endsWith("_bundle")) {
             return getBundleResult(context.getMatrix());
         }
 
@@ -139,7 +140,7 @@ public class RecipeWrapperBlueprint extends Blueprint {
     }
 
     private boolean endsWith(String key) {
-        return backingRecipe.getResult().getType().name().endsWith(key);
+        return backingRecipe.getKey().getNamespace().equals("minecraft") && backingRecipe.getKey().getKey().endsWith(key);
     }
 
     private ItemStack getBannerDuplication(ItemStack[] matrix) {
