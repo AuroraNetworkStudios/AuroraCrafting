@@ -96,12 +96,21 @@ tasks.processResources {
 tasks {
     build {
         dependsOn(shadowJar)
+        dependsOn("apiJar")
     }
     runServer {
         downloadPlugins {
             modrinth("AuroraLib", "2.1.6")
         }
         minecraftVersion("1.21.4")
+    }
+}
+
+tasks.register<Jar>("apiJar") {
+    archiveBaseName.set("AuroraCraftingAPI")
+
+    from(sourceSets.main.get().output) {
+        include("gg/auroramc/crafting/api/**")
     }
 }
 
@@ -125,10 +134,10 @@ publishing {
 
     publications.create<MavenPublication>("mavenJava") {
         groupId = "gg.auroramc"
-        artifactId = "AuroraCrafting"
+        artifactId = "AuroraCraftingAPI"
         version = project.version.toString()
 
-        from(components["java"])
+        artifact(tasks.named("apiJar"))
     }
 }
 
