@@ -64,8 +64,8 @@ public class AuroraCrafting extends AuroraCraftingPlugin {
         AuroraCraftingPlugin.instance = this;
 
         configManager = new ConfigManager(this);
-        configManager.reload();
         l = AuroraAPI.createLogger("AuroraCrafting", () -> configManager.getConfig().getDebug());
+        configManager.reload();
 
         HookManager.loadHooks(this);
     }
