@@ -95,6 +95,7 @@ public class ShapelessBlueprint extends CraftingBlueprint<ShapelessBlueprint> {
 
     @Override
     public Blueprint complete() {
+        super.complete();
         this.mergeOptionsEnabled = false;
         return this;
     }

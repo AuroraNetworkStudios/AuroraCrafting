@@ -479,6 +479,16 @@ public abstract class Blueprint {
      * Should be called when the blueprint is fully completed
      */
     public Blueprint complete() {
+        if (ingredients.size() > workbench.getMatrixSlots().size()) {
+            throw new IllegalArgumentException("Too many ingredients in blueprint: " + id + ", in file: " + source + ". Max ingredients: " + workbench.getMatrixSlots().size() + ", found: " + ingredients.size());
+        }
+
+        if (ingredients.size() < workbench.getMatrixSlots().size()) {
+            // Append air ingredients to fill the matrix
+            for (int i = ingredients.size(); i < workbench.getMatrixSlots().size(); i++) {
+                addIngredient(new ItemPair(TypeId.from(Material.AIR), 0));
+            }
+        }
         return this;
     }
 

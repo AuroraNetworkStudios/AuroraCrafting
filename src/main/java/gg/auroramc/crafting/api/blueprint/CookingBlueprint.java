@@ -113,6 +113,7 @@ public class CookingBlueprint extends Blueprint {
 
     @Override
     public Blueprint complete() {
+        super.complete();
         this.mergeOptionsEnabled = false;
         return this;
     }

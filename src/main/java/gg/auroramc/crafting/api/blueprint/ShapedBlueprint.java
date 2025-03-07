@@ -136,6 +136,7 @@ public class ShapedBlueprint extends CraftingBlueprint<ShapedBlueprint> {
 
     @Override
     public Blueprint complete() {
+        super.complete();
         if (symmetrical) {
             variations = generateShiftedIngredients(ingredients.toArray(new Ingredient[0]), workbench.getCraftingSize());
         }

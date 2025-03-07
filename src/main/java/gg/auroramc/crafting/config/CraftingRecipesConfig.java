@@ -3,7 +3,6 @@ package gg.auroramc.crafting.config;
 import gg.auroramc.aurora.api.config.AuroraConfig;
 import gg.auroramc.aurora.api.config.decorators.IgnoreField;
 import gg.auroramc.aurora.api.config.premade.ItemConfig;
-import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.blueprint.ChoiceType;
 import lombok.Getter;
 import lombok.Setter;
@@ -70,18 +69,6 @@ public class CraftingRecipesConfig extends AuroraConfig {
     @Override
     public void load() {
         super.load();
-        recipes.forEach(recipe -> {
-            recipe.setSourcePath(sourcePath);
-            var matrix = AuroraCrafting.getInstance().getConfigManager().getWorkbenchConfig().stream().filter(w -> w.getId().equals(recipe.getWorkbench())).findFirst();
-            int matrixSize = 9;
-            if (matrix.isPresent() && !vanilla) {
-                matrixSize = matrix.get().getMatrixSlots().size();
-            }
-            if (recipe.getIngredients().size() < matrixSize) {
-                for (int i = recipe.getIngredients().size(); i < matrixSize; i++) {
-                    recipe.getIngredients().add("");
-                }
-            }
-        });
+        recipes.forEach(recipe -> recipe.setSourcePath(sourcePath));
     }
 }
