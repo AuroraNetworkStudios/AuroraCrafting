@@ -56,6 +56,9 @@ public class SmithingListener implements Listener {
             if (workbench.matchesRegisteredVanillaRecipe(context)) {
                 event.setResult(null);
             } else {
+                if (event.getInventory().getInputTemplate() != null && event.getInventory().getInputTemplate().getType().name().endsWith("TRIM_SMITHING_TEMPLATE")) {
+                    return;
+                }
                 if (event.getResult() != null && !event.getResult().isEmpty()) {
                     if (disabledResults.contains(AuroraAPI.getItemManager().resolveId(event.getResult()))) {
                         event.setResult(null);
