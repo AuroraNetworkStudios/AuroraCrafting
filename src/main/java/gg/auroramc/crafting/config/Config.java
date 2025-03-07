@@ -24,12 +24,20 @@ public class Config extends AuroraConfig {
     private Integer clickCooldown = 75;
     private Integer shiftClickCooldown = 200;
     private Boolean autoDiscoverVanillaRecipes = false;
+    private CraftHandlersConfig craftHandlers;
 
     @Getter
     public static final class CommandAliasConfig {
         private List<String> craft = List.of("craft");
         private List<String> recipes = List.of("recipes");
         private List<String> merchants = List.of("merchants");
+    }
+
+    @Getter
+    public static final class CraftHandlersConfig {
+        private Boolean craftingTable = true;
+        private Boolean smithingTable = true;
+        private Boolean cauldron = true;
     }
 
     public Config(AuroraCrafting plugin) {
@@ -80,7 +88,17 @@ public class Config extends AuroraConfig {
                             "Should \"vanilla\" recipes registered by other plugins be craftable in the custom crafting table?",
                             "List the workbenches you want to include vanilla recipes in"
                     ));
-
+                },
+                (yaml) -> {
+                    yaml.set("config-version", 3);
+                    yaml.set("craft-handlers.crafting-table", true);
+                    yaml.set("craft-handlers.smithing-table", true);
+                    yaml.set("craft-handlers.cauldron", true);
+                    yaml.setComments("craft-handlers", List.of(
+                            "You can turn off the listeners completely to improve performance",
+                            "if you don't have any recipes that are using these.",
+                            "Changing these, requires a server restart to take effect."
+                    ));
                 }
         );
     }

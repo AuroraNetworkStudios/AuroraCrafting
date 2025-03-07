@@ -1,4 +1,4 @@
-config-version: 2
+config-version: 3
 
 debug: false
 language: en
@@ -34,6 +34,14 @@ default-workbench: "default"
 
 # Should players auto discover vanilla recipes?
 auto-discover-vanilla-recipes: false
+
+# You can turn off the listeners completely to improve performance
+# if you don't have any recipes that are using these.
+# Changing these, requires a server restart to take effect.
+craft-handlers:
+  crafting-table: true
+  smithing-table: true
+  cauldron: true
 
 # Only change these if you know what you're doing
 # These values are in milliseconds and they are only applying for the workbench gui

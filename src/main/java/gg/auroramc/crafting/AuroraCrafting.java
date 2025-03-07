@@ -80,10 +80,18 @@ public class AuroraCrafting extends AuroraCraftingPlugin {
 
         Bukkit.getPluginManager().registerEvents(new MenuListener(this), this);
         Bukkit.getPluginManager().registerEvents(new RecipeDiscoverListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new SmithingListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new CraftingListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new CauldronListener(this), this);
-        if (Version.isAtLeastVersion(21)) {
+
+        if (configManager.getConfig().getCraftHandlers().getSmithingTable()) {
+            Bukkit.getPluginManager().registerEvents(new SmithingListener(this), this);
+        }
+        if (configManager.getConfig().getCraftHandlers().getCraftingTable()) {
+            Bukkit.getPluginManager().registerEvents(new CraftingListener(this), this);
+        }
+        if (configManager.getConfig().getCraftHandlers().getCauldron()) {
+            Bukkit.getPluginManager().registerEvents(new CauldronListener(this), this);
+        }
+
+        if (Version.isAtLeastVersion(21) && configManager.getConfig().getCraftHandlers().getCraftingTable()) {
             Bukkit.getPluginManager().registerEvents(new AutoCrafterListener(this), this);
         }
         if (configManager.getConfig().getOpenInsteadOfCraftingTable() || configManager.getConfig().getOpenShiftClickCraftingTable()) {
