@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.inventory.CraftingInventory;
@@ -88,7 +89,22 @@ public class CraftingListener implements Listener {
         if (!event.isShiftClick()) {
             var result = craftingInventory.getResult();
             var newMatrix = blueprint.calcRemainingIngredientMatrix(context, 1);
-            updateMatrix(player, craftingInventory, newMatrix);
+
+            if (event.getClick() == ClickType.LEFT || event.getClick() == ClickType.RIGHT) {
+                if (event.getCursor().isEmpty() || (event.getCursor().isSimilar(result) && event.getCursor().getMaxStackSize() >= event.getCursor().getAmount() + result.getAmount())) {
+                    updateMatrix(player, craftingInventory, newMatrix);
+                }
+            } else if (event.getClick() == ClickType.SWAP_OFFHAND) {
+                if (player.getInventory().getItemInOffHand().isEmpty()) {
+                    updateMatrix(player, craftingInventory, newMatrix);
+                }
+            } else if (event.getClick() == ClickType.DROP || event.getClick() == ClickType.CONTROL_DROP) {
+                updateMatrix(player, craftingInventory, newMatrix);
+            } else {
+                event.setCancelled(true);
+                return;
+            }
+
             craftingInventory.setResult(result);
         } else {
             // Let's see what can we do to not cancel the event
