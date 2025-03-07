@@ -1,2 +1,9 @@
-config-version: 0
+config-version: 1
+
+# You have to add the ID of the vanilla recipe here.
+# This will remove the recipe from Bukkit, meaning nobody can craft it.
 recipes: []
+
+# You can also disable smithing recipes by the result.
+# You need to write item IDs here for example: "mythicmobs:enchanted_diamond_helmet"
+smithing-recipes: []

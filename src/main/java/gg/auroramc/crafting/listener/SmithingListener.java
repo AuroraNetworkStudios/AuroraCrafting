@@ -1,8 +1,11 @@
 package gg.auroramc.crafting.listener;
 
+import gg.auroramc.aurora.api.AuroraAPI;
+import gg.auroramc.aurora.api.item.TypeId;
 import gg.auroramc.aurora.api.util.ItemUtils;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.blueprint.BlueprintType;
+import gg.auroramc.crafting.api.event.RegistryLoadEvent;
 import gg.auroramc.crafting.util.InventoryUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -18,12 +21,24 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.SmithingInventory;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class SmithingListener implements Listener {
     private final AuroraCrafting plugin;
     private final NamespacedKey smithingSoundKey = NamespacedKey.minecraft("block.smithing_table.use");
+    private final Set<TypeId> disabledResults = new HashSet<>();
 
     public SmithingListener(AuroraCrafting plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler
+    public void onRegistryLoad(RegistryLoadEvent event) {
+        disabledResults.clear();
+        disabledResults.addAll(plugin.getConfigManager().getDisabledRecipesConfig().getSmithingRecipes()
+                .stream().map(TypeId::fromString).collect(Collectors.toSet()));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -40,6 +55,12 @@ public class SmithingListener implements Listener {
             // So we can safely set the result to null here if vanilla matched our recipe but we don't.
             if (workbench.matchesRegisteredVanillaRecipe(context)) {
                 event.setResult(null);
+            } else {
+                if (event.getResult() != null && !event.getResult().isEmpty()) {
+                    if (disabledResults.contains(AuroraAPI.getItemManager().resolveId(event.getResult()))) {
+                        event.setResult(null);
+                    }
+                }
             }
             return;
         }
