@@ -38,6 +38,7 @@ public class Config extends AuroraConfig {
         private Boolean craftingTable = true;
         private Boolean smithingTable = true;
         private Boolean cauldron = true;
+        private Boolean grindStone = true;
     }
 
     public Config(AuroraCrafting plugin) {

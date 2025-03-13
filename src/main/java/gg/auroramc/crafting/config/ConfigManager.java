@@ -53,6 +53,7 @@ public class ConfigManager {
 
     private List<CookingRecipesConfig.RecipeConfig> blastingRecipes;
     private List<CauldronRecipesConfig.RecipeConfig> cauldronRecipes;
+    private List<GrindstoneRecipesConfig.RecipeConfig> grindstoneRecipes;
     private List<CookingRecipesConfig.RecipeConfig> smokingRecipes;
     private List<CookingRecipesConfig.RecipeConfig> furnaceRecipes;
     private List<CookingRecipesConfig.RecipeConfig> campfireRecipes;
@@ -146,6 +147,10 @@ public class ConfigManager {
                 .collect(Collectors.toList());
 
         cauldronRecipes = getCauldronRecipesConfigs("blueprints/vanilla/cauldron").stream()
+                .flatMap(recipesConfig -> recipesConfig.getRecipes().stream())
+                .collect(Collectors.toList());
+
+        grindstoneRecipes = getGrindstoneRecipesConfigs("blueprints/vanilla/grindstone").stream()
                 .flatMap(recipesConfig -> recipesConfig.getRecipes().stream())
                 .collect(Collectors.toList());
 
@@ -354,6 +359,29 @@ public class ConfigManager {
                     .map(Path::toFile)
                     .map((file) -> {
                         CauldronRecipesConfig recipesConfig = new CauldronRecipesConfig(file);
+                        recipesConfig.load();
+                        return recipesConfig;
+                    })
+                    .collect(Collectors.toList());
+        }
+    }
+
+    @SneakyThrows
+    private List<GrindstoneRecipesConfig> getGrindstoneRecipesConfigs(String folder) {
+        Path recipesFolder = Path.of(plugin.getDataFolder().getPath(), folder);
+
+        if (Files.notExists(recipesFolder)) {
+            Files.createDirectories(recipesFolder); // Create folder if it doesn't exist
+            plugin.saveResource(folder + "/_example.yml", false);
+        }
+
+        try (Stream<Path> paths = Files.walk(recipesFolder, 10)) {
+            return paths
+                    .filter(Files::isRegularFile)
+                    .filter(path -> path.toString().endsWith(".yml") || path.toString().endsWith(".yaml"))
+                    .map(Path::toFile)
+                    .map((file) -> {
+                        GrindstoneRecipesConfig recipesConfig = new GrindstoneRecipesConfig(file);
                         recipesConfig.load();
                         return recipesConfig;
                     })

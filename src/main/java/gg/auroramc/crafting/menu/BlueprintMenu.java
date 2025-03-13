@@ -8,6 +8,7 @@ import gg.auroramc.aurora.api.util.NamespacedId;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.blueprint.Blueprint;
 import gg.auroramc.crafting.api.blueprint.CauldronBlueprint;
+import gg.auroramc.crafting.api.blueprint.GrindStoneBlueprint;
 import gg.auroramc.crafting.api.workbench.custom.CustomWorkbench;
 import gg.auroramc.crafting.api.workbench.vanilla.VanillaWorkbench;
 import lombok.AllArgsConstructor;
@@ -50,6 +51,7 @@ public class BlueprintMenu {
                 case CRAFTING_TABLE -> openCraftingTable();
                 case STONE_CUTTER -> openStoneCutter();
                 case CAULDRON -> openCauldron();
+                case GRINDSTONE -> openGrindstone();
             }
         }
     }
@@ -172,6 +174,73 @@ public class BlueprintMenu {
                 }
             }
         }
+
+        var group = blueprint.getGroup();
+
+        if (group != null && group.getBlueprints().size() > 1 && config.getSlots().getNextRecipe() != null && config.getSlots().getPrevRecipe() != null) {
+            var next = group.getBlueprints().size() > groupIndex + 1 ? group.getBlueprints().get(groupIndex + 1) : null;
+            var prev = groupIndex > 0 ? group.getBlueprints().get(groupIndex - 1) : null;
+
+            if (next != null) {
+                menu.addItem(ItemBuilder.of(wb.getNextRecipe()).slot(config.getSlots().getNextRecipe()).build(player), (e) -> {
+                    var m = BlueprintMenu.blueprintMenu(plugin, player, next, this.backAction);
+                    m.groupIndex = groupIndex + 1;
+                    m.open();
+                });
+            } else {
+                menu.addItem(ItemBuilder.of(wb.getNextRecipe()).slot(config.getSlots().getNextRecipe()).build(player));
+            }
+
+            if (prev != null) {
+                menu.addItem(ItemBuilder.of(wb.getPreviousRecipe()).slot(config.getSlots().getPrevRecipe()).build(player), (e) -> {
+                    var m = BlueprintMenu.blueprintMenu(plugin, player, prev, this.backAction);
+                    m.groupIndex = groupIndex - 1;
+                    m.open();
+                });
+            } else {
+                menu.addItem(ItemBuilder.of(wb.getPreviousRecipeItem()).slot(config.getSlots().getPrevRecipe()).build(player));
+            }
+        }
+
+        for (var customItem : config.getCustomItems().values()) {
+            menu.addItem(ItemBuilder.of(customItem).build(player));
+        }
+
+        menu.open();
+    }
+
+    private void openGrindstone() {
+        var config = plugin.getConfigManager().getCauldronRecipeViewConfig();
+        var wb = plugin.getConfigManager().getWorkbenchDefaultConfig();
+
+        AuroraMenu menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
+        menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
+
+        if (backAction != null) {
+            menu.addItem(ItemBuilder.of(config.getItems().getBack()).build(player), (e) -> {
+                backAction.run();
+            });
+        }
+
+        menu.addItem(ItemBuilder.item(blueprint.getResultItem()).slot(config.getSlots().getResult()).build(player));
+
+        MenuItem input = ItemBuilder.item(blueprint.getIngredientItems().getFirst()).slot(config.getSlots().getInput()).build(player);
+        Blueprint ingredientRecipe = plugin.getBlueprintRegistry().getBlueprintFor(blueprint.getIngredients().getFirst().getItemPair().id());
+
+        if (ingredientRecipe != null) {
+            menu.addItem(input, (e) -> {
+                var m = BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction);
+                m.groupIndex = groupIndex;
+                m.open();
+            });
+        } else {
+            menu.addItem(input);
+        }
+
+
+        // if (blueprint instanceof GrindStoneBlueprint grindStoneBlueprint) {
+        //
+        // }
 
         var group = blueprint.getGroup();
 

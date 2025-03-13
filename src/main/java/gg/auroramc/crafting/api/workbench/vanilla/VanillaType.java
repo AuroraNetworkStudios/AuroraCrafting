@@ -13,7 +13,8 @@ public enum VanillaType {
     CAMPFIRE(BlueprintType.CAMPFIRE),
     STONE_CUTTER(BlueprintType.STONE_CUTTER),
     BREWING_STAND(BlueprintType.BREWING),
-    CAULDRON(BlueprintType.CAULDRON);
+    CAULDRON(BlueprintType.CAULDRON),
+    GRINDSTONE(BlueprintType.GRINDSTONE);
 
     private final BlueprintType[] blueprintTypes;
 
