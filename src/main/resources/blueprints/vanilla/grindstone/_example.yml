@@ -1,1 +1,6 @@
-recipes: []
+recipes:
+  - id: grinded_diamond
+    input: ["minecraft:bow", "minecraft:netherite_sword"]
+    result: "minecraft:prismarine_shard"
+    # Every field is optional below
+    experience: 10

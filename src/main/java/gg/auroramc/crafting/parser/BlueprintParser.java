@@ -12,6 +12,7 @@ import gg.auroramc.crafting.api.workbench.Workbench;
 import gg.auroramc.crafting.config.CauldronRecipesConfig;
 import gg.auroramc.crafting.config.CookingRecipesConfig;
 import gg.auroramc.crafting.config.CraftingRecipesConfig;
+import gg.auroramc.crafting.config.GrindstoneRecipesConfig;
 import gg.auroramc.crafting.config.SmithingRecipesConfig;
 import gg.auroramc.crafting.config.StoneCutterRecipesConfig;
 import lombok.RequiredArgsConstructor;
@@ -158,6 +159,23 @@ public class BlueprintParser {
                         .lockedLore(config.getDisplayOptions().getLockedLore())
                         .build())
                 .result(parseItemPair(config.getResult(), Material.AIR));
+    }
+
+    public Blueprint parse(GrindstoneRecipesConfig.RecipeConfig config) {
+        GrindStoneBlueprint grindStoneBlueprint = GrindStoneBlueprint.grindStoneBlueprint(workbench, config.getId());
+        for(String input: config.getInput()) {
+            grindStoneBlueprint.addIngredient(parseItemPair(input, Material.BARRIER));
+        }
+        grindStoneBlueprint
+                .category(category)
+                .source(config.getSourcepath())
+                .displayOptions(Blueprint.DisplayOptions.builder()
+                        .items(config.getDisplayOptions().getItems())
+                        .lockedLore(config.getDisplayOptions().getLockedLore())
+                        .build())
+                .result(parseItemPair(config.getResult(), Material.AIR));
+
+        return grindStoneBlueprint;
     }
 
     public Blueprint parse(SmithingRecipesConfig.RecipeConfig config) {

@@ -12,5 +12,5 @@ public enum BlueprintType {
     BREWING,
     ANVIL,
     GRINDSTONE,
-    CAULDRON
+    CAULDRON,
 }
