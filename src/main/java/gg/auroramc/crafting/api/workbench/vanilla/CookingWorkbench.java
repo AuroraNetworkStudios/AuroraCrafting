@@ -37,7 +37,7 @@ public abstract class CookingWorkbench extends VanillaWorkbench<CookingBlueprint
     public void addBlueprint(BlueprintType type, Blueprint blueprint) {
         super.addBlueprint(type, blueprint);
         if (blueprint instanceof CookingBlueprint cookingBlueprint && cookingBlueprint.getVanillaOptions().getChoiceType() == ChoiceType.ITEM_TYPE) {
-            if (!hasVanillaRecipe(cookingBlueprint.getInputItem())) {
+            if (hasVanillaRecipe(cookingBlueprint.getInputItem())) {
                 vanillaLookup.put(
                         BlueprintLookupGenerator.toShapedKey(blueprint.getIngredientItems().stream().map(i -> new ItemPair(TypeId.from(i.getType()), 1)).toArray(ItemPair[]::new)),
                         blueprint

@@ -57,10 +57,10 @@ public class BlueprintAdapter {
 
     public static CookingRecipe adapt(CookingBlueprint blueprint) {
         CookingRecipeBuilder<?> builder = switch (blueprint.getType()) {
-            case FURNACE -> FurnaceRecipeBuilder.furnaceRecipe(blueprint.getId());
-            case BLAST_FURNACE -> BlastingRecipeBuilder.blastingRecipe(blueprint.getId());
-            case SMOKER -> SmokingRecipeBuilder.smokingRecipe(blueprint.getId());
-            case CAMPFIRE -> CampfireRecipeBuilder.campfireRecipe(blueprint.getId());
+            case FURNACE -> FurnaceRecipeBuilder.furnaceRecipe(blueprint.getId(), blueprint.getVanillaOptions().getChoiceType());
+            case BLAST_FURNACE -> BlastingRecipeBuilder.blastingRecipe(blueprint.getId(), blueprint.getVanillaOptions().getChoiceType());
+            case SMOKER -> SmokingRecipeBuilder.smokingRecipe(blueprint.getId(), blueprint.getVanillaOptions().getChoiceType());
+            case CAMPFIRE -> CampfireRecipeBuilder.campfireRecipe(blueprint.getId(), blueprint.getVanillaOptions().getChoiceType());
         };
 
         return builder.cookingTime(blueprint.getVanillaOptions().getCookingTime())

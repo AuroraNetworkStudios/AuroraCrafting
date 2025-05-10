@@ -93,6 +93,7 @@ public class AuroraCrafting extends AuroraCraftingPlugin {
         }
         if (configManager.getConfig().getCraftHandlers().getCooking()) {
             Bukkit.getPluginManager().registerEvents(new CookingListener(this), this);
+            Bukkit.getPluginManager().registerEvents(new SmeltingListener(this), this);
         }
 
         if (Version.isAtLeastVersion(21) && configManager.getConfig().getCraftHandlers().getCraftingTable()) {

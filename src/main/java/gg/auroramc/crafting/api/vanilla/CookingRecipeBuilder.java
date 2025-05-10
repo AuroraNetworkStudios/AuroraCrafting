@@ -62,6 +62,9 @@ public abstract class CookingRecipeBuilder<T extends CookingRecipe<T>> extends R
     public CookingRecipe<T> build() {
         var recipe = buildInternal();
         recipe.setCategory(category);
+        if (choiceType == ChoiceType.ITEM_TYPE) {
+            recipe.setExperience(0);
+        }
         if (group != null) {
             recipe.setGroup(group);
         }
