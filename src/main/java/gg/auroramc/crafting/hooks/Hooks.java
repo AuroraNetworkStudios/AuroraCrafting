@@ -4,6 +4,7 @@ import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.hooks.advancedenchantments.AEHook;
 import gg.auroramc.crafting.hooks.auroraquests.AuroraQuestsHook;
 import gg.auroramc.crafting.hooks.betonquests.BetonQuestHook;
+import gg.auroramc.crafting.hooks.craftengine.CraftEngineHook;
 import gg.auroramc.crafting.hooks.hdb.HdbHook;
 import gg.auroramc.crafting.hooks.itemsadder.ItemsAdderHook;
 import gg.auroramc.crafting.hooks.jobsreborn.JobsRebornHook;
@@ -26,6 +27,7 @@ public enum Hooks {
     MYTHIC_MOBS(MythicHook.class, "MythicMobs"),
     HEAD_DATABASE(HdbHook.class, "HeadDatabase"),
     ADVANCED_ENCHANTMENTS(AEHook.class, "AdvancedEnchantments"),
+    CRAFT_ENGINE(CraftEngineHook.class, "CraftEngine"),
     ;
 
     private final Class<? extends Hook> clazz;
