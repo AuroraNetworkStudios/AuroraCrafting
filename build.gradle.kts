@@ -38,7 +38,9 @@ repositories {
     // Quests (pikamug)
     maven("https://repo.codemc.io/repository/maven-public/")
     // BetonQuest (2)
-    maven("https://nexus.betonquest.org/repository/betonquest/")
+    maven("https://repo.betonquest.org/betonquest/")
+    maven("https://repo.faststats.dev/releases")
+    maven("https://repo.minebench.de/")
     maven("https://repo.dmulloy2.net/nexus/repository/public/")
 }
 
