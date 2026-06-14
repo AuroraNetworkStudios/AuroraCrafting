@@ -20,7 +20,7 @@ plugins {
 }
 
 group = "gg.auroramc"
-version = "2.2.0"
+version = "2.2.1"
 
 java.sourceCompatibility = JavaVersion.VERSION_21
 java.targetCompatibility = JavaVersion.VERSION_21
@@ -42,6 +42,7 @@ repositories {
     maven("https://repo.faststats.dev/releases")
     maven("https://repo.minebench.de/")
     maven("https://repo.dmulloy2.net/nexus/repository/public/")
+    maven("https://repo.momirealms.net/releases/")
 }
 
 dependencies {
@@ -65,6 +66,9 @@ dependencies {
     compileOnly(name = "Jobs5.2.4.6", group = "com.github.Zrips", version = "5.2.4.6")
     // AdvancedEnchantments
     compileOnly(name = "AdvancedEnchantments-8.7.4", group = "net.advancedplugins", version = "8.7.4")
+    // CraftEngine
+    compileOnly("net.momirealms:craft-engine-core:26.6.2")
+    compileOnly("net.momirealms:craft-engine-bukkit:26.6.2")
 
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
     implementation("org.bstats:bstats-bukkit:3.0.2")

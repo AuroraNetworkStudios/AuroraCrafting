@@ -1,4 +1,4 @@
-config-version: 4
+config-version: 5
 
 debug: false
 language: en
@@ -58,3 +58,4 @@ hooks:
   MythicMobs: true
   HeadDatabase: true
   AdvancedEnchantments: true
+  CraftEngine: true

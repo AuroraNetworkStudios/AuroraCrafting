@@ -109,6 +109,10 @@ public class Config extends AuroraConfig {
                     yaml.set("hooks.MythicMobs", true);
                     yaml.set("hooks.HeadDatabase", true);
                     yaml.set("hooks.AdvancedEnchantments", true);
+                },
+                (yaml) -> {
+                    yaml.set("config-version", 5);
+                    yaml.set("hooks.CraftEngine", true);
                 }
         );
     }
