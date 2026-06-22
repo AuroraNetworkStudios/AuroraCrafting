@@ -1,7 +1,7 @@
 name: AuroraCrafting
 version: '${version}'
 main: gg.auroramc.crafting.AuroraCrafting
-api-version: 1.20
+api-version: '26.2'
 authors: [ "erik_sz" ]
 folia-supported: true
 depend:

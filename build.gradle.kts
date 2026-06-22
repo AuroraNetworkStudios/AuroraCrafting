@@ -14,16 +14,21 @@ fun loadProperties(filename: String): Properties {
 
 plugins {
     id("java")
-    id("com.gradleup.shadow") version "8.3.3"
+    id("com.gradleup.shadow") version "9.4.2"
     id("maven-publish")
-    id("xyz.jpenilla.run-paper") version "2.3.0"
+    id("xyz.jpenilla.run-paper") version "3.0.2"
 }
 
 group = "gg.auroramc"
-version = "2.2.0"
+version = "2.3.0-SNAPSHOT"
 
-java.sourceCompatibility = JavaVersion.VERSION_21
-java.targetCompatibility = JavaVersion.VERSION_21
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(25))
+    }
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
 
 repositories {
     flatDir {
@@ -38,18 +43,18 @@ repositories {
     // Quests (pikamug)
     maven("https://repo.codemc.io/repository/maven-public/")
     // BetonQuest (2)
-    maven("https://nexus.betonquest.org/repository/betonquest/")
+    maven("https://repo.betonquest.org/betonquest/")
     maven("https://repo.dmulloy2.net/nexus/repository/public/")
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
-    compileOnly("gg.auroramc:Aurora:2.4.0")
+    compileOnly("io.papermc.paper:paper-api:26.2.build.31-alpha")
+    compileOnly("gg.auroramc:Aurora:2.6.0-SNAPSHOT")
     compileOnly("gg.auroramc:AuroraQuests:2.0.0")
     // Quests
     compileOnly("me.pikamug.quests:quests-core:5.1.4")
     // Quests (LMBishop)
-    compileOnly(name = "Quests-3.15.2-lmbishop", group = "com.leonardobishop", version = "3.15.2")
+    compileOnly(files("libs/Quests-3.15.2-lmbishop.jar"))
     // BetonQuest (2)
     compileOnly("org.betonquest:betonquest:2.1.3") {
         exclude("com.comphenix.packetwrapper")
@@ -60,18 +65,19 @@ dependencies {
     // HeadDatabase
     compileOnly("com.arcaniax:HeadDatabase-API:1.3.2")
     // Jobs
-    compileOnly(name = "Jobs5.2.4.6", group = "com.github.Zrips", version = "5.2.4.6")
+    compileOnly(files("libs/Jobs5.2.4.6.jar"))
     // AdvancedEnchantments
-    compileOnly(name = "AdvancedEnchantments-8.7.4", group = "net.advancedplugins", version = "8.7.4")
+    compileOnly(files("libs/AdvancedEnchantments-8.7.4.jar"))
 
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
     implementation("org.bstats:bstats-bukkit:3.0.2")
 
-    compileOnly("org.projectlombok:lombok:1.18.32")
-    annotationProcessor("org.projectlombok:lombok:1.18.32")
+    compileOnly("org.projectlombok:lombok:1.18.46")
+    annotationProcessor("org.projectlombok:lombok:1.18.46")
 
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("io.papermc.paper:paper-api:26.2.build.31-alpha")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.1.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.1.0")
 }
 
 tasks.test {
@@ -109,11 +115,7 @@ tasks {
         dependsOn("apiJar")
     }
     runServer {
-        downloadPlugins {
-            modrinth("AuroraLib", "2.4.0")
-            hangar("PlaceholderAPI", "2.11.6")
-        }
-        minecraftVersion("1.21.10")
+        minecraftVersion("26.2")
     }
 }
 
@@ -155,7 +157,7 @@ publishing {
 tasks.withType<AbstractRun>().configureEach {
 //    javaLauncher = javaToolchains.launcherFor {
 //        vendor.set(JvmVendorSpec.JETBRAINS)
-//        languageVersion.set(JavaLanguageVersion.of(21))
+//        languageVersion.set(JavaLanguageVersion.of(25))
 //    }
     jvmArgs(
         // "-XX:+AllowEnhancedClassRedefinition", //
