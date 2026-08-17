@@ -173,7 +173,7 @@ public class CraftMenu implements InventoryHolder {
             return;
         }
 
-        if (event.getInventory() == this.inventory && workbench.getCompletionIndicatorSlots().contains(event.getSlot())) {
+        if (event.getClickedInventory() == inventory && workbench.getCompletionIndicatorSlots().contains(event.getSlot())) {
             // If the player clicked on a completion indicator slot, we don't care about the click
             event.setCancelled(true);
             return;
