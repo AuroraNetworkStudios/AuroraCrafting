@@ -209,7 +209,6 @@ public class BlueprintParser {
     public Blueprint parse(StoneCutterRecipesConfig.RecipeConfig config) {
         return StoneCutterBlueprint.stoneCutterBlueprint(workbench, config.getId())
                 .input(parseItemPair(config.getInput(), Material.BARRIER))
-                .vanillaOptions(StoneCutterBlueprint.VanillaOptions.builder().group(config.getVanillaOptions().getGroup()).build())
                 .category(category)
                 .source(config.getSourcePath())
                 .displayOptions(Blueprint.DisplayOptions.builder()

@@ -1,5 +1,6 @@
 package gg.auroramc.crafting.api.blueprint;
 
+import gg.auroramc.aurora.api.item.TypeId;
 import gg.auroramc.crafting.api.ItemPair;
 import gg.auroramc.crafting.api.workbench.Workbench;
 import lombok.AllArgsConstructor;
@@ -99,6 +100,10 @@ public class CookingBlueprint extends Blueprint {
 
     public ItemStack getInputItem() {
         return this.ingredientItems.getFirst();
+    }
+
+    public TypeId getInput() {
+        return this.ingredients.getFirst().getItemPair().id();
     }
 
     @Override

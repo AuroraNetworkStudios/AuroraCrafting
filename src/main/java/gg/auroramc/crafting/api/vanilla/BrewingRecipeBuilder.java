@@ -5,6 +5,7 @@ import gg.auroramc.aurora.api.item.TypeId;
 import io.papermc.paper.potion.PotionMix;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.RecipeChoice;
 
 public class BrewingRecipeBuilder {
     private final NamespacedKey key;
@@ -25,22 +26,25 @@ public class BrewingRecipeBuilder {
         return this;
     }
 
-    public BrewingRecipeBuilder input(ItemStack input) {
-        this.input = AuroraAPI.getItemManager().resolveId(input);
+    public BrewingRecipeBuilder input(TypeId input) {
+        this.input = input;
         return this;
     }
 
-    public BrewingRecipeBuilder ingredient(ItemStack ingredient) {
-        this.ingredient = AuroraAPI.getItemManager().resolveId(ingredient);
+    public BrewingRecipeBuilder ingredient(TypeId ingredient) {
+        this.ingredient = ingredient;
         return this;
     }
 
     public PotionMix build() {
+        var inputItem = AuroraAPI.getItemManager().resolveItem(input);
+        var ingredientItem = AuroraAPI.getItemManager().resolveItem(ingredient);
+
         return new PotionMix(
                 key,
                 result,
-                PotionMix.createPredicateChoice(item -> AuroraAPI.getItemManager().resolveId(item).equals(input)),
-                PotionMix.createPredicateChoice(item -> AuroraAPI.getItemManager().resolveId(item).equals(ingredient))
+                RecipeChoice.predicateChoice(item -> AuroraAPI.getItemManager().resolveId(item).equals(input), inputItem),
+                RecipeChoice.predicateChoice(item -> AuroraAPI.getItemManager().resolveId(item).equals(ingredient), ingredientItem)
         );
     }
 }

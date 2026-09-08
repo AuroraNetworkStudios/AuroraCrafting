@@ -1,11 +1,10 @@
 package gg.auroramc.crafting.api.vanilla;
 
-import org.bukkit.inventory.ItemStack;
+import gg.auroramc.aurora.api.item.TypeId;
 import org.bukkit.inventory.StonecuttingRecipe;
 
 public class StoneCutterRecipeBuilder extends RecipeBuilder<StoneCutterRecipeBuilder, StonecuttingRecipe> {
-    private ItemStack input;
-    private String group = null;
+    private TypeId input;
 
     public static StoneCutterRecipeBuilder stoneCutterRecipe(String id) {
         return new StoneCutterRecipeBuilder(id);
@@ -15,22 +14,13 @@ public class StoneCutterRecipeBuilder extends RecipeBuilder<StoneCutterRecipeBui
         super(id);
     }
 
-    public StoneCutterRecipeBuilder input(ItemStack input) {
+    public StoneCutterRecipeBuilder input(TypeId input) {
         this.input = input;
-        return this;
-    }
-
-    public StoneCutterRecipeBuilder group(String group) {
-        this.group = group;
         return this;
     }
 
     @Override
     public StonecuttingRecipe build() {
-        var recipe = new StonecuttingRecipe(key, result, exactChoiceFor(input));
-        if (group != null) {
-            recipe.setGroup(group);
-        }
-        return recipe;
+        return new StonecuttingRecipe(key, result, predicateChoiceFor(input));
     }
 }

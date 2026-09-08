@@ -49,8 +49,8 @@ public class BlueprintAdapter {
 
     public static PotionMix adapt(BrewingBlueprint blueprint) {
         return BrewingRecipeBuilder.brewingRecipe(blueprint.getId())
-                .input(blueprint.getInputItem())
-                .ingredient(blueprint.getIngredientItem())
+                .input(blueprint.getInput())
+                .ingredient(blueprint.getIngredient())
                 .result(blueprint.getResultItem())
                 .build();
     }
@@ -65,15 +65,14 @@ public class BlueprintAdapter {
 
         return builder.cookingTime(blueprint.getVanillaOptions().getCookingTime())
                 .experience(blueprint.getVanillaOptions().getExperience())
-                .input(blueprint.getInputItem())
+                .input(blueprint.getInput())
                 .result(blueprint.getResultItem())
                 .build();
     }
 
     public static StonecuttingRecipe adapt(StoneCutterBlueprint blueprint) {
         return StoneCutterRecipeBuilder.stoneCutterRecipe(blueprint.getId())
-                .group(blueprint.getVanillaOptions().getGroup())
-                .input(blueprint.getInputItem())
+                .input(blueprint.getInput())
                 .result(blueprint.getResultItem())
                 .build();
     }

@@ -234,11 +234,6 @@ public class BlueprintLoader {
             try {
                 var blueprint = BlueprintParser.from(workbench, null, recipe.getId()).parse(recipe);
                 workbench.addBlueprint(BlueprintType.STONE_CUTTER, blueprint);
-                if (recipe.getVanillaOptions().getGroup() != null) {
-                    var group = groups.computeIfAbsent(recipe.getVanillaOptions().getGroup(), (k) -> new BlueprintGroup());
-                    group.addBlueprint(blueprint);
-                    blueprint.group(group);
-                }
                 duplicates.computeIfAbsent(recipe.getId(), k -> new ArrayList<>()).add(recipe.getSourcePath());
             } catch (Exception e) {
                 AuroraCrafting.logger().severe("Failed to load blueprint " + recipe.getId() + " in source: " + recipe.getSourcePath() + ", reason: " + e.getMessage());

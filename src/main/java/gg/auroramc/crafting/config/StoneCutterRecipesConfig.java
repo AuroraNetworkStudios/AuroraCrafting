@@ -26,7 +26,6 @@ public class StoneCutterRecipesConfig extends AuroraConfig {
         private String id;
         private String result;
         private String input;
-        private VanillaOptions vanillaOptions = new VanillaOptions();
         private DisplayOptions displayOptions = new DisplayOptions();
 
         @Setter
@@ -46,11 +45,6 @@ public class StoneCutterRecipesConfig extends AuroraConfig {
     public static final class DisplayOptions {
         private Map<String, ItemConfig> items = new HashMap<>();
         private List<String> lockedLore = new ArrayList<>();
-    }
-
-    @Getter
-    public static final class VanillaOptions {
-        private String group;
     }
 
     @Override

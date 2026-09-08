@@ -9,7 +9,7 @@ public class BlastingRecipeBuilder extends CookingRecipeBuilder<BlastingRecipe> 
 
     @Override
     public BlastingRecipe buildInternal() {
-        return new BlastingRecipe(key, result, exactChoiceFor(input), experience, cookingTime);
+        return new BlastingRecipe(key, result, predicateChoiceFor(input), experience, cookingTime);
     }
 
     public static BlastingRecipeBuilder blastingRecipe(String id) {

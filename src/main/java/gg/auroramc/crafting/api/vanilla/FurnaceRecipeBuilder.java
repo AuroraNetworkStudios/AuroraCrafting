@@ -13,6 +13,6 @@ public class FurnaceRecipeBuilder extends CookingRecipeBuilder<FurnaceRecipe>{
 
     @Override
     public FurnaceRecipe buildInternal() {
-        return new FurnaceRecipe(key, result, exactChoiceFor(input), experience, cookingTime);
+        return new FurnaceRecipe(key, result, predicateChoiceFor(input), experience, cookingTime);
     }
 }
