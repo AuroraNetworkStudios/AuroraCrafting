@@ -104,7 +104,7 @@ public class AuroraCrafting extends AuroraCraftingPlugin implements Listener {
             Bukkit.getPluginManager().registerEvents(new CauldronListener(this), this);
         }
 
-        if (Version.isAtLeastVersion(21) && configManager.getConfig().getCraftHandlers().getCraftingTable()) {
+        if (configManager.getConfig().getCraftHandlers().getCraftingTable()) {
             Bukkit.getPluginManager().registerEvents(new AutoCrafterListener(this), this);
         }
         if (configManager.getConfig().getOpenInsteadOfCraftingTable() || configManager.getConfig().getOpenShiftClickCraftingTable()) {
@@ -155,7 +155,7 @@ public class AuroraCrafting extends AuroraCraftingPlugin implements Listener {
         }
         loading.set(true);
 
-        if (Version.isAtLeastVersion(21) && !Version.isFolia()) {
+        if (!Version.isFolia()) {
             for (var player : Bukkit.getOnlinePlayers()) {
                 if (player.getOpenInventory().getTopInventory().getHolder() instanceof AuroraMenu menu) {
                     var id = menu.getId();

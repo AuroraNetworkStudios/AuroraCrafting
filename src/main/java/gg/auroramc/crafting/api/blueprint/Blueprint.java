@@ -5,7 +5,6 @@ import gg.auroramc.aurora.api.config.premade.ItemConfig;
 import gg.auroramc.aurora.api.item.TypeId;
 import gg.auroramc.aurora.api.util.ItemUtils;
 import gg.auroramc.aurora.api.util.TriConsumer;
-import gg.auroramc.aurora.api.util.Version;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.ItemPair;
 import gg.auroramc.crafting.api.book.BookCategory;
@@ -166,7 +165,7 @@ public abstract class Blueprint {
                 if (result.getItemMeta() instanceof Damageable d && d.hasDamage()) {
                     var damageable = (Damageable) resultMeta;
                     damageable.setDamage(Math.max(damageable.getDamage() - options.getRestoreDurability(), 0));
-                    if (!damageable.hasDamage() && Version.isAtLeastVersion(21)) {
+                    if (!damageable.hasDamage()) {
                         damageable.resetDamage();
                     }
                 }
@@ -176,7 +175,7 @@ public abstract class Blueprint {
                     if (ingredient.getItemMeta() instanceof Damageable ingredientDamageable) {
                         var restoreDurability = 0;
 
-                        if (Version.isAtLeastVersion(20, 5) && ingredientDamageable.hasMaxDamage()) {
+                        if (ingredientDamageable.hasMaxDamage()) {
                             restoreDurability = ingredientDamageable.hasDamage()
                                     ? ingredientDamageable.getMaxDamage() - ingredientDamageable.getDamage()
                                     : ingredientDamageable.getMaxDamage();
@@ -187,7 +186,7 @@ public abstract class Blueprint {
                         }
 
                         resultDamageable.setDamage(Math.max(resultDamageable.getDamage() - restoreDurability, 0));
-                        if (!resultDamageable.hasDamage() && Version.isAtLeastVersion(21)) {
+                        if (!resultDamageable.hasDamage()) {
                             resultDamageable.resetDamage();
                         }
                     }

@@ -68,7 +68,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:26.2.build.31-alpha")
+    compileOnly("io.papermc.paper:paper-api:26.2.build.+")
     compileOnly("gg.auroramc:Aurora:2.6.0-SNAPSHOT")
     compileOnly("gg.auroramc:AuroraQuests:2.0.0")
     // Quests

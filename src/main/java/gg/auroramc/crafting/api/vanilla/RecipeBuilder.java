@@ -21,10 +21,10 @@ public abstract class RecipeBuilder<T extends RecipeBuilder<T, R>, R extends Rec
     public abstract R build();
 
     protected RecipeChoice exactChoiceFor(ItemStack item) {
-        return item == null || item.isEmpty() ? EmptyRecipeChoice.get() : new RecipeChoice.ExactChoice(item);
+        return item == null || item.isEmpty() ? RecipeChoice.empty() : RecipeChoice.exactChoice(item);
     }
 
     protected RecipeChoice dynamicChoiceFor(ItemStack item) {
-        return item == null || item.isEmpty() ? EmptyRecipeChoice.get() : new RecipeChoice.MaterialChoice(item.getType());
+        return item == null || item.isEmpty() ? RecipeChoice.empty() : new RecipeChoice.MaterialChoice(item.getType());
     }
 }
