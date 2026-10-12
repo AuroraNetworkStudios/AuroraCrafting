@@ -4,7 +4,6 @@ import gg.auroramc.aurora.api.config.AuroraConfig;
 import gg.auroramc.aurora.api.config.decorators.IgnoreField;
 import gg.auroramc.aurora.api.config.premade.ItemConfig;
 import gg.auroramc.crafting.AuroraCrafting;
-import gg.auroramc.crafting.api.blueprint.ChoiceType;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -145,10 +145,11 @@ public class CraftingListener implements Listener {
     }
 
     private void updateMatrix(Player player, Inventory inventory, ItemStack[] resultingMatrix) {
-        var workbench = plugin.getWorkbenchRegistry().getCraftingTable();
+        var slots = plugin.getWorkbenchRegistry().getCraftingTable().getMatrixSlots(inventory);
         run(player, () -> {
-            for (var i = 0; i < workbench.getMatrixSlots().size(); i++) {
-                inventory.setItem(workbench.getMatrixSlots().get(i), resultingMatrix[i]);
+            for (var i = 0; i < slots.size(); i++) {
+                if (slots.get(i) == -1) continue;
+                inventory.setItem(slots.get(i), resultingMatrix[i]);
             }
         });
     }

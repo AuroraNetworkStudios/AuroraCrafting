@@ -1,22 +1,22 @@
 package gg.auroramc.crafting.api.vanilla;
 
-import gg.auroramc.crafting.api.blueprint.ChoiceType;
+import gg.auroramc.aurora.api.item.TypeId;
 import org.bukkit.inventory.*;
 
 import java.util.List;
 
 public class ShapelessRecipeBuilder extends CraftingRecipeBuilder<ShapelessRecipe, ShapelessRecipeBuilder> {
-    private List<ItemStack> ingredients;
+    private List<TypeId> ingredients;
 
-    public ShapelessRecipeBuilder(String id, ChoiceType choiceType) {
-        super(id, choiceType);
+    public ShapelessRecipeBuilder(String id) {
+        super(id);
     }
 
-    public static ShapelessRecipeBuilder shapelessRecipe(String id, ChoiceType choiceType) {
-        return new ShapelessRecipeBuilder(id, choiceType);
+    public static ShapelessRecipeBuilder shapelessRecipe(String id) {
+        return new ShapelessRecipeBuilder(id);
     }
 
-    public ShapelessRecipeBuilder ingredients(List<ItemStack> ingredients) {
+    public ShapelessRecipeBuilder ingredients(List<TypeId> ingredients) {
         this.ingredients = List.copyOf(ingredients);
         return this;
     }
@@ -31,8 +31,8 @@ public class ShapelessRecipeBuilder extends CraftingRecipeBuilder<ShapelessRecip
         recipe.setCategory(category);
 
         for (var ingredient : ingredients) {
-            if (!ingredient.isEmpty()) {
-                recipe.addIngredient(choiceSelector.apply(ingredient));
+            if (!isEmpty(ingredient)) {
+                recipe.addIngredient(predicateChoiceFor(ingredient));
             }
         }
 

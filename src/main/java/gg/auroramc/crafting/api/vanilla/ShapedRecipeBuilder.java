@@ -1,53 +1,39 @@
 package gg.auroramc.crafting.api.vanilla;
 
-import gg.auroramc.crafting.api.blueprint.ChoiceType;
-import org.bukkit.inventory.ItemStack;
+import gg.auroramc.aurora.api.item.TypeId;
 import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.recipe.CraftingBookCategory;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ShapedRecipeBuilder extends CraftingRecipeBuilder<ShapedRecipe, ShapedRecipeBuilder> {
-    private CraftingBookCategory category = CraftingBookCategory.MISC;
-    private String group = null;
     private String[] shape;
-    private final Map<Character, ItemStack> ingredients = new HashMap<>();
+    private final Map<Character, TypeId> ingredients = new HashMap<>();
     private final boolean symmetrical;
 
-    public ShapedRecipeBuilder(String id, ChoiceType choiceType, boolean symmetrical) {
-        super(id, choiceType);
+    public ShapedRecipeBuilder(String id, boolean symmetrical) {
+        super(id);
         this.symmetrical = symmetrical;
         if (!symmetrical) {
             this.shape = new String[]{"012", "345", "678"};
         }
     }
 
-    public static ShapedRecipeBuilder shapedRecipe(String id, ChoiceType choiceType, boolean symmetrical) {
-        return new ShapedRecipeBuilder(id, choiceType, symmetrical);
+    public static ShapedRecipeBuilder shapedRecipe(String id, boolean symmetrical) {
+        return new ShapedRecipeBuilder(id, symmetrical);
     }
 
-    public ShapedRecipeBuilder category(CraftingBookCategory category) {
-        this.category = category;
-        return this;
-    }
-
-    public ShapedRecipeBuilder group(String group) {
-        this.group = group;
-        return this;
-    }
-
-    public ShapedRecipeBuilder ingredients(List<ItemStack> ingredients) {
+    public ShapedRecipeBuilder ingredients(List<TypeId> ingredients) {
         if (!symmetrical) {
             for (int i = 0; i < ingredients.size(); i++) {
-                this.ingredients.put(String.valueOf(i).toCharArray()[0], ingredients.get(i));
+                this.ingredients.put(String.valueOf(i).charAt(0), ingredients.get(i));
             }
         } else {
             // Find the smallest bounding box that contains all ingredients
             int minRow = 3, maxRow = 0, minCol = 3, maxCol = 0;
             for (int i = 0; i < ingredients.size(); i++) {
-                if (ingredients.get(i) != null) {
+                if (!isEmpty(ingredients.get(i))) {
                     int row = i / 3;
                     int col = i % 3;
                     minRow = Math.min(minRow, row);
@@ -61,26 +47,24 @@ public class ShapedRecipeBuilder extends CraftingRecipeBuilder<ShapedRecipe, Sha
             int height = maxRow - minRow + 1;
             int width = maxCol - minCol + 1;
             String[] newShape = new String[height];
-            Map<Character, ItemStack> ingredientMap = new HashMap<>();
+            Map<TypeId, Character> charMap = new HashMap<>();
             char nextChar = 'A'; // Start from 'A' for symmetrical patterns
 
             for (int row = 0; row < height; row++) {
                 StringBuilder shapeRow = new StringBuilder();
                 for (int col = 0; col < width; col++) {
                     int originalIndex = (minRow + row) * 3 + (minCol + col);
-                    ItemStack item = ingredients.get(originalIndex);
+                    TypeId item = originalIndex < ingredients.size() ? ingredients.get(originalIndex) : null;
 
-                    if (item != null) {
-                        if (!ingredientMap.containsValue(item)) {
-                            ingredientMap.put(nextChar, item);
-                            shapeRow.append(nextChar);
-                            nextChar++;
-                        } else {
-                            // Reuse existing character for identical items
-                            shapeRow.append(ingredientMap.entrySet().stream()
-                                    .filter(entry -> entry.getValue().equals(item))
-                                    .findFirst().get().getKey());
+                    if (!isEmpty(item)) {
+                        // Reuse existing character for identical items
+                        var character = charMap.get(item);
+                        if (character == null) {
+                            character = nextChar++;
+                            charMap.put(item, character);
+                            this.ingredients.put(character, item);
                         }
+                        shapeRow.append(character);
                     } else {
                         shapeRow.append(' ');
                     }
@@ -89,9 +73,7 @@ public class ShapedRecipeBuilder extends CraftingRecipeBuilder<ShapedRecipe, Sha
             }
 
             this.shape = newShape;
-            this.ingredients.putAll(ingredientMap);
         }
-
 
         return this;
     }
@@ -107,8 +89,8 @@ public class ShapedRecipeBuilder extends CraftingRecipeBuilder<ShapedRecipe, Sha
         recipe.shape(shape);
 
         for (var entry : ingredients.entrySet()) {
-            if (!entry.getValue().isEmpty()) {
-                recipe.setIngredient(entry.getKey(), choiceSelector.apply(entry.getValue()));
+            if (!isEmpty(entry.getValue())) {
+                recipe.setIngredient(entry.getKey(), predicateChoiceFor(entry.getValue()));
             }
         }
 

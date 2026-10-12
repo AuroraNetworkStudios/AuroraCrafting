@@ -49,20 +49,15 @@ public class SmithingListener implements Listener {
         var context = workbench.createContext(player, event.getInventory());
         var blueprint = workbench.lookupBlueprint(context, BlueprintType.SMITHING);
 
-        // Just because the blueprint is null, it doesn't mean vanilla didn't match our material choice recipes
+        // Our vanilla recipes use predicate choices on the resolved item id, so if vanilla matched
+        // one of them we matched it too. No blueprint means this is a plain vanilla (or other plugin) recipe.
         if (blueprint == null) {
-            // We handle vanilla overlaps by not registering overlapping material choice recipes :)
-            // So we can safely set the result to null here if vanilla matched our recipe but we don't.
-            if (workbench.matchesRegisteredVanillaRecipe(context)) {
-                event.setResult(null);
-            } else {
-                if (event.getInventory().getInputTemplate() != null && event.getInventory().getInputTemplate().getType().name().endsWith("TRIM_SMITHING_TEMPLATE")) {
-                    return;
-                }
-                if (event.getResult() != null && !event.getResult().isEmpty()) {
-                    if (disabledResults.contains(AuroraAPI.getItemManager().resolveId(event.getResult()))) {
-                        event.setResult(null);
-                    }
+            if (event.getInventory().getInputTemplate() != null && event.getInventory().getInputTemplate().getType().name().endsWith("TRIM_SMITHING_TEMPLATE")) {
+                return;
+            }
+            if (event.getResult() != null && !event.getResult().isEmpty()) {
+                if (disabledResults.contains(AuroraAPI.getItemManager().resolveId(event.getResult()))) {
+                    event.setResult(null);
                 }
             }
             return;

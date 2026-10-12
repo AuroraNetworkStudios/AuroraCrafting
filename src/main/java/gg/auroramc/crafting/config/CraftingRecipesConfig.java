@@ -3,7 +3,6 @@ package gg.auroramc.crafting.config;
 import gg.auroramc.aurora.api.config.AuroraConfig;
 import gg.auroramc.aurora.api.config.decorators.IgnoreField;
 import gg.auroramc.aurora.api.config.premade.ItemConfig;
-import gg.auroramc.crafting.api.blueprint.ChoiceType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -49,7 +48,6 @@ public class CraftingRecipesConfig extends AuroraConfig {
     public static final class VanillaOptions {
         private String category;
         private String group;
-        private String choiceType = ChoiceType.ITEM_TYPE.name();
     }
 
     @Getter

@@ -43,11 +43,6 @@ public abstract class VanillaWorkbench<T extends Blueprint> extends Workbench {
 
         int count = 0;
         for (var blueprint : getBlueprints(type.getBlueprintTypes())) {
-            if (!shouldRegisterVanillaRecipeFor(blueprint)) {
-                count++;
-                continue;
-            }
-
             var key = registerVanillaRecipe(blueprint);
 
             if (key != null) {
@@ -70,10 +65,6 @@ public abstract class VanillaWorkbench<T extends Blueprint> extends Workbench {
     }
 
     protected boolean shouldRegisterVanillaRecipes() {
-        return true;
-    }
-
-    protected boolean shouldRegisterVanillaRecipeFor(Blueprint blueprint) {
         return true;
     }
 

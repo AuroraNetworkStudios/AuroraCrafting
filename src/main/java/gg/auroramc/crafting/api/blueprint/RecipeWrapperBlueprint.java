@@ -65,6 +65,9 @@ public class RecipeWrapperBlueprint extends Blueprint {
         } else if (choice instanceof RecipeChoice.ExactChoice exactChoice) {
             var id = AuroraAPI.getItemManager().resolveId(exactChoice.getItemStack());
             addIngredient(new ItemPair(id, 1));
+        } else if (choice instanceof RecipeChoice.PredicateChoice predicateChoice) {
+            var id = AuroraAPI.getItemManager().resolveId(predicateChoice.getItemStack());
+            addIngredient(new ItemPair(id, 1));
         }
     }
 

@@ -1,43 +1,32 @@
 package gg.auroramc.crafting.api.vanilla;
 
-import gg.auroramc.crafting.api.blueprint.ChoiceType;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.RecipeChoice;
+import gg.auroramc.aurora.api.item.TypeId;
 import org.bukkit.inventory.SmithingTransformRecipe;
 
-import java.util.function.Function;
-
 public class SmithingRecipeBuilder extends RecipeBuilder<SmithingRecipeBuilder, SmithingTransformRecipe> {
-    private ItemStack template = null;
-    private ItemStack base = null;
-    private ItemStack addition = null;
-    protected final Function<ItemStack, RecipeChoice> choiceSelector;
+    private TypeId template = null;
+    private TypeId base = null;
+    private TypeId addition = null;
 
-    public SmithingRecipeBuilder(String id, ChoiceType choiceType) {
+    public SmithingRecipeBuilder(String id) {
         super(id);
-
-        switch (choiceType) {
-            case ITEM_TYPE -> choiceSelector = this::dynamicChoiceFor;
-            case EXACT -> choiceSelector = this::exactChoiceFor;
-            default -> throw new IllegalArgumentException("Invalid choice type: " + choiceType);
-        }
     }
 
-    public static SmithingRecipeBuilder smithingRecipe(String id, ChoiceType choiceType) {
-        return new SmithingRecipeBuilder(id, choiceType);
+    public static SmithingRecipeBuilder smithingRecipe(String id) {
+        return new SmithingRecipeBuilder(id);
     }
 
-    public SmithingRecipeBuilder template(ItemStack template) {
+    public SmithingRecipeBuilder template(TypeId template) {
         this.template = template;
         return this;
     }
 
-    public SmithingRecipeBuilder base(ItemStack base) {
+    public SmithingRecipeBuilder base(TypeId base) {
         this.base = base;
         return this;
     }
 
-    public SmithingRecipeBuilder addition(ItemStack addition) {
+    public SmithingRecipeBuilder addition(TypeId addition) {
         this.addition = addition;
         return this;
     }
@@ -47,11 +36,10 @@ public class SmithingRecipeBuilder extends RecipeBuilder<SmithingRecipeBuilder, 
         return new SmithingTransformRecipe(
                 key,
                 result,
-                choiceSelector.apply(template),
-                choiceSelector.apply(base),
-                choiceSelector.apply(addition),
+                predicateChoiceFor(template),
+                predicateChoiceFor(base),
+                predicateChoiceFor(addition),
                 true
         );
     }
 }
-

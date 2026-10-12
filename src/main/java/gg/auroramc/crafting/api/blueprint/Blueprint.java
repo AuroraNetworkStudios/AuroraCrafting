@@ -312,6 +312,10 @@ public abstract class Blueprint {
         return this;
     }
 
+    public List<TypeId> getIngredientIds() {
+        return ingredients.stream().map(i -> i.getItemPair().id()).toList();
+    }
+
     /**
      * Add an ingredient to the blueprint
      *

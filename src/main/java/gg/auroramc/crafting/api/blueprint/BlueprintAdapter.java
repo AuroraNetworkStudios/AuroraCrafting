@@ -21,28 +21,28 @@ public class BlueprintAdapter {
     }
 
     public static ShapelessRecipe adapt(ShapelessBlueprint blueprint) {
-        return ShapelessRecipeBuilder.shapelessRecipe(blueprint.getId(), blueprint.getVanillaOptions().getChoiceType())
+        return ShapelessRecipeBuilder.shapelessRecipe(blueprint.getId())
                 .category(blueprint.getVanillaOptions().getCategory())
                 .group(blueprint.getVanillaOptions().getGroup())
-                .ingredients(blueprint.getIngredientItems())
+                .ingredients(blueprint.getIngredientIds())
                 .result(blueprint.getResultItem())
                 .build();
     }
 
     public static ShapedRecipe adapt(ShapedBlueprint blueprint) {
-        return ShapedRecipeBuilder.shapedRecipe(blueprint.getId(), blueprint.getVanillaOptions().getChoiceType(), blueprint.isSymmetrical())
+        return ShapedRecipeBuilder.shapedRecipe(blueprint.getId(), blueprint.isSymmetrical())
                 .category(blueprint.getVanillaOptions().getCategory())
                 .group(blueprint.getVanillaOptions().getGroup())
-                .ingredients(blueprint.getIngredientItems())
+                .ingredients(blueprint.getIngredientIds())
                 .result(blueprint.getResultItem())
                 .build();
     }
 
     public static SmithingTransformRecipe adapt(SmithingBlueprint blueprint) {
-        return SmithingRecipeBuilder.smithingRecipe(blueprint.getId(), blueprint.getVanillaOptions().getChoiceType())
-                .template(blueprint.getTemplateItem())
-                .base(blueprint.getBaseItem())
-                .addition(blueprint.getAdditionItem())
+        return SmithingRecipeBuilder.smithingRecipe(blueprint.getId())
+                .template(blueprint.getTemplate().getItemPair().id())
+                .base(blueprint.getBase().getItemPair().id())
+                .addition(blueprint.getAddition().getItemPair().id())
                 .result(blueprint.getResultItem())
                 .build();
     }

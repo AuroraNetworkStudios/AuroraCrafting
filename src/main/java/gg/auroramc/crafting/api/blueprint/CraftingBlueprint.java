@@ -15,7 +15,6 @@ public abstract class CraftingBlueprint<T extends CraftingBlueprint<T>> extends 
     @AllArgsConstructor
     public static final class VanillaOptions {
         private CraftingBookCategory category;
-        private ChoiceType choiceType;
         private String group;
 
         public static VanillaOptionsBuilder builder() {
@@ -24,19 +23,11 @@ public abstract class CraftingBlueprint<T extends CraftingBlueprint<T>> extends 
 
         public static class VanillaOptionsBuilder {
             private CraftingBookCategory category = CraftingBookCategory.MISC;
-            private ChoiceType choiceType = ChoiceType.ITEM_TYPE;
             private String group = null;
 
             public VanillaOptionsBuilder category(CraftingBookCategory category) {
                 if (category != null) {
                     this.category = category;
-                }
-                return this;
-            }
-
-            public VanillaOptionsBuilder choiceType(ChoiceType choiceType) {
-                if (choiceType != null) {
-                    this.choiceType = choiceType;
                 }
                 return this;
             }
@@ -49,7 +40,7 @@ public abstract class CraftingBlueprint<T extends CraftingBlueprint<T>> extends 
             }
 
             public VanillaOptions build() {
-                return new VanillaOptions(category, choiceType, group);
+                return new VanillaOptions(category, group);
             }
         }
     }

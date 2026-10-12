@@ -30,7 +30,6 @@ public class BlueprintParser {
 
     public Blueprint parse(CraftingRecipesConfig.RecipeConfig config) {
         CraftingBookCategory vanillaCategory;
-        ChoiceType choiceType;
 
         try {
             if (config.getVanillaOptions().getCategory() == null) {
@@ -43,13 +42,6 @@ public class BlueprintParser {
             AuroraCrafting.logger().warning("Invalid cooking category: " + config.getVanillaOptions().getCategory() + " in recipe: " + recipeId);
         }
 
-        try {
-            choiceType = ChoiceType.valueOf(config.getVanillaOptions().getChoiceType().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            choiceType = ChoiceType.EXACT;
-            AuroraCrafting.logger().warning("Invalid choice type: " + config.getVanillaOptions().getChoiceType() + " in recipe: " + recipeId);
-        }
-
         CraftingBlueprint<?> blueprint;
 
         if (config.getShapeless()) {
@@ -60,7 +52,6 @@ public class BlueprintParser {
 
         var ret = blueprint.vanillaOptions(CraftingBlueprint.VanillaOptions.builder()
                         .category(vanillaCategory)
-                        .choiceType(choiceType)
                         .group(config.getVanillaOptions().getGroup())
                         .build())
                 .displayOptions(Blueprint.DisplayOptions.builder()
@@ -158,20 +149,10 @@ public class BlueprintParser {
     }
 
     public Blueprint parse(SmithingRecipesConfig.RecipeConfig config) {
-        ChoiceType choiceType;
-
-        try {
-            choiceType = ChoiceType.valueOf(config.getVanillaOptions().getChoiceType().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            choiceType = ChoiceType.EXACT;
-            AuroraCrafting.logger().warning("Invalid choice type: " + config.getVanillaOptions().getChoiceType() + " in recipe: " + recipeId);
-        }
-
         var ret = SmithingBlueprint.smithingBlueprint(workbench, config.getId())
                 .template(parseItemPair(config.getTemplate(), Material.BARRIER))
                 .base(parseItemPair(config.getBase(), Material.BARRIER))
                 .addition(parseItemPair(config.getAddition(), Material.BARRIER))
-                .vanillaOptions(SmithingBlueprint.VanillaOptions.builder().choiceType(choiceType).build())
                 .permission(config.getPermission())
                 .displayOptions(Blueprint.DisplayOptions.builder()
                         .items(config.getDisplayOptions().getItems())
