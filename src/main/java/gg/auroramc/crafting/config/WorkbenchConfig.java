@@ -37,7 +37,6 @@ public class WorkbenchConfig extends AuroraConfig {
     private ItemConfig blueprintNotCompletedItem;
     private ItemConfig nextRecipeItem;
     private ItemConfig previousRecipeItem;
-    private String commandCompletion;
     private Boolean includeVanillaRecipesInQuickCrafting = false;
     private RecipeBookOptions recipeBook = new RecipeBookOptions();
 
@@ -54,14 +53,6 @@ public class WorkbenchConfig extends AuroraConfig {
     public WorkbenchConfig(File file, String id) {
         super(file);
         this.id = id;
-    }
-
-    @Override
-    public void load() {
-        super.load();
-        if (commandCompletion == null) {
-            commandCompletion = id;
-        }
     }
 
     @Override

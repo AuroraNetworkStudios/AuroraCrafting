@@ -119,18 +119,21 @@ public class SmithingListener implements Listener {
                 updateMatrix(player, event.getInventory(), blueprint.calcRemainingIngredientMatrix(context, 1));
                 player.getInventory().addItem(currentItem);
                 player.playSound(player, sound, 1f, 1f);
+                blueprint.executeCraftActions(player, currentItem, blueprint.getResult().amount());
             } else {
                 var amount = timesCrafted * blueprint.getResult().amount();
                 var stacks = ItemUtils.createStacksFromAmount(currentItem, amount);
                 player.getInventory().addItem(stacks);
                 updateMatrix(player, event.getInventory(), blueprint.calcRemainingIngredientMatrix(context, timesCrafted));
                 player.playSound(player, sound, 1f, 1f);
+                blueprint.executeCraftActions(player, currentItem, amount);
             }
         } else {
             if (event.getCursor().isEmpty()) {
                 updateMatrix(player, event.getInventory(), blueprint.calcRemainingIngredientMatrix(context, 1));
                 player.getScheduler().run(plugin, (t) -> player.setItemOnCursor(currentItem), null);
                 player.playSound(player, sound, 1f, 1f);
+                blueprint.executeCraftActions(player, currentItem, blueprint.getResult().amount());
             } else {
                 if (event.getCursor().isSimilar(currentItem)) {
                     var maxAmount = event.getCursor().getMaxStackSize() - event.getCursor().getAmount();
@@ -140,11 +143,54 @@ public class SmithingListener implements Listener {
                         player.getScheduler().run(plugin, (t) -> {
                             player.getItemOnCursor().setAmount(event.getCursor().getAmount() + blueprint.getResult().amount());
                         }, null);
+                        blueprint.executeCraftActions(player, currentItem, blueprint.getResult().amount());
                     }
                 }
             }
         }
 
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onVanillaSmithingTake(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (!(event.getClickedInventory() instanceof SmithingInventory inventory)) return;
+
+        var workbench = plugin.getWorkbenchRegistry().getSmithingTable();
+        if (event.getSlot() != workbench.getResultSlot()) return;
+        if (event.getCurrentItem() == null || event.getCurrentItem().isEmpty()) return;
+
+        var context = workbench.createContext(player, inventory);
+        var blueprint = workbench.lookupBlueprint(context, BlueprintType.SMITHING);
+
+        // Stacked blueprints are crafted by onSmithing (which cancels the event), and runs the actions itself
+        if (blueprint == null || blueprint.isStacked() || blueprint.getCraftActions().isEmpty()) return;
+
+        // Vanilla takes the result after this event, possibly multiple times (shift click),
+        // so we compare the consumed inputs on the next tick to see how many times it was crafted
+        final var result = event.getCurrentItem().clone();
+        final var matrixSlots = workbench.getMatrixSlots();
+        final var amountsBefore = new int[matrixSlots.size()];
+        for (var i = 0; i < matrixSlots.size(); i++) {
+            var item = inventory.getItem(matrixSlots.get(i));
+            amountsBefore[i] = item == null ? 0 : item.getAmount();
+        }
+
+        player.getScheduler().run(plugin, (t) -> {
+            // If the menu got closed in the meantime, the inputs were given back, so we can't tell what was crafted
+            if (!inventory.equals(player.getOpenInventory().getTopInventory())) return;
+
+            var timesCrafted = 0;
+            for (var i = 0; i < matrixSlots.size(); i++) {
+                var item = inventory.getItem(matrixSlots.get(i));
+                var amountAfter = item == null ? 0 : item.getAmount();
+                timesCrafted = Math.max(timesCrafted, amountsBefore[i] - amountAfter);
+            }
+
+            if (timesCrafted > 0) {
+                blueprint.executeCraftActions(player, result, timesCrafted * blueprint.getResult().amount());
+            }
+        }, null);
     }
 
     private void updateMatrix(Player player, Inventory inventory, ItemStack[] resultingMatrix) {

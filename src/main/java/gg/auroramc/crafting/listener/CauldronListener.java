@@ -11,6 +11,7 @@ import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Levelled;
+import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,6 +23,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class CauldronListener implements Listener {
 
@@ -100,7 +102,23 @@ public class CauldronListener implements Listener {
         HashMap<Integer, ItemStack> remaining = player.getInventory().addItem(result);
         remaining.values().forEach(i -> player.getWorld().dropItemNaturally(player.getLocation(), i));
 
+        awardExperience(player, blueprint.getVanillaOptions().getExperience());
+    }
 
+    // Same rounding as vanilla furnace output: the whole part is always given,
+    // the fractional part is given as 1 extra point with matching probability
+    private void awardExperience(Player player, float experience) {
+        if (experience <= 0) return;
+
+        int amount = (int) Math.floor(experience);
+        float fraction = experience - amount;
+        if (fraction > 0 && ThreadLocalRandom.current().nextFloat() < fraction) {
+            amount++;
+        }
+        if (amount <= 0) return;
+
+        final int finalAmount = amount;
+        player.getWorld().spawn(player.getLocation(), ExperienceOrb.class, orb -> orb.setExperience(finalAmount));
     }
 
     private void removeItem(Player player, int number) {

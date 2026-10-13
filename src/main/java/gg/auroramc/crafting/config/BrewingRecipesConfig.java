@@ -2,15 +2,12 @@ package gg.auroramc.crafting.config;
 
 import gg.auroramc.aurora.api.config.AuroraConfig;
 import gg.auroramc.aurora.api.config.decorators.IgnoreField;
-import gg.auroramc.aurora.api.config.premade.ItemConfig;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Getter
 public class BrewingRecipesConfig extends AuroraConfig {
@@ -36,12 +33,6 @@ public class BrewingRecipesConfig extends AuroraConfig {
         private SmithingRecipesConfig.DisplayOptions displayOptions = new SmithingRecipesConfig.DisplayOptions();
         private List<String> onCraft;
         private String group;
-
-        @Getter
-        public static final class DisplayOptions {
-            private Map<String, ItemConfig> items = new HashMap<>();
-            private List<String> lockedLore = new ArrayList<>();
-        }
 
         @Setter
         @IgnoreField

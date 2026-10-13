@@ -2,13 +2,11 @@ package gg.auroramc.crafting.config;
 
 import gg.auroramc.aurora.api.config.AuroraConfig;
 import gg.auroramc.aurora.api.config.decorators.IgnoreField;
-import gg.auroramc.aurora.api.config.premade.ItemConfig;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -52,7 +50,6 @@ public class CraftingRecipesConfig extends AuroraConfig {
 
     @Getter
     public static final class DisplayOptions {
-        private Map<String, ItemConfig> items = new HashMap<>();
         private List<String> lockedLore = new ArrayList<>();
     }
 

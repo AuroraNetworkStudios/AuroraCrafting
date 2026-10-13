@@ -4,6 +4,7 @@ import gg.auroramc.aurora.api.AuroraAPI;
 import gg.auroramc.aurora.api.command.CommandDispatcher;
 import gg.auroramc.aurora.api.item.TypeId;
 import gg.auroramc.aurora.api.message.Placeholder;
+import gg.auroramc.aurora.api.util.TriConsumer;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.ItemPair;
 import gg.auroramc.crafting.api.blueprint.*;
@@ -13,10 +14,13 @@ import gg.auroramc.crafting.config.*;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.recipe.CookingBookCategory;
 import org.bukkit.inventory.recipe.CraftingBookCategory;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 public class BlueprintParser {
@@ -55,7 +59,6 @@ public class BlueprintParser {
                         .group(config.getVanillaOptions().getGroup())
                         .build())
                 .displayOptions(Blueprint.DisplayOptions.builder()
-                        .items(config.getDisplayOptions().getItems())
                         .lockedLore(config.getDisplayOptions().getLockedLore().isEmpty() ? config.getLockedLore() : config.getDisplayOptions().getLockedLore())
                         .build())
                 .permission(config.getPermission())
@@ -117,7 +120,6 @@ public class BlueprintParser {
                 .category(category)
                 .source(config.getSourcePath())
                 .displayOptions(Blueprint.DisplayOptions.builder()
-                        .items(config.getDisplayOptions().getItems())
                         .lockedLore(config.getDisplayOptions().getLockedLore())
                         .build())
                 .result(parseItemPair(config.getResult(), Material.AIR)).complete();
@@ -142,7 +144,6 @@ public class BlueprintParser {
                 .category(category)
                 .source(config.getSourcepath())
                 .displayOptions(Blueprint.DisplayOptions.builder()
-                        .items(config.getDisplayOptions().getItems())
                         .lockedLore(config.getDisplayOptions().getLockedLore())
                         .build())
                 .result(parseItemPair(config.getResult(), Material.AIR));
@@ -155,19 +156,11 @@ public class BlueprintParser {
                 .addition(parseItemPair(config.getAddition(), Material.BARRIER))
                 .permission(config.getPermission())
                 .displayOptions(Blueprint.DisplayOptions.builder()
-                        .items(config.getDisplayOptions().getItems())
                         .lockedLore(config.getDisplayOptions().getLockedLore())
                         .build())
                 .category(category)
                 .source(config.getSourcePath())
-                .onCraft(config.getOnCraft() != null ? (player, result, amount) -> {
-                    for (var cmd : config.getOnCraft()) {
-                        CommandDispatcher.dispatch(player, cmd,
-                                Placeholder.of("{amount}", amount),
-                                Placeholder.of("{amount_formatted}", AuroraAPI.formatNumber(amount)),
-                                Placeholder.of("{result}", getLocalizedResultName(result)));
-                    }
-                } : null);
+                .onCraft(parseCraftActions(config.getOnCraft()));
 
         if (!config.getMergeOptions().isEmpty()) {
             for (var entry : config.getMergeOptions().entrySet()) {
@@ -193,7 +186,6 @@ public class BlueprintParser {
                 .category(category)
                 .source(config.getSourcePath())
                 .displayOptions(Blueprint.DisplayOptions.builder()
-                        .items(config.getDisplayOptions().getItems())
                         .lockedLore(config.getDisplayOptions().getLockedLore())
                         .build())
                 .result(parseItemPair(config.getResult(), Material.AIR)).complete();
@@ -205,11 +197,23 @@ public class BlueprintParser {
                 .ingredient(parseItemPair(config.getIngredient(), Material.BARRIER).id())
                 .category(category)
                 .source(config.getSourcePath())
+                .onCraft(parseCraftActions(config.getOnCraft()))
                 .displayOptions(Blueprint.DisplayOptions.builder()
-                        .items(config.getDisplayOptions().getItems())
                         .lockedLore(config.getDisplayOptions().getLockedLore())
                         .build())
                 .result(parseItemPair(config.getResult(), Material.AIR)).complete();
+    }
+
+    private @Nullable TriConsumer<Player, ItemStack, Integer> parseCraftActions(@Nullable List<String> commands) {
+        if (commands == null || commands.isEmpty()) return null;
+        return (player, result, amount) -> {
+            for (var cmd : commands) {
+                CommandDispatcher.dispatch(player, cmd,
+                        Placeholder.of("{amount}", amount),
+                        Placeholder.of("{amount_formatted}", AuroraAPI.formatNumber(amount)),
+                        Placeholder.of("{result}", getLocalizedResultName(result)));
+            }
+        };
     }
 
     private Blueprint withResult(Blueprint blueprint, String result) {

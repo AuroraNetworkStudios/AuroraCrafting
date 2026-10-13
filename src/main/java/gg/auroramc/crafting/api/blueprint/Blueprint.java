@@ -536,6 +536,10 @@ public abstract class Blueprint {
     @Builder
     public static final class DisplayOptions {
         private List<String> lockedLore;
+        /**
+         * @deprecated never used by any menu, kept only for API compatibility
+         */
+        @Deprecated
         private Map<String, ItemConfig> items;
     }
 

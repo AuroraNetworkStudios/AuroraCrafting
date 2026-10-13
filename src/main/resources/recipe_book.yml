@@ -80,7 +80,7 @@ categories:
           item:
             material: stonecutter
             name: "&6Stonecutter recipes"
-            slot: 15
+            slot: 20
       - id: my_cauldron_recipes
         files:
           - "vanilla/cauldron/_example"
