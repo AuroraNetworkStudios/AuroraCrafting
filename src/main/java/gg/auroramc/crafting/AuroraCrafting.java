@@ -7,6 +7,7 @@ import gg.auroramc.aurora.api.menu.AuroraMenu;
 import gg.auroramc.aurora.api.message.Chat;
 import gg.auroramc.aurora.api.plugin.Hook;
 import gg.auroramc.aurora.api.plugin.Hooks;
+import gg.auroramc.aurora.api.util.Version;
 import gg.auroramc.crafting.api.AuroraCraftingPlugin;
 import gg.auroramc.crafting.api.blueprint.Blueprint;
 import gg.auroramc.crafting.api.blueprint.BlueprintRegistry;
@@ -191,15 +192,20 @@ public class AuroraCrafting extends AuroraCraftingPlugin implements Listener {
         return false;
     }
 
-    // Vanilla recipes with custom ingredients use RecipeChoice.predicateChoice, which some server builds don't have yet
-    // (Folia 26.2 up to at least build 7)
+    // Vanilla recipes with custom ingredients use RecipeChoice.predicateChoice, which some server builds don't have yet.
+    // On Folia it needs 26.3 or newer (Folia 26.2 doesn't have it, and isn't supported even if a later build adds it).
     private boolean serverIsCompatible() {
+        if (Version.isFolia() && !Version.isAtLeastVersion(26, 3)) {
+            getLogger().severe(getName() + " needs Folia 26.3 or newer, but this is " + Bukkit.getName() + " " + Bukkit.getVersion()
+                    + ". Update the server.");
+            return false;
+        }
         try {
             RecipeChoice.class.getMethod("predicateChoice", Predicate.class, ItemStack.class);
             return true;
         } catch (NoSuchMethodException e) {
             getLogger().severe(getName() + " needs a server with RecipeChoice.predicateChoice, which " + Bukkit.getName() + " "
-                    + Bukkit.getVersion() + " doesn't have. Update the server (Paper 26.2 build 134 or newer, or Folia 26.3).");
+                    + Bukkit.getVersion() + " doesn't have. Update the server (Paper 26.2 build 134 or newer, or Folia 26.3 or newer).");
             return false;
         }
     }
