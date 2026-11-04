@@ -29,19 +29,22 @@ public class MerchantsCommand extends BaseCommand {
     @CommandPermission("aurora.crafting.merchants.admin.open")
     @CommandCompletion("@players @merchants true|false @nothing")
     public void onOpenAdmin(CommandSender sender, @Flags("other") Player player, @Optional String merchantId, @Default("false") Boolean silent) {
-        var opened = openMerchant(player, merchantId);
+        // On the player's own thread (Folia)
+        player.getScheduler().run(plugin, (t) -> {
+            var opened = openMerchant(player, merchantId);
 
-        if (!silent) {
-            var openedMerchantId = merchantId == null ? "main-gui" : merchantId;
+            if (!silent) {
+                var openedMerchantId = merchantId == null ? "main-gui" : merchantId;
 
-            if (opened) {
-                Chat.sendMessage(sender, plugin.getConfigManager().getMessageConfig().getMerchantOpened(),
-                        Placeholder.of("{player}", player.getName()), Placeholder.of("{id}", openedMerchantId));
-            } else {
-                Chat.sendMessage(sender, plugin.getConfigManager().getMessageConfig().getMerchantFailedToOpen(),
-                        Placeholder.of("{player}", player.getName()), Placeholder.of("{id}", openedMerchantId));
+                if (opened) {
+                    Chat.sendMessage(sender, plugin.getConfigManager().getMessageConfig().getMerchantOpened(),
+                            Placeholder.of("{player}", player.getName()), Placeholder.of("{id}", openedMerchantId));
+                } else {
+                    Chat.sendMessage(sender, plugin.getConfigManager().getMessageConfig().getMerchantFailedToOpen(),
+                            Placeholder.of("{player}", player.getName()), Placeholder.of("{id}", openedMerchantId));
+                }
             }
-        }
+        }, null);
     }
 
     private boolean openMerchant(Player player, String merchantId) {

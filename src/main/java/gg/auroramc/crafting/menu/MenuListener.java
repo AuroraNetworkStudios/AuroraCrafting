@@ -10,16 +10,17 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
 public class MenuListener implements Listener {
     private final AuroraCrafting plugin;
-    private final Map<UUID, Long> cache = new HashMap<>();
-    private final Map<UUID, Long> afterMatrixCache = new HashMap<>();
-    private final Map<UUID, Long> shiftCache = new HashMap<>();
+    // Written from every player's own thread (Folia)
+    private final Map<UUID, Long> cache = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> afterMatrixCache = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> shiftCache = new ConcurrentHashMap<>();
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {

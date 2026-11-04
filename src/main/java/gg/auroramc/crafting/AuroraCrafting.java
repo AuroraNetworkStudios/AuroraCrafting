@@ -5,7 +5,6 @@ import gg.auroramc.aurora.api.AuroraLogger;
 import gg.auroramc.aurora.api.command.CommandDispatcher;
 import gg.auroramc.aurora.api.menu.AuroraMenu;
 import gg.auroramc.aurora.api.message.Chat;
-import gg.auroramc.aurora.api.util.Version;
 import gg.auroramc.crafting.api.AuroraCraftingPlugin;
 import gg.auroramc.crafting.api.blueprint.Blueprint;
 import gg.auroramc.crafting.api.blueprint.BlueprintRegistry;
@@ -37,8 +36,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.RecipeChoice;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
 
 public class AuroraCrafting extends AuroraCraftingPlugin implements Listener {
     private static final AtomicBoolean loading = new AtomicBoolean(true);
@@ -65,8 +66,15 @@ public class AuroraCrafting extends AuroraCraftingPlugin implements Listener {
         return l;
     }
 
+    // Set when Aurora or the server is too old for this version, nothing else is done then
+    private boolean incompatible = false;
+
     @Override
     public void onLoad() {
+        if (!auroraIsCompatible() || !serverIsCompatible()) {
+            incompatible = true;
+            return;
+        }
         instance = this;
         AuroraCraftingPlugin.instance = this;
 
@@ -81,6 +89,10 @@ public class AuroraCrafting extends AuroraCraftingPlugin implements Listener {
 
     @Override
     public void onEnable() {
+        if (incompatible) {
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         itemLoader = new ItemLoader();
 
         Bukkit.getPluginManager().registerEvents(this, this);
@@ -146,7 +158,36 @@ public class AuroraCrafting extends AuroraCraftingPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        commandManager.unregisterCommands();
+        if (commandManager != null) commandManager.unregisterCommands();
+    }
+
+    // Built for Aurora 3: with an older one, say so clearly instead of failing somewhere deep inside. Only Bukkit is
+    // used here, an older Aurora doesn't have what this version needs.
+    private boolean auroraIsCompatible() {
+        var aurora = Bukkit.getPluginManager().getPlugin("Aurora");
+        var version = aurora == null ? "none" : aurora.getPluginMeta().getVersion();
+        int major;
+        try {
+            major = Integer.parseInt(version.split("[.-]")[0]);
+        } catch (NumberFormatException e) {
+            major = 0;
+        }
+        if (major >= 3) return true;
+        getLogger().severe(getName() + " " + getPluginMeta().getVersion() + " needs Aurora 3.0 or newer, but Aurora " + version + " is installed. Update Aurora.");
+        return false;
+    }
+
+    // Vanilla recipes with custom ingredients use RecipeChoice.predicateChoice, which some server builds don't have yet
+    // (Folia 26.2 up to at least build 7)
+    private boolean serverIsCompatible() {
+        try {
+            RecipeChoice.class.getMethod("predicateChoice", Predicate.class, ItemStack.class);
+            return true;
+        } catch (NoSuchMethodException e) {
+            getLogger().severe(getName() + " needs a server with RecipeChoice.predicateChoice, which " + Bukkit.getName() + " "
+                    + Bukkit.getVersion() + " doesn't have. Update the server (Paper 26.2 build 134 or newer, or Folia 26.3).");
+            return false;
+        }
     }
 
     public void reload() {
@@ -156,16 +197,12 @@ public class AuroraCrafting extends AuroraCraftingPlugin implements Listener {
         }
         loading.set(true);
 
-        if (!Version.isFolia()) {
-            for (var player : Bukkit.getOnlinePlayers()) {
-                if (player.getOpenInventory().getTopInventory().getHolder() instanceof AuroraMenu menu) {
-                    var id = menu.getId();
-                    if (id != null && id.getNamespace().equals("auroracrafting")) {
-                        player.closeInventory();
-                    }
-                } else if (player.getOpenInventory().getTopInventory().getHolder() instanceof CraftMenu menu) {
-                    player.closeInventory();
-                }
+        // Menus showing the old recipes are closed, on Folia on each player's own thread
+        for (var player : Bukkit.getOnlinePlayers()) {
+            if (Bukkit.isOwnedByCurrentRegion(player)) {
+                closeCraftingMenu(player);
+            } else {
+                player.getScheduler().run(this, (t) -> closeCraftingMenu(player), null);
             }
         }
 
@@ -176,6 +213,17 @@ public class AuroraCrafting extends AuroraCraftingPlugin implements Listener {
         loading.set(false);
         var end = System.currentTimeMillis();
         l.info("Reloaded configs in " + (end - start) + "ms");
+    }
+
+    private void closeCraftingMenu(Player player) {
+        if (player.getOpenInventory().getTopInventory().getHolder() instanceof AuroraMenu menu) {
+            var id = menu.getId();
+            if (id != null && id.getNamespace().equals("auroracrafting")) {
+                player.closeInventory();
+            }
+        } else if (player.getOpenInventory().getTopInventory().getHolder() instanceof CraftMenu) {
+            player.closeInventory();
+        }
     }
 
     private void initState() {

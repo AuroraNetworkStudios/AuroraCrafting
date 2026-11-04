@@ -21,14 +21,14 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.SmithingInventory;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SmithingListener implements Listener {
     private final AuroraCrafting plugin;
     private final NamespacedKey smithingSoundKey = NamespacedKey.minecraft("block.smithing_table.use");
-    private final Set<TypeId> disabledResults = new HashSet<>();
+    // Replaced at once on reload, read from every player's own thread (Folia)
+    private volatile Set<TypeId> disabledResults = Set.of();
 
     public SmithingListener(AuroraCrafting plugin) {
         this.plugin = plugin;
@@ -36,9 +36,8 @@ public class SmithingListener implements Listener {
 
     @EventHandler
     public void onRegistryLoad(RegistryLoadEvent event) {
-        disabledResults.clear();
-        disabledResults.addAll(plugin.getConfigManager().getDisabledRecipesConfig().getSmithingRecipes()
-                .stream().map(TypeId::fromString).collect(Collectors.toSet()));
+        disabledResults = plugin.getConfigManager().getDisabledRecipesConfig().getSmithingRecipes()
+                .stream().map(TypeId::fromString).collect(Collectors.toUnmodifiableSet());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

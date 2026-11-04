@@ -6,6 +6,7 @@ import gg.auroramc.aurora.api.message.Chat;
 import gg.auroramc.aurora.api.message.Placeholder;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.menu.CraftMenu;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -38,6 +39,15 @@ public class CraftingCommand extends BaseCommand {
     @Description("Reloads crafting configurations")
     @CommandPermission("aurora.crafting.admin.reload")
     public void onReload(CommandSender sender) {
+        // Recipes are server-wide: on Folia they're changed on the global thread, not the region of whoever reloads
+        if (Bukkit.isGlobalTickThread()) {
+            reload(sender);
+        } else {
+            Bukkit.getGlobalRegionScheduler().execute(plugin, () -> reload(sender));
+        }
+    }
+
+    private void reload(CommandSender sender) {
         plugin.reload();
         Chat.sendMessage(sender, plugin.getConfigManager().getMessageConfig().getReloaded());
     }

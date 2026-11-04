@@ -42,10 +42,13 @@ public class RecipesCommand extends BaseCommand {
         var category = plugin.getBook().getCategory(categoryId);
         if (category == null) return;
 
-        if (category.hasSubCategories()) {
-            BookCategoryListMenu.bookCategoryListMenu(plugin, target, category).open();
-        } else {
-            BookBlueprintListMenu.bookBlueprintListMenu(plugin, target, category).open();
-        }
+        // On the target's own thread (Folia)
+        target.getScheduler().run(plugin, (t) -> {
+            if (category.hasSubCategories()) {
+                BookCategoryListMenu.bookCategoryListMenu(plugin, target, category).open();
+            } else {
+                BookBlueprintListMenu.bookBlueprintListMenu(plugin, target, category).open();
+            }
+        }, null);
     }
 }

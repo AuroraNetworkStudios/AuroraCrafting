@@ -68,8 +68,8 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:26.2.build.+")
-    compileOnly("gg.auroramc:Aurora:2.6.0-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:26.2.build.134-stable")
+    compileOnly("gg.auroramc:Aurora:3.0.0-SNAPSHOT")
     compileOnly("gg.auroramc:AuroraQuests:2.0.0")
     // Quests
     compileOnly("me.pikamug.quests:quests-core:5.1.4")
@@ -95,7 +95,7 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.46")
     annotationProcessor("org.projectlombok:lombok:1.18.46")
 
-    testImplementation("io.papermc.paper:paper-api:26.2.build.31-alpha")
+    testImplementation("io.papermc.paper:paper-api:26.2.build.134-stable")
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.1.0")
 }
