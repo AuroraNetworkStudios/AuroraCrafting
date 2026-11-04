@@ -1,9 +1,9 @@
 package gg.auroramc.crafting.hooks.quests;
 
+import gg.auroramc.aurora.api.plugin.Hook;
 import gg.auroramc.aurora.api.util.ItemUtils;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.event.BlueprintCraftEvent;
-import gg.auroramc.crafting.hooks.Hook;
 import me.pikamug.quests.BukkitQuestsPlugin;
 import me.pikamug.quests.enums.ObjectiveType;
 import org.bukkit.Bukkit;
@@ -12,7 +12,7 @@ import org.bukkit.event.Listener;
 
 import java.util.HashSet;
 
-public class QuestsHook implements Hook, Listener {
+public class QuestsHook implements Hook<AuroraCrafting>, Listener {
     private BukkitQuestsPlugin qp;
 
     @Override
@@ -49,7 +49,6 @@ public class QuestsHook implements Hook, Listener {
                     return null;
                 }));
             }
-
         }
     }
 }

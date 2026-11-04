@@ -1,12 +1,12 @@
 package gg.auroramc.crafting.hooks.itemsadder;
 
 import dev.lone.itemsadder.api.Events.ItemsAdderLoadDataEvent;
+import gg.auroramc.aurora.api.plugin.Hook;
 import gg.auroramc.crafting.AuroraCrafting;
-import gg.auroramc.crafting.hooks.Hook;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-public class ItemsAdderHook implements Hook, Listener {
+public class ItemsAdderHook implements Hook<AuroraCrafting>, Listener {
     private AuroraCrafting plugin;
 
     @Override

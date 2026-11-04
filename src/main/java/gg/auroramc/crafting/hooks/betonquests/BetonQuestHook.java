@@ -1,8 +1,8 @@
 package gg.auroramc.crafting.hooks.betonquests;
 
+import gg.auroramc.aurora.api.plugin.Hook;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.event.BlueprintCraftEvent;
-import gg.auroramc.crafting.hooks.Hook;
 import lombok.SneakyThrows;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.Objective;
@@ -19,7 +19,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 
-public class BetonQuestHook implements Hook, Listener {
+public class BetonQuestHook implements Hook<AuroraCrafting>, Listener {
     private static Field itemField;
     private static MethodHandle completeIfDoneOrNotifyMethod;
 

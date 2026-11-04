@@ -5,6 +5,8 @@ import gg.auroramc.aurora.api.AuroraLogger;
 import gg.auroramc.aurora.api.command.CommandDispatcher;
 import gg.auroramc.aurora.api.menu.AuroraMenu;
 import gg.auroramc.aurora.api.message.Chat;
+import gg.auroramc.aurora.api.plugin.Hook;
+import gg.auroramc.aurora.api.plugin.Hooks;
 import gg.auroramc.crafting.api.AuroraCraftingPlugin;
 import gg.auroramc.crafting.api.blueprint.Blueprint;
 import gg.auroramc.crafting.api.blueprint.BlueprintRegistry;
@@ -18,7 +20,15 @@ import gg.auroramc.crafting.api.item.ItemLoader;
 import gg.auroramc.crafting.api.workbench.WorkbenchRegistry;
 import gg.auroramc.crafting.command.CommandManager;
 import gg.auroramc.crafting.config.ConfigManager;
-import gg.auroramc.crafting.hooks.HookManager;
+import gg.auroramc.crafting.hooks.advancedenchantments.AEHook;
+import gg.auroramc.crafting.hooks.auroraquests.AuroraQuestsHook;
+import gg.auroramc.crafting.hooks.betonquests.BetonQuestHook;
+import gg.auroramc.crafting.hooks.hdb.HdbHook;
+import gg.auroramc.crafting.hooks.itemsadder.ItemsAdderHook;
+import gg.auroramc.crafting.hooks.jobsreborn.JobsRebornHook;
+import gg.auroramc.crafting.hooks.mythicmobs.MythicHook;
+import gg.auroramc.crafting.hooks.quests.QuestsHook;
+import gg.auroramc.crafting.hooks.quests2.QuestsLmBishopHook;
 import gg.auroramc.crafting.listener.*;
 import gg.auroramc.crafting.loader.BlueprintLoader;
 import gg.auroramc.crafting.loader.BookLoader;
@@ -57,6 +67,9 @@ public class AuroraCrafting extends AuroraCraftingPlugin implements Listener {
     private ConfigManager configManager;
 
     private CommandManager commandManager;
+    // Created in onLoad, after checking that Aurora is new enough (an older one doesn't have Hooks)
+    @Getter
+    private Hooks<AuroraCrafting> hooks;
 
     @Getter
     private static AuroraCrafting instance;
@@ -84,7 +97,8 @@ public class AuroraCrafting extends AuroraCraftingPlugin implements Listener {
         l = AuroraAPI.createLogger("AuroraCrafting", () -> configManager.getConfig().getDebug());
         configManager.reload();
 
-        HookManager.loadHooks(this);
+        hooks = createHooks();
+        hooks.load();
     }
 
     @Override
@@ -124,7 +138,7 @@ public class AuroraCrafting extends AuroraCraftingPlugin implements Listener {
             Bukkit.getPluginManager().registerEvents(new CraftingTableInteractListener(this), this);
         }
 
-        HookManager.enableHooks(this);
+        hooks.enable();
 
         CommandDispatcher.registerActionHandler("recipe", (player, input) -> {
             var split = input.split("---");
@@ -187,6 +201,33 @@ public class AuroraCrafting extends AuroraCraftingPlugin implements Listener {
             getLogger().severe(getName() + " needs a server with RecipeChoice.predicateChoice, which " + Bukkit.getName() + " "
                     + Bukkit.getVersion() + " doesn't have. Update the server (Paper 26.2 build 134 or newer, or Folia 26.3).");
             return false;
+        }
+    }
+
+    private Hooks<AuroraCrafting> createHooks() {
+        var hooks = new Hooks<>(this);
+        addHook(hooks, AuroraQuestsHook.class, "AuroraQuests");
+        // Two different plugins are called Quests
+        var quests = Bukkit.getPluginManager().getPlugin("Quests");
+        var questsClass = quests == null ? "" : quests.getClass().getName();
+        if (questsClass.startsWith("me.pikamug.")) {
+            addHook(hooks, QuestsHook.class, "Quests");
+        } else if (questsClass.startsWith("com.leonardobishop.")) {
+            addHook(hooks, QuestsLmBishopHook.class, "Quests");
+        }
+        addHook(hooks, BetonQuestHook.class, "BetonQuest");
+        addHook(hooks, JobsRebornHook.class, "Jobs");
+        addHook(hooks, ItemsAdderHook.class, "ItemsAdder");
+        addHook(hooks, MythicHook.class, "MythicMobs");
+        addHook(hooks, HdbHook.class, "HeadDatabase");
+        addHook(hooks, AEHook.class, "AdvancedEnchantments");
+        return hooks;
+    }
+
+    // Unless it's turned off in config.yml's hooks section
+    private void addHook(Hooks<AuroraCrafting> hooks, Class<? extends Hook<AuroraCrafting>> type, String plugin) {
+        if (configManager.getConfig().getHooks().getOrDefault(plugin, true)) {
+            hooks.add(type, plugin);
         }
     }
 

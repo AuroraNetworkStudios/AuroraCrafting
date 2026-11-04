@@ -4,20 +4,19 @@ import com.gamingmesh.jobs.Jobs;
 import com.gamingmesh.jobs.actions.ItemActionInfo;
 import com.gamingmesh.jobs.actions.ItemNameActionInfo;
 import com.gamingmesh.jobs.container.ActionType;
+import gg.auroramc.aurora.api.plugin.Hook;
 import gg.auroramc.aurora.api.util.ItemUtils;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.event.BlueprintCraftEvent;
-import gg.auroramc.crafting.hooks.Hook;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-public class JobsRebornHook implements Hook, Listener {
+public class JobsRebornHook implements Hook<AuroraCrafting>, Listener {
     @Override
     public void hook(AuroraCrafting plugin) {
-
     }
 
     @EventHandler

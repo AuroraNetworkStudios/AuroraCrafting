@@ -1,13 +1,13 @@
 package gg.auroramc.crafting.hooks.advancedenchantments;
 
+import gg.auroramc.aurora.api.plugin.Hook;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.enchant.CustomEnchantMerger;
-import gg.auroramc.crafting.hooks.Hook;
 import net.advancedplugins.ae.api.AEAPI;
 
 import java.util.Map;
 
-public class AEHook implements Hook {
+public class AEHook implements Hook<AuroraCrafting> {
     @Override
     public void hook(AuroraCrafting plugin) {
         CustomEnchantMerger.registerMerger("advancedenchantments", (from, to) -> {

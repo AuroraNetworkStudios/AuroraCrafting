@@ -1,21 +1,19 @@
 package gg.auroramc.crafting.hooks.quests2;
 
-
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import com.leonardobishop.quests.bukkit.BukkitQuestsPlugin;
 import com.leonardobishop.quests.bukkit.item.QuestItem;
 import com.leonardobishop.quests.bukkit.util.TaskUtils;
 import com.leonardobishop.quests.bukkit.util.constraint.TaskConstraintSet;
+import gg.auroramc.aurora.api.plugin.Hook;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.event.BlueprintCraftEvent;
-import gg.auroramc.crafting.hooks.Hook;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-
-public class QuestsLmBishopHook implements Hook, Listener {
+public class QuestsLmBishopHook implements Hook<AuroraCrafting>, Listener {
     private BukkitQuestsPlugin qp;
     private final Table<String, String, QuestItem> fixedQuestItemCache = HashBasedTable.create();
 
