@@ -48,13 +48,13 @@ public class ConfigManager {
     private final Map<String, ConfigFile<WorkbenchConfig>> workbenchFiles = new ConcurrentHashMap<>();
 
     // recipe views
-    private final ConfigFile<BlastFurnaceRecipeViewConfig> blastFurnaceRecipeViewConfig;
-    private final ConfigFile<CampfireRecipeViewConfig> campfireRecipeViewConfig;
+    private final ConfigFile<SimpleRecipeViewConfig> blastFurnaceRecipeViewConfig;
+    private final ConfigFile<SimpleRecipeViewConfig> campfireRecipeViewConfig;
     private final ConfigFile<CraftingTableRecipeViewConfig> craftingTableRecipeViewConfig;
-    private final ConfigFile<FurnaceRecipeViewConfig> furnaceRecipeViewConfig;
+    private final ConfigFile<SimpleRecipeViewConfig> furnaceRecipeViewConfig;
     private final ConfigFile<SmithingRecipeViewConfig> smithingRecipeViewConfig;
-    private final ConfigFile<SmokerRecipeViewConfig> smokerRecipeViewConfig;
-    private final ConfigFile<StoneCutterRecipeViewConfig> stoneCutterRecipeViewConfig;
+    private final ConfigFile<SimpleRecipeViewConfig> smokerRecipeViewConfig;
+    private final ConfigFile<SimpleRecipeViewConfig> stoneCutterRecipeViewConfig;
     private final ConfigFile<CauldronRecipeViewConfig> cauldronRecipeViewConfig;
     private final ConfigFile<BrewingStandRecipeViewConfig> brewingStandRecipeViewConfig;
 
@@ -96,14 +96,14 @@ public class ConfigManager {
         workbenchDefaultConfig = ConfigFile.builder(plugin, "menus/workbench_defaults.yml", WorkbenchDefaultConfig.class)
                 .migrations(WorkbenchDefaultConfig.migrations()).build();
         bundledWorkbenchDefaults = bundledYaml("menus/workbench_defaults.yml");
-        blastFurnaceRecipeViewConfig = view("blast_furnace.yml", BlastFurnaceRecipeViewConfig.class, BlastFurnaceRecipeViewConfig.migrations());
-        campfireRecipeViewConfig = view("campfire.yml", CampfireRecipeViewConfig.class, CampfireRecipeViewConfig.migrations());
-        craftingTableRecipeViewConfig = view("crafting_table.yml", CraftingTableRecipeViewConfig.class, CraftingTableRecipeViewConfig.migrations());
-        furnaceRecipeViewConfig = view("furnace.yml", FurnaceRecipeViewConfig.class, FurnaceRecipeViewConfig.migrations());
-        smithingRecipeViewConfig = view("smithing_table.yml", SmithingRecipeViewConfig.class, SmithingRecipeViewConfig.migrations());
-        smokerRecipeViewConfig = view("smoker.yml", SmokerRecipeViewConfig.class, SmokerRecipeViewConfig.migrations());
-        stoneCutterRecipeViewConfig = view("stone_cutter.yml", StoneCutterRecipeViewConfig.class, StoneCutterRecipeViewConfig.migrations());
-        cauldronRecipeViewConfig = view("cauldron.yml", CauldronRecipeViewConfig.class, CauldronRecipeViewConfig.migrations());
+        blastFurnaceRecipeViewConfig = view("blast_furnace.yml", SimpleRecipeViewConfig.class, RecipeViewConfig.pagingMigration(34, 35));
+        campfireRecipeViewConfig = view("campfire.yml", SimpleRecipeViewConfig.class, RecipeViewConfig.pagingMigration(25, 26));
+        craftingTableRecipeViewConfig = view("crafting_table.yml", CraftingTableRecipeViewConfig.class, RecipeViewConfig.pagingMigration(52, 53));
+        furnaceRecipeViewConfig = view("furnace.yml", SimpleRecipeViewConfig.class, RecipeViewConfig.pagingMigration(34, 35));
+        smithingRecipeViewConfig = view("smithing_table.yml", SmithingRecipeViewConfig.class, RecipeViewConfig.pagingMigration(25, 26));
+        smokerRecipeViewConfig = view("smoker.yml", SimpleRecipeViewConfig.class, RecipeViewConfig.pagingMigration(34, 35));
+        stoneCutterRecipeViewConfig = view("stone_cutter.yml", SimpleRecipeViewConfig.class, RecipeViewConfig.pagingMigration(25, 26));
+        cauldronRecipeViewConfig = view("cauldron.yml", CauldronRecipeViewConfig.class, RecipeViewConfig.pagingMigration(34, 35));
         brewingStandRecipeViewConfig = view("brewing_stand.yml", BrewingStandRecipeViewConfig.class, BrewingStandRecipeViewConfig.migrations());
     }
 
@@ -341,11 +341,11 @@ public class ConfigManager {
         return workbenchDefaultConfig.get();
     }
 
-    public BlastFurnaceRecipeViewConfig getBlastFurnaceRecipeViewConfig() {
+    public SimpleRecipeViewConfig getBlastFurnaceRecipeViewConfig() {
         return blastFurnaceRecipeViewConfig.get();
     }
 
-    public CampfireRecipeViewConfig getCampfireRecipeViewConfig() {
+    public SimpleRecipeViewConfig getCampfireRecipeViewConfig() {
         return campfireRecipeViewConfig.get();
     }
 
@@ -353,7 +353,7 @@ public class ConfigManager {
         return craftingTableRecipeViewConfig.get();
     }
 
-    public FurnaceRecipeViewConfig getFurnaceRecipeViewConfig() {
+    public SimpleRecipeViewConfig getFurnaceRecipeViewConfig() {
         return furnaceRecipeViewConfig.get();
     }
 
@@ -361,11 +361,11 @@ public class ConfigManager {
         return smithingRecipeViewConfig.get();
     }
 
-    public SmokerRecipeViewConfig getSmokerRecipeViewConfig() {
+    public SimpleRecipeViewConfig getSmokerRecipeViewConfig() {
         return smokerRecipeViewConfig.get();
     }
 
-    public StoneCutterRecipeViewConfig getStoneCutterRecipeViewConfig() {
+    public SimpleRecipeViewConfig getStoneCutterRecipeViewConfig() {
         return stoneCutterRecipeViewConfig.get();
     }
 

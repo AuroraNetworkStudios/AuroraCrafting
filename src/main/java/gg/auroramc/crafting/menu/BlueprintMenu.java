@@ -1,9 +1,9 @@
 package gg.auroramc.crafting.menu;
 
 import gg.auroramc.aurora.api.config.premade.ItemConfig;
+import gg.auroramc.aurora.api.item.TypeId;
 import gg.auroramc.aurora.api.menu.AuroraMenu;
 import gg.auroramc.aurora.api.menu.ItemBuilder;
-import gg.auroramc.aurora.api.menu.MenuItem;
 import gg.auroramc.aurora.api.util.NamespacedId;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.blueprint.Blueprint;
@@ -11,13 +11,18 @@ import gg.auroramc.crafting.api.blueprint.BrewingBlueprint;
 import gg.auroramc.crafting.api.blueprint.CauldronBlueprint;
 import gg.auroramc.crafting.api.workbench.custom.CustomWorkbench;
 import gg.auroramc.crafting.api.workbench.vanilla.VanillaWorkbench;
+import gg.auroramc.crafting.config.menu.vanilla.*;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Collection;
 import java.util.List;
 
+/**
+ * Shows a recipe: its ingredients and result laid out like its workbench. Clicking an ingredient that has a recipe of
+ * its own shows that recipe (whose back button comes back here), and the recipes of a group can be paged through.
+ */
 @RequiredArgsConstructor
 public class BlueprintMenu {
     private static final NamespacedId key = NamespacedId.of("auroracrafting", "blueprint_view");
@@ -26,7 +31,6 @@ public class BlueprintMenu {
     private final Player player;
     private final Blueprint blueprint;
     private final Runnable backAction;
-    private Integer groupIndex = 0;
 
     public static BlueprintMenu blueprintMenu(AuroraCrafting plugin, Player player, Blueprint recipe, Runnable backAction) {
         return new BlueprintMenu(plugin, player, recipe, backAction);
@@ -34,699 +38,213 @@ public class BlueprintMenu {
 
     public void open() {
         if (AuroraCrafting.isLoading()) return;
-        var workbench = blueprint.getWorkbench();
-
-        if (workbench instanceof CustomWorkbench customWorkbench) {
-            open(customWorkbench);
-        } else if (workbench instanceof VanillaWorkbench<?> vanillaWorkbench) {
-            switch (vanillaWorkbench.getType()) {
-                case FURNACE -> openFurnace();
-                case BLAST_FURNACE -> openBlastFurnace();
-                case SMOKER -> openSmoker();
-                case CAMPFIRE -> openCampfire();
-                case SMITHING_TABLE -> openSmithingTable();
-                case CRAFTING_TABLE -> openCraftingTable();
-                case STONE_CUTTER -> openStoneCutter();
-                case CAULDRON -> openCauldron();
-                case BREWING_STAND -> openBrewingStand();
-            }
-        }
+        var menu = switch (blueprint.getWorkbench()) {
+            case CustomWorkbench workbench -> customWorkbenchView(workbench);
+            case VanillaWorkbench<?> workbench -> vanillaView(workbench);
+            default -> null;
+        };
+        if (menu != null) menu.open();
     }
 
-    private void openBrewingStand() {
-        var config = plugin.getConfigManager().getBrewingStandRecipeViewConfig();
-        var wb = plugin.getConfigManager().getWorkbenchDefaultConfig();
-
-        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
-        menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
-
-        if (backAction != null) {
-            menu.addItem(ItemBuilder.of(config.getItems().getBack()).build(player), (e) -> {
-                backAction.run();
-            });
+    private AuroraMenu customWorkbenchView(CustomWorkbench workbench) {
+        var menuOptions = workbench.getMenuOptions();
+        var bookOptions = workbench.getRecipeBookOptions();
+        var menu = menu(bookOptions.getTitle(), menuOptions.getRows(), menuOptions.getFillerItem());
+        var matrix = workbench.getMatrixSlots();
+        for (int i = 0; i < matrix.size(); i++) {
+            addIngredient(menu, i, matrix.get(i), true);
         }
-
-        for (var slot : config.getSlots().getResult()) {
-            menu.addItem(ItemBuilder.item(blueprint.getResultItem()).slot(slot).build(player));
-        }
-
-        var blueprint = (BrewingBlueprint) this.blueprint;
-        var ingredient = ItemBuilder.item(blueprint.getIngredientItem()).slot(config.getSlots().getIngredient()).build(player);
-        var recipe = plugin.getBlueprintRegistry().getBlueprintFor(blueprint.getIngredient());
-
-        if (recipe != null) {
-            menu.addItem(ingredient, (e) -> {
-                BlueprintMenu.blueprintMenu(plugin, player, recipe, () -> {
-                    var m = BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction);
-                    m.groupIndex = groupIndex;
-                    m.open();
-                }).open();
-            });
-        } else {
-            menu.addItem(ingredient);
-        }
-
-        var inputRecipe = plugin.getBlueprintRegistry().getBlueprintFor(blueprint.getInput());
-        for (var slot : config.getSlots().getInput()) {
-            var input = ItemBuilder.item(blueprint.getInputItem()).slot(slot).build(player);
-            if (inputRecipe != null) {
-                menu.addItem(input, (e) -> {
-                    BlueprintMenu.blueprintMenu(plugin, player, inputRecipe, () -> {
-                        var m = BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction);
-                        m.groupIndex = groupIndex;
-                        m.open();
-                    }).open();
-                });
-            } else {
-                menu.addItem(input);
-            }
-        }
-
-        var group = blueprint.getGroup();
-
-        if (group != null && group.getBlueprints().size() > 1 && config.getSlots().getNextRecipe() != null && config.getSlots().getPrevRecipe() != null) {
-            var size = group.getBlueprints().size();
-            var nextIndex = (groupIndex + 1) % size;
-            var prevIndex = (groupIndex - 1 + size) % size;
-            var next = group.getBlueprints().get(nextIndex);
-            var prev = group.getBlueprints().get(prevIndex);
-
-            menu.addItem(ItemBuilder.of(wb.getNextRecipe()).slot(config.getSlots().getNextRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, next, this.backAction);
-                m.groupIndex = nextIndex;
-                m.open();
-            });
-
-            menu.addItem(ItemBuilder.of(wb.getPreviousRecipe()).slot(config.getSlots().getPrevRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, prev, this.backAction);
-                m.groupIndex = prevIndex;
-                m.open();
-            });
-        }
-
-        for (var customItem : config.getCustomItems().values()) {
-            menu.addItem(ItemBuilder.of(customItem).build(player));
-        }
-
-        menu.open();
+        addResult(menu, bookOptions.getResultSlot() != null ? bookOptions.getResultSlot() : workbench.getResultSlot());
+        addBack(menu, ItemBuilder.of(menuOptions.getBackItem()).defaultSlot(bookOptions.getBackSlot()));
+        addPaging(menu, menuOptions.getNextRecipeItem(), bookOptions.getNextRecipeSlot(),
+                menuOptions.getPreviousRecipeItem(), bookOptions.getPrevRecipeSlot());
+        addCustomItems(menu, bookOptions.getCustomItems().values());
+        return menu;
     }
 
-    private void openStoneCutter() {
-        var config = plugin.getConfigManager().getStoneCutterRecipeViewConfig();
-        var wb = plugin.getConfigManager().getWorkbenchDefaultConfig();
-
-        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
-        menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
-
-        if (backAction != null) {
-            menu.addItem(ItemBuilder.of(config.getItems().getBack()).build(player), (e) -> {
-                backAction.run();
-            });
-        }
-
-        menu.addItem(ItemBuilder.item(blueprint.getResultItem()).slot(config.getSlots().getResult()).build(player));
-
-        var input = ItemBuilder.item(blueprint.getIngredientItems().getFirst()).slot(config.getSlots().getInput()).build(player);
-        var recipe = plugin.getBlueprintRegistry().getBlueprintFor(blueprint.getIngredients().getFirst().getItemPair().id());
-
-        if (recipe != null) {
-            menu.addItem(input, (e) -> {
-                BlueprintMenu.blueprintMenu(plugin, player, recipe, () -> {
-                    var m = BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction);
-                    m.groupIndex = groupIndex;
-                    m.open();
-                }).open();
-            });
-        } else {
-            menu.addItem(input);
-        }
-
-        var group = blueprint.getGroup();
-
-        if (group != null && group.getBlueprints().size() > 1 && config.getSlots().getNextRecipe() != null && config.getSlots().getPrevRecipe() != null) {
-            var size = group.getBlueprints().size();
-            var nextIndex = (groupIndex + 1) % size;
-            var prevIndex = (groupIndex - 1 + size) % size;
-            var next = group.getBlueprints().get(nextIndex);
-            var prev = group.getBlueprints().get(prevIndex);
-
-            menu.addItem(ItemBuilder.of(wb.getNextRecipe()).slot(config.getSlots().getNextRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, next, this.backAction);
-                m.groupIndex = nextIndex;
-                m.open();
-            });
-
-            menu.addItem(ItemBuilder.of(wb.getPreviousRecipe()).slot(config.getSlots().getPrevRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, prev, this.backAction);
-                m.groupIndex = prevIndex;
-                m.open();
-            });
-        }
-
-        for (var customItem : config.getCustomItems().values()) {
-            menu.addItem(ItemBuilder.of(customItem).build(player));
-        }
-
-        menu.open();
+    private AuroraMenu vanillaView(VanillaWorkbench<?> workbench) {
+        var configs = plugin.getConfigManager();
+        return switch (workbench.getType()) {
+            case FURNACE -> simpleView(configs.getFurnaceRecipeViewConfig());
+            case BLAST_FURNACE -> simpleView(configs.getBlastFurnaceRecipeViewConfig());
+            case SMOKER -> simpleView(configs.getSmokerRecipeViewConfig());
+            case CAMPFIRE -> simpleView(configs.getCampfireRecipeViewConfig());
+            case STONE_CUTTER -> simpleView(configs.getStoneCutterRecipeViewConfig());
+            case SMITHING_TABLE -> smithingView(configs.getSmithingRecipeViewConfig());
+            case CRAFTING_TABLE -> craftingTableView(configs.getCraftingTableRecipeViewConfig());
+            case CAULDRON -> cauldronView(configs.getCauldronRecipeViewConfig());
+            case BREWING_STAND -> brewingView(configs.getBrewingStandRecipeViewConfig());
+        };
     }
 
-    private void openCauldron() {
-        var config = plugin.getConfigManager().getCauldronRecipeViewConfig();
-        var wb = plugin.getConfigManager().getWorkbenchDefaultConfig();
-
-        AuroraMenu menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
-        menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
-
-        if (backAction != null) {
-            menu.addItem(ItemBuilder.of(config.getItems().getBack()).build(player), (e) -> {
-                backAction.run();
-            });
+    // One input and one result, and fuel for the furnaces. Vanilla uses one of the input, so one is shown.
+    private AuroraMenu simpleView(SimpleRecipeViewConfig config) {
+        var slots = config.getSlots();
+        var menu = vanillaMenu(config);
+        var fuel = config.getItems().getFuel();
+        if (fuel != null && slots.getFuel() != null) {
+            menu.addItem(ItemBuilder.of(fuel).slot(slots.getFuel()).build(player));
         }
+        addResult(menu, slots.getResult());
+        addIngredient(menu, 0, slots.getInput(), false);
+        return addVanillaPagingAndCustomItems(menu, config);
+    }
 
-        menu.addItem(ItemBuilder.item(blueprint.getResultItem()).slot(config.getSlots().getResult()).build(player));
+    private AuroraMenu smithingView(SmithingRecipeViewConfig config) {
+        var slots = config.getSlots();
+        var menu = vanillaMenu(config);
+        addResult(menu, slots.getResult());
+        addIngredient(menu, 0, slots.getTemplate(), true);
+        addIngredient(menu, 1, slots.getBase(), true);
+        addIngredient(menu, 2, slots.getAddition(), true);
+        return addVanillaPagingAndCustomItems(menu, config);
+    }
 
-        MenuItem input = ItemBuilder.item(blueprint.getIngredientItems().getFirst()).slot(config.getSlots().getInput()).build(player);
-        Blueprint ingredientRecipe = plugin.getBlueprintRegistry().getBlueprintFor(blueprint.getIngredients().getFirst().getItemPair().id());
-
-        if (ingredientRecipe != null) {
-            menu.addItem(input, (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction);
-                m.groupIndex = groupIndex;
-                m.open();
-            });
-        } else {
-            menu.addItem(input);
+    private AuroraMenu craftingTableView(CraftingTableRecipeViewConfig config) {
+        var slots = config.getSlots();
+        var menu = vanillaMenu(config);
+        addResult(menu, slots.getResult());
+        // A 3x3 grid
+        for (int i = 0; i < Math.min(9, slots.getMatrix().size()); i++) {
+            addIngredient(menu, i, slots.getMatrix().get(i), true);
         }
+        return addVanillaPagingAndCustomItems(menu, config);
+    }
 
-
-        if (blueprint instanceof CauldronBlueprint cauldronBlueprint) {
-            List<Integer> fluidSlots = switch (cauldronBlueprint.getVanillaOptions().getFluidLevel()) {
-                case 1 -> config.getSlots().getFluidSlots().getOne();
-                case 2 -> config.getSlots().getFluidSlots().getTwo();
-                case 3 -> config.getSlots().getFluidSlots().getThree();
-                default ->
-                        throw new IllegalArgumentException("Invalid fluid level: " + cauldronBlueprint.getVanillaOptions().getFluidLevel());
+    private AuroraMenu cauldronView(CauldronRecipeViewConfig config) {
+        var slots = config.getSlots();
+        var menu = vanillaMenu(config);
+        addResult(menu, slots.getResult());
+        addIngredient(menu, 0, slots.getInput(), true);
+        if (blueprint instanceof CauldronBlueprint cauldron) {
+            var options = cauldron.getVanillaOptions();
+            var fluidSlots = switch (options.getFluidLevel()) {
+                case 1 -> slots.getFluidSlots().getOne();
+                case 2 -> slots.getFluidSlots().getTwo();
+                case 3 -> slots.getFluidSlots().getThree();
+                default -> List.<Integer>of();
             };
-
-
-            Material fluidKey = cauldronBlueprint.getVanillaOptions().getFluid();
-            for (int fluidSlot : fluidSlots) {
-                ItemConfig fluidConfig = null;
-                switch (fluidKey) {
-                    case Material.WATER_CAULDRON -> fluidConfig = config.getFluidMaterials().getWater();
-                    case Material.LAVA_CAULDRON -> fluidConfig = config.getFluidMaterials().getLava();
-                    case Material.POWDER_SNOW_CAULDRON -> fluidConfig = config.getFluidMaterials().getPowderSnow();
-                }
-
-                if (fluidConfig != null) {
-                    fluidConfig.setSlot(fluidSlot);
-                    menu.addItem(ItemBuilder.of(fluidConfig).build(player));
+            var fluids = config.getFluidMaterials();
+            var fluid = switch (options.getFluid()) {
+                case WATER_CAULDRON -> fluids.getWater();
+                case LAVA_CAULDRON -> fluids.getLava();
+                case POWDER_SNOW_CAULDRON -> fluids.getPowderSnow();
+                default -> null;
+            };
+            if (fluid != null) {
+                for (int slot : fluidSlots) {
+                    menu.addItem(ItemBuilder.of(fluid).slot(slot).build(player));
                 }
             }
         }
-
-        var group = blueprint.getGroup();
-
-        if (group != null && group.getBlueprints().size() > 1 && config.getSlots().getNextRecipe() != null && config.getSlots().getPrevRecipe() != null) {
-            var size = group.getBlueprints().size();
-            var nextIndex = (groupIndex + 1) % size;
-            var prevIndex = (groupIndex - 1 + size) % size;
-            var next = group.getBlueprints().get(nextIndex);
-            var prev = group.getBlueprints().get(prevIndex);
-
-            menu.addItem(ItemBuilder.of(wb.getNextRecipe()).slot(config.getSlots().getNextRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, next, this.backAction);
-                m.groupIndex = nextIndex;
-                m.open();
-            });
-
-            menu.addItem(ItemBuilder.of(wb.getPreviousRecipe()).slot(config.getSlots().getPrevRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, prev, this.backAction);
-                m.groupIndex = prevIndex;
-                m.open();
-            });
-        }
-
-        for (var customItem : config.getCustomItems().values()) {
-            menu.addItem(ItemBuilder.of(customItem).build(player));
-        }
-
-        menu.open();
+        return addVanillaPagingAndCustomItems(menu, config);
     }
 
-    private void openFurnace() {
-        var config = plugin.getConfigManager().getFurnaceRecipeViewConfig();
-        var wb = plugin.getConfigManager().getWorkbenchDefaultConfig();
-
-        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
-        menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
-
-        if (backAction != null) {
-            menu.addItem(ItemBuilder.of(config.getItems().getBack()).build(player), (e) -> {
-                backAction.run();
-            });
+    private AuroraMenu brewingView(BrewingStandRecipeViewConfig config) {
+        var slots = config.getSlots();
+        var menu = vanillaMenu(config);
+        var brewing = (BrewingBlueprint) blueprint;
+        for (int slot : slots.getResult()) {
+            addResult(menu, slot);
         }
+        addIngredient(menu, ItemBuilder.item(brewing.getIngredientItem()), brewing.getIngredient(), slots.getIngredient());
+        for (int slot : slots.getInput()) {
+            addIngredient(menu, ItemBuilder.item(brewing.getInputItem()), brewing.getInput(), slot);
+        }
+        return addVanillaPagingAndCustomItems(menu, config);
+    }
 
-        menu.addItem(ItemBuilder.of(config.getItems().getFuel()).slot(config.getSlots().getFuel()).build(player));
-        menu.addItem(ItemBuilder.item(blueprint.getResultItem()).slot(config.getSlots().getResult()).build(player));
+    private AuroraMenu vanillaMenu(RecipeViewConfig config) {
+        var menu = menu(config.getTitle(), config.getRows(), config.getItems().getFiller());
+        addBack(menu, ItemBuilder.of(config.getItems().getBack()));
+        return menu;
+    }
 
-        var input = ItemBuilder.item(blueprint.getIngredientItems().getFirst()).slot(config.getSlots().getInput()).build(player);
-        var recipe = plugin.getBlueprintRegistry().getBlueprintFor(blueprint.getIngredients().getFirst().getItemPair().id());
+    private AuroraMenu addVanillaPagingAndCustomItems(AuroraMenu menu, RecipeViewConfig config) {
+        // The paging buttons look the same in every vanilla view, like in the workbenches
+        var defaults = plugin.getConfigManager().getWorkbenchDefaultConfig();
+        addPaging(menu, defaults.getNextRecipe(), config.getSlots().getNextRecipe(),
+                defaults.getPreviousRecipe(), config.getSlots().getPrevRecipe());
+        addCustomItems(menu, config.getCustomItems().values());
+        return menu;
+    }
 
+    private AuroraMenu menu(String title, int rows, ItemConfig filler) {
+        var menu = new AuroraMenu(player, title, rows * 9, false, key);
+        menu.addFiller(ItemBuilder.of(filler).toItemStack(player));
+        return menu;
+    }
+
+    /**
+     * The ingredient at that index of the recipe (empty if it has fewer).
+     *
+     * @param withAmount the amount the recipe takes, otherwise one
+     */
+    private void addIngredient(AuroraMenu menu, int index, int slot, boolean withAmount) {
+        var items = blueprint.getIngredientItems();
+        var ingredients = blueprint.getIngredients();
+        var item = index < items.size() ? items.get(index) : ItemStack.empty();
+        var type = index < ingredients.size() ? ingredients.get(index).getItemPair() : null;
+        var builder = ItemBuilder.item(item);
+        if (withAmount) builder.amount(type != null ? type.amount() : item.getAmount());
+        addIngredient(menu, builder, type != null ? type.id() : null, slot);
+    }
+
+    // Clicking it shows the ingredient's own recipe, if it has one
+    private void addIngredient(AuroraMenu menu, ItemBuilder item, TypeId id, int slot) {
+        var built = item.slot(slot).build(player);
+        var recipe = id != null ? recipeFor(id) : null;
         if (recipe != null) {
-            menu.addItem(input, (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction);
-                m.groupIndex = groupIndex;
-                m.open();
+            menu.addItem(built, (e) -> {
+                showFromHere(recipe);
             });
         } else {
-            menu.addItem(input);
+            menu.addItem(built);
         }
-
-        var group = blueprint.getGroup();
-
-        if (group != null && group.getBlueprints().size() > 1 && config.getSlots().getNextRecipe() != null && config.getSlots().getPrevRecipe() != null) {
-            var size = group.getBlueprints().size();
-            var nextIndex = (groupIndex + 1) % size;
-            var prevIndex = (groupIndex - 1 + size) % size;
-            var next = group.getBlueprints().get(nextIndex);
-            var prev = group.getBlueprints().get(prevIndex);
-
-            menu.addItem(ItemBuilder.of(wb.getNextRecipe()).slot(config.getSlots().getNextRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, next, this.backAction);
-                m.groupIndex = nextIndex;
-                m.open();
-            });
-
-            menu.addItem(ItemBuilder.of(wb.getPreviousRecipe()).slot(config.getSlots().getPrevRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, prev, this.backAction);
-                m.groupIndex = prevIndex;
-                m.open();
-            });
-        }
-
-        for (var customItem : config.getCustomItems().values()) {
-            menu.addItem(ItemBuilder.of(customItem).build(player));
-        }
-
-        menu.open();
     }
 
-    private void openBlastFurnace() {
-        var config = plugin.getConfigManager().getBlastFurnaceRecipeViewConfig();
-        var wb = plugin.getConfigManager().getWorkbenchDefaultConfig();
-
-        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
-        menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
-
-        if (backAction != null) {
-            menu.addItem(ItemBuilder.of(config.getItems().getBack()).build(player), (e) -> {
-                backAction.run();
-            });
-        }
-
-        menu.addItem(ItemBuilder.of(config.getItems().getFuel()).slot(config.getSlots().getFuel()).build(player));
-        menu.addItem(ItemBuilder.item(blueprint.getResultItem()).slot(config.getSlots().getResult()).build(player));
-
-        var input = ItemBuilder.item(blueprint.getIngredientItems().getFirst()).slot(config.getSlots().getInput()).build(player);
-        var recipe = plugin.getBlueprintRegistry().getBlueprintFor(blueprint.getIngredients().getFirst().getItemPair().id());
-
-        if (recipe != null) {
-            menu.addItem(input, (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction);
-                m.groupIndex = groupIndex;
-                m.open();
-            });
-        } else {
-            menu.addItem(input);
-        }
-
-        var group = blueprint.getGroup();
-
-        if (group != null && group.getBlueprints().size() > 1 && config.getSlots().getNextRecipe() != null && config.getSlots().getPrevRecipe() != null) {
-            var size = group.getBlueprints().size();
-            var nextIndex = (groupIndex + 1) % size;
-            var prevIndex = (groupIndex - 1 + size) % size;
-            var next = group.getBlueprints().get(nextIndex);
-            var prev = group.getBlueprints().get(prevIndex);
-
-            menu.addItem(ItemBuilder.of(wb.getNextRecipe()).slot(config.getSlots().getNextRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, next, this.backAction);
-                m.groupIndex = nextIndex;
-                m.open();
-            });
-
-            menu.addItem(ItemBuilder.of(wb.getPreviousRecipe()).slot(config.getSlots().getPrevRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, prev, this.backAction);
-                m.groupIndex = prevIndex;
-                m.open();
-            });
-        }
-
-        for (var customItem : config.getCustomItems().values()) {
-            menu.addItem(ItemBuilder.of(customItem).build(player));
-        }
-
-        menu.open();
+    // The recipe of an ingredient, if it has one this player may see
+    private Blueprint recipeFor(TypeId item) {
+        var recipe = plugin.getBlueprintRegistry().getBlueprintFor(item);
+        if (recipe == null) return null;
+        return recipe.hasAccess(player) || !plugin.getConfigManager().getRecipeBookCategoryConfig().getSecretRecipeDisplay().getEnabled() ? recipe : null;
     }
 
-    private void openSmoker() {
-        var config = plugin.getConfigManager().getSmokerRecipeViewConfig();
-        var wb = plugin.getConfigManager().getWorkbenchDefaultConfig();
-
-        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
-        menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
-
-        if (backAction != null) {
-            menu.addItem(ItemBuilder.of(config.getItems().getBack()).build(player), (e) -> {
-                backAction.run();
-            });
-        }
-
-        menu.addItem(ItemBuilder.of(config.getItems().getFuel()).slot(config.getSlots().getFuel()).build(player));
-        menu.addItem(ItemBuilder.item(blueprint.getResultItem()).slot(config.getSlots().getResult()).build(player));
-
-        var input = ItemBuilder.item(blueprint.getIngredientItems().getFirst()).slot(config.getSlots().getInput()).build(player);
-        var recipe = plugin.getBlueprintRegistry().getBlueprintFor(blueprint.getIngredients().getFirst().getItemPair().id());
-
-        if (recipe != null) {
-            menu.addItem(input, (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction);
-                m.groupIndex = groupIndex;
-                m.open();
-            });
-        } else {
-            menu.addItem(input);
-        }
-
-        var group = blueprint.getGroup();
-
-        if (group != null && group.getBlueprints().size() > 1 && config.getSlots().getNextRecipe() != null && config.getSlots().getPrevRecipe() != null) {
-            var size = group.getBlueprints().size();
-            var nextIndex = (groupIndex + 1) % size;
-            var prevIndex = (groupIndex - 1 + size) % size;
-            var next = group.getBlueprints().get(nextIndex);
-            var prev = group.getBlueprints().get(prevIndex);
-
-            menu.addItem(ItemBuilder.of(wb.getNextRecipe()).slot(config.getSlots().getNextRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, next, this.backAction);
-                m.groupIndex = nextIndex;
-                m.open();
-            });
-
-            menu.addItem(ItemBuilder.of(wb.getPreviousRecipe()).slot(config.getSlots().getPrevRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, prev, this.backAction);
-                m.groupIndex = prevIndex;
-                m.open();
-            });
-        }
-
-        for (var customItem : config.getCustomItems().values()) {
-            menu.addItem(ItemBuilder.of(customItem).build(player));
-        }
-
-        menu.open();
+    private void addResult(AuroraMenu menu, int slot) {
+        menu.addItem(ItemBuilder.item(blueprint.getResultItem()).amount(blueprint.getResult().amount()).slot(slot).build(player));
     }
 
-    private void openCampfire() {
-        var config = plugin.getConfigManager().getCampfireRecipeViewConfig();
-        var wb = plugin.getConfigManager().getWorkbenchDefaultConfig();
-
-        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
-        menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
-
-        if (backAction != null) {
-            menu.addItem(ItemBuilder.of(config.getItems().getBack()).build(player), (e) -> {
-                backAction.run();
-            });
-        }
-
-        menu.addItem(ItemBuilder.item(blueprint.getResultItem()).slot(config.getSlots().getResult()).build(player));
-
-        var input = ItemBuilder.item(blueprint.getIngredientItems().getFirst()).slot(config.getSlots().getInput()).build(player);
-        var recipe = plugin.getBlueprintRegistry().getBlueprintFor(blueprint.getIngredients().getFirst().getItemPair().id());
-
-        if (recipe != null) {
-            menu.addItem(input, (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction);
-                m.groupIndex = groupIndex;
-                m.open();
-            });
-        } else {
-            menu.addItem(input);
-        }
-
-        var group = blueprint.getGroup();
-
-        if (group != null && group.getBlueprints().size() > 1 && config.getSlots().getNextRecipe() != null && config.getSlots().getPrevRecipe() != null) {
-            var size = group.getBlueprints().size();
-            var nextIndex = (groupIndex + 1) % size;
-            var prevIndex = (groupIndex - 1 + size) % size;
-            var next = group.getBlueprints().get(nextIndex);
-            var prev = group.getBlueprints().get(prevIndex);
-
-            menu.addItem(ItemBuilder.of(wb.getNextRecipe()).slot(config.getSlots().getNextRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, next, this.backAction);
-                m.groupIndex = nextIndex;
-                m.open();
-            });
-
-            menu.addItem(ItemBuilder.of(wb.getPreviousRecipe()).slot(config.getSlots().getPrevRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, prev, this.backAction);
-                m.groupIndex = prevIndex;
-                m.open();
-            });
-        }
-
-        for (var customItem : config.getCustomItems().values()) {
-            menu.addItem(ItemBuilder.of(customItem).build(player));
-        }
-
-        menu.open();
+    private void addBack(AuroraMenu menu, ItemBuilder back) {
+        if (backAction == null) return;
+        menu.addItem(back.build(player), (e) -> {
+            backAction.run();
+        });
     }
 
-    private void openSmithingTable() {
-        var config = plugin.getConfigManager().getSmithingRecipeViewConfig();
-        var wb = plugin.getConfigManager().getWorkbenchDefaultConfig();
-
-        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
-        menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
-
-        if (backAction != null) {
-            menu.addItem(ItemBuilder.of(config.getItems().getBack()).build(player), (e) -> {
-                backAction.run();
-            });
-        }
-
-        menu.addItem(ItemBuilder.item(blueprint.getResultItem()).amount(blueprint.getResult().amount()).slot(config.getSlots().getResult()).build(player));
-
-        var template = ItemBuilder.item(blueprint.getIngredientItems().get(0)).amount(blueprint.getIngredients().get(0).getItemPair().amount()).slot(config.getSlots().getTemplate()).build(player);
-        var templateRecipe = plugin.getBlueprintRegistry().getBlueprintFor(blueprint.getIngredients().get(0).getItemPair().id());
-
-        if (templateRecipe != null) {
-            menu.addItem(template, (e) -> {
-                BlueprintMenu.blueprintMenu(plugin, player, templateRecipe, () -> {
-                    var m = BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction);
-                    m.groupIndex = groupIndex;
-                    m.open();
-                }).open();
-            });
-        } else {
-            menu.addItem(template);
-        }
-
-        var base = ItemBuilder.item(blueprint.getIngredientItems().get(1)).amount(blueprint.getIngredients().get(1).getItemPair().amount()).slot(config.getSlots().getBase()).build(player);
-        var baseRecipe = plugin.getBlueprintRegistry().getBlueprintFor(blueprint.getIngredients().get(1).getItemPair().id());
-
-        if (baseRecipe != null) {
-            menu.addItem(base, (e) -> {
-                BlueprintMenu.blueprintMenu(plugin, player, baseRecipe, () -> {
-                    var m = BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction);
-                    m.groupIndex = groupIndex;
-                    m.open();
-                }).open();
-            });
-        } else {
-            menu.addItem(base);
-        }
-
-        var addition = ItemBuilder.item(blueprint.getIngredientItems().get(2)).amount(blueprint.getIngredients().get(2).getItemPair().amount()).slot(config.getSlots().getAddition()).build(player);
-        var additionRecipe = plugin.getBlueprintRegistry().getBlueprintFor(blueprint.getIngredients().get(2).getItemPair().id());
-
-        if (additionRecipe != null) {
-            menu.addItem(addition, (e) -> {
-                BlueprintMenu.blueprintMenu(plugin, player, additionRecipe, () -> {
-                    var m = BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction);
-                    m.groupIndex = groupIndex;
-                    m.open();
-                }).open();
-            });
-        } else {
-            menu.addItem(addition);
-        }
-
+    // Through the recipe's group, keeping this view's back button
+    private void addPaging(AuroraMenu menu, ItemConfig nextItem, Integer nextSlot, ItemConfig prevItem, Integer prevSlot) {
         var group = blueprint.getGroup();
-
-        if (group != null && group.getBlueprints().size() > 1 && config.getSlots().getNextRecipe() != null && config.getSlots().getPrevRecipe() != null) {
-            var size = group.getBlueprints().size();
-            var nextIndex = (groupIndex + 1) % size;
-            var prevIndex = (groupIndex - 1 + size) % size;
-            var next = group.getBlueprints().get(nextIndex);
-            var prev = group.getBlueprints().get(prevIndex);
-
-            menu.addItem(ItemBuilder.of(wb.getNextRecipe()).slot(config.getSlots().getNextRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, next, this.backAction);
-                m.groupIndex = nextIndex;
-                m.open();
-            });
-
-            menu.addItem(ItemBuilder.of(wb.getPreviousRecipe()).slot(config.getSlots().getPrevRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, prev, this.backAction);
-                m.groupIndex = prevIndex;
-                m.open();
-            });
-        }
-
-        for (var customItem : config.getCustomItems().values()) {
-            menu.addItem(ItemBuilder.of(customItem).build(player));
-        }
-
-        menu.open();
+        if (group == null || group.getBlueprints().size() < 2 || nextSlot == null || prevSlot == null) return;
+        var recipes = group.getBlueprints();
+        var index = Math.max(0, recipes.indexOf(blueprint));
+        var next = recipes.get((index + 1) % recipes.size());
+        var previous = recipes.get((index - 1 + recipes.size()) % recipes.size());
+        menu.addItem(ItemBuilder.of(nextItem).slot(nextSlot).build(player), (e) -> {
+            blueprintMenu(plugin, player, next, backAction).open();
+        });
+        menu.addItem(ItemBuilder.of(prevItem).slot(prevSlot).build(player), (e) -> {
+            blueprintMenu(plugin, player, previous, backAction).open();
+        });
     }
 
-    private void openCraftingTable() {
-        var config = plugin.getConfigManager().getCraftingTableRecipeViewConfig();
-        var wb = plugin.getConfigManager().getWorkbenchDefaultConfig();
-
-        var menu = new AuroraMenu(player, config.getTitle(), config.getRows() * 9, false, key);
-        menu.addFiller(ItemBuilder.of(config.getItems().getFiller()).toItemStack(player));
-
-        if (backAction != null) {
-            menu.addItem(ItemBuilder.of(config.getItems().getBack()).build(player), (e) -> {
-                backAction.run();
-            });
-        }
-
-        menu.addItem(ItemBuilder.item(blueprint.getResultItem()).amount(blueprint.getResult().amount()).slot(config.getSlots().getResult()).build(player));
-
-        for (int i = 0; i < 9; i++) {
-            var slot = config.getSlots().getMatrix().get(i);
-            var item = ItemBuilder.item(blueprint.getIngredientItems().get(i)).amount(blueprint.getIngredients().get(i).getItemPair().amount()).slot(slot).build(player);
-            var type = blueprint.getIngredients().get(i).getItemPair().id();
-            var recipe = plugin.getBlueprintRegistry().getBlueprintFor(type);
-
-            if (recipe != null) {
-                menu.addItem(item, (e) -> {
-                    BlueprintMenu.blueprintMenu(plugin, player, recipe, () -> {
-                        var m = BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction);
-                        m.groupIndex = groupIndex;
-                        m.open();
-                    }).open();
-                });
-            } else {
-                menu.addItem(item);
-            }
-        }
-
-        var group = blueprint.getGroup();
-
-        if (group != null && group.getBlueprints().size() > 1 && config.getSlots().getNextRecipe() != null && config.getSlots().getPrevRecipe() != null) {
-            var size = group.getBlueprints().size();
-            var nextIndex = (groupIndex + 1) % size;
-            var prevIndex = (groupIndex - 1 + size) % size;
-            var next = group.getBlueprints().get(nextIndex);
-            var prev = group.getBlueprints().get(prevIndex);
-
-            menu.addItem(ItemBuilder.of(wb.getNextRecipe()).slot(config.getSlots().getNextRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, next, this.backAction);
-                m.groupIndex = nextIndex;
-                m.open();
-            });
-
-            menu.addItem(ItemBuilder.of(wb.getPreviousRecipe()).slot(config.getSlots().getPrevRecipe()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, prev, this.backAction);
-                m.groupIndex = prevIndex;
-                m.open();
-            });
-        }
-
-        for (var customItem : config.getCustomItems().values()) {
-            menu.addItem(ItemBuilder.of(customItem).build(player));
-        }
-
-        menu.open();
-    }
-
-    private void open(CustomWorkbench workbench) {
-        var mcc = plugin.getConfigManager().getRecipeBookCategoryConfig();
-
-        var menu = new AuroraMenu(player, workbench.getRecipeBookOptions().getTitle(), workbench.getMenuOptions().getRows() * 9, false, key);
-        menu.addFiller(ItemBuilder.of(workbench.getMenuOptions().getFillerItem()).toItemStack(player));
-
-        var ingredientItems = blueprint.getIngredientItems();
-        var ingredientTypes = blueprint.getIngredients();
-
-        for (int i = 0; i < workbench.getMatrixSlots().size(); i++) {
-            var slot = workbench.getMatrixSlots().get(i);
-            var item = i < ingredientItems.size() ? ingredientItems.get(i) : ItemStack.empty();
-            var type = i < ingredientTypes.size() ? ingredientTypes.get(i) : null;
-            if (type != null) {
-                var recipe = plugin.getBlueprintRegistry().getBlueprintFor(type.getItemPair().id());
-                if (recipe != null && (recipe.hasAccess(player) || !mcc.getSecretRecipeDisplay().getEnabled())) {
-                    menu.addItem(ItemBuilder.item(item).amount(item.getAmount()).slot(slot).build(player), (e) -> {
-                        BlueprintMenu.blueprintMenu(plugin, player, recipe, () -> {
-                            var m = BlueprintMenu.blueprintMenu(plugin, player, this.blueprint, this.backAction);
-                            m.groupIndex = groupIndex;
-                            m.open();
-                        }).open();
-                    });
-                    continue;
-                }
-            }
-
-            menu.addItem(ItemBuilder.item(item).amount(item.getAmount()).slot(slot).build(player));
-        }
-
-        Integer resultSlot;
-        resultSlot = workbench.getRecipeBookOptions().getResultSlot();
-        if (resultSlot == null) {
-            resultSlot = workbench.getResultSlot();
-        }
-
-        menu.addItem(ItemBuilder.item(blueprint.getResultItem()).amount(blueprint.getResult().amount()).slot(resultSlot).build(player));
-
-        if (backAction != null) {
-            menu.addItem(ItemBuilder.of(workbench.getMenuOptions().getBackItem()).defaultSlot(workbench.getRecipeBookOptions().getBackSlot()).build(player), (e) -> {
-                backAction.run();
-            });
-        }
-
-        var group = blueprint.getGroup();
-
-        if (group != null && group.getBlueprints().size() > 1 && workbench.getRecipeBookOptions().getNextRecipeSlot() != null && workbench.getRecipeBookOptions().getPrevRecipeSlot() != null) {
-            var size = group.getBlueprints().size();
-            var nextIndex = (groupIndex + 1) % size;
-            var prevIndex = (groupIndex - 1 + size) % size;
-            var next = group.getBlueprints().get(nextIndex);
-            var prev = group.getBlueprints().get(prevIndex);
-
-            menu.addItem(ItemBuilder.of(workbench.getMenuOptions().getNextRecipeItem()).slot(workbench.getRecipeBookOptions().getNextRecipeSlot()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, next, this.backAction);
-                m.groupIndex = nextIndex;
-                m.open();
-            });
-
-            menu.addItem(ItemBuilder.of(workbench.getMenuOptions().getPreviousRecipeItem()).slot(workbench.getRecipeBookOptions().getPrevRecipeSlot()).build(player), (e) -> {
-                var m = BlueprintMenu.blueprintMenu(plugin, player, prev, this.backAction);
-                m.groupIndex = prevIndex;
-                m.open();
-            });
-        }
-
-        for (var item : workbench.getRecipeBookOptions().getCustomItems().values()) {
+    private void addCustomItems(AuroraMenu menu, Collection<ItemConfig> items) {
+        for (var item : items) {
             menu.addItem(ItemBuilder.of(item).build(player));
         }
+    }
 
-        menu.open();
+    // Shows another recipe, whose back button comes back to this one
+    private void showFromHere(Blueprint recipe) {
+        blueprintMenu(plugin, player, recipe, this::open).open();
     }
 }

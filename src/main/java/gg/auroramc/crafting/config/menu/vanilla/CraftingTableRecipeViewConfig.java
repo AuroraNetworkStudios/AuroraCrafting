@@ -1,44 +1,16 @@
 package gg.auroramc.crafting.config.menu.vanilla;
 
-import gg.auroramc.aurora.api.config.premade.ItemConfig;
 import lombok.Getter;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
 
 @Getter
-public class CraftingTableRecipeViewConfig {
-    private String title = "Crafting Table Recipes";
-    private Integer rows = 6;
-    private Map<String, ItemConfig> customItems;
-
-    private Items items;
+public class CraftingTableRecipeViewConfig extends RecipeViewConfig {
     private Slots slots;
 
     @Getter
-    public static final class Slots {
-        private Integer result = 16;
+    public static final class Slots extends RecipeViewConfig.Slots {
+        private Integer result;
         private List<Integer> matrix;
-        private Integer prevRecipe = 52;
-        private Integer nextRecipe = 53;
-    }
-
-    @Getter
-    public static final class Items {
-        private ItemConfig filler;
-        private ItemConfig back;
-    }
-
-    // Steps by config-version, only ever appended, each sets config-version itself
-    public static List<Consumer<YamlConfiguration>> migrations() {
-        return List.of(
-                (yaml) -> {
-                    yaml.set("slots.prev-recipe", 52);
-                    yaml.set("slots.next-recipe", 53);
-                    yaml.set("config-version", 1);
-                }
-        );
     }
 }
