@@ -1,9 +1,10 @@
 package gg.auroramc.crafting.config;
 
-import gg.auroramc.aurora.api.config.AuroraConfig;
+import gg.auroramc.aurora.api.config.ConfigLoader;
 import gg.auroramc.aurora.api.config.decorators.IgnoreField;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @Getter
-public class CraftingRecipesConfig extends AuroraConfig {
+public class CraftingRecipesConfig {
     @IgnoreField
     private String sourcePath;
 
@@ -53,18 +54,15 @@ public class CraftingRecipesConfig extends AuroraConfig {
         private List<String> lockedLore = new ArrayList<>();
     }
 
-    public CraftingRecipesConfig(File file, boolean vanilla) {
-        super(file);
-        this.vanilla = vanilla;
-        var target = "blueprints" + File.separator;
-        var absPath = file.getAbsolutePath();
-        var index = absPath.indexOf(target);
-        this.sourcePath = absPath.substring(index + target.length()).replace(".yml", "").replace(File.separator, "/");
-    }
-
-    @Override
-    public void load() {
-        super.load();
-        recipes.forEach(recipe -> recipe.setSourcePath(sourcePath));
+    /**
+     * Reads a recipe file. These are read again on every reload, and a server's own ones have no bundled copy, so
+     * nothing is used as defaults under them.
+     */
+    public static CraftingRecipesConfig load(File file, boolean vanilla) {
+        var config = ConfigLoader.load(CraftingRecipesConfig.class, file.getPath(), YamlConfiguration.loadConfiguration(file));
+        config.vanilla = vanilla;
+        config.sourcePath = ConfigManager.sourcePath(file);
+        config.recipes.forEach(recipe -> recipe.setSourcePath(config.sourcePath));
+        return config;
     }
 }

@@ -1,6 +1,5 @@
 package gg.auroramc.crafting.config;
 
-import gg.auroramc.aurora.api.config.AuroraConfig;
 import gg.auroramc.aurora.api.config.decorators.IgnoreField;
 import gg.auroramc.aurora.api.config.premade.ItemConfig;
 import gg.auroramc.crafting.AuroraCrafting;
@@ -12,14 +11,14 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 
 @Getter
-@Setter
-public class WorkbenchConfig extends AuroraConfig {
+public class WorkbenchConfig {
+    // The file name
     @IgnoreField
-    private final String id;
+    @Setter
+    private String id;
 
     private ItemConfig filler;
     private Map<String, ItemConfig> customItems;
@@ -50,13 +49,8 @@ public class WorkbenchConfig extends AuroraConfig {
         private Map<String, ItemConfig> customItems = new HashMap<>();
     }
 
-    public WorkbenchConfig(File file, String id) {
-        super(file);
-        this.id = id;
-    }
-
-    @Override
-    protected List<Consumer<YamlConfiguration>> getMigrationSteps() {
+    // Steps by config-version, only ever appended, each sets config-version itself
+    public static List<Consumer<YamlConfiguration>> migrations() {
         return List.of(
                 yaml -> {
                     yaml.set("recipe-book.title", "Crafting recipe");

@@ -1,6 +1,5 @@
 package gg.auroramc.crafting.config.menu;
 
-import gg.auroramc.aurora.api.config.AuroraConfig;
 import gg.auroramc.aurora.api.config.premade.ItemConfig;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.workbench.custom.MenuOptions;
@@ -12,7 +11,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Getter
-public class WorkbenchDefaultConfig extends AuroraConfig implements MenuOptions.DefaultSupplier {
+public class WorkbenchDefaultConfig implements MenuOptions.DefaultSupplier {
     private ItemConfig filler;
     private String title = "Workbench";
     private Integer rows = 6;
@@ -24,20 +23,6 @@ public class WorkbenchDefaultConfig extends AuroraConfig implements MenuOptions.
     private ItemConfig nextRecipeItem;
     private ItemConfig previousRecipeItem;
     private ItemConfig backItem;
-
-    public WorkbenchDefaultConfig(AuroraCrafting plugin) {
-        super(getFile(plugin));
-    }
-
-    public static File getFile(AuroraCrafting plugin) {
-        return new File(plugin.getDataFolder() + "/menus", "workbench_defaults.yml");
-    }
-
-    public static void saveDefault(AuroraCrafting plugin) {
-        if (!getFile(plugin).exists()) {
-            plugin.saveResource("menus/workbench_defaults.yml", false);
-        }
-    }
 
     @Override
     public ItemConfig getEmptyQuickCraft() {
@@ -79,8 +64,8 @@ public class WorkbenchDefaultConfig extends AuroraConfig implements MenuOptions.
         return backItem;
     }
 
-    @Override
-    protected List<Consumer<YamlConfiguration>> getMigrationSteps() {
+    // Steps by config-version, only ever appended, each sets config-version itself
+    public static List<Consumer<YamlConfiguration>> migrations() {
         return List.of(
                 yaml -> {
                     var oldFile = new File(AuroraCrafting.getInstance().getDataFolder() + "/menus", "recipe_view.yml");

@@ -1,207 +1,230 @@
 package gg.auroramc.crafting.config;
 
+import gg.auroramc.aurora.api.config.ConfigFile;
 import gg.auroramc.crafting.AuroraCrafting;
 import gg.auroramc.crafting.api.workbench.custom.MenuOptions;
 import gg.auroramc.crafting.config.menu.*;
 import gg.auroramc.crafting.config.menu.vanilla.*;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.jetbrains.annotations.NotNull;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Getter
 public class ConfigManager {
-
     public static final String VANILLA_RECIPE_VIEW_PATH = "menus/vanilla_recipe_view";
 
     private final AuroraCrafting plugin;
 
-    private Config config;
-    private RecipeBookConfig recipeBookConfig;
-    private MessageConfig messageConfig;
-    private MerchantsConfig merchantsConfig;
-    private DisabledRecipesConfig disabledRecipesConfig;
+    private final ConfigFile<Config> config;
+    // By language: only the configured language is used, a file stays loaded so a reload can keep it if it's broken
+    private final Map<String, ConfigFile<MessageConfig>> messageConfigs = new ConcurrentHashMap<>();
+    private volatile String language;
+    // A server's own content: created from the bundled example, which isn't used as defaults (that would bring the
+    // example merchants and categories back when a server removes them), as before
+    private final ConfigFile<RecipeBookConfig> recipeBookConfig;
+    private final ConfigFile<MerchantsConfig> merchantsConfig;
+    private final ConfigFile<DisabledRecipesConfig> disabledRecipesConfig;
 
     // menus
-    private List<WorkbenchConfig> workbenchConfig;
-    private RecipeBookMenuConfig recipeBookMenuConfig;
-    private RecipeBookCategoryConfig recipeBookCategoryConfig;
-    private MerchantsMenuConfig merchantsMenuConfig;
-    private WorkbenchDefaultConfig workbenchDefaultConfig;
-
+    private final ConfigFile<RecipeBookMenuConfig> recipeBookMenuConfig;
+    private final ConfigFile<RecipeBookCategoryConfig> recipeBookCategoryConfig;
+    private final ConfigFile<MerchantsMenuConfig> merchantsMenuConfig;
+    private final ConfigFile<WorkbenchDefaultConfig> workbenchDefaultConfig;
+    // Under every workbench file, with the server's workbench_defaults.yml over it
+    private final YamlConfiguration bundledWorkbenchDefaults;
+    // By workbench id, kept across reloads like the other files
+    private final Map<String, ConfigFile<WorkbenchConfig>> workbenchFiles = new ConcurrentHashMap<>();
 
     // recipe views
-    private BlastFurnaceRecipeViewConfig blastFurnaceRecipeViewConfig;
-    private CampfireRecipeViewConfig campfireRecipeViewConfig;
-    private CraftingTableRecipeViewConfig craftingTableRecipeViewConfig;
-    private FurnaceRecipeViewConfig furnaceRecipeViewConfig;
-    private SmithingRecipeViewConfig smithingRecipeViewConfig;
-    private SmokerRecipeViewConfig smokerRecipeViewConfig;
-    private StoneCutterRecipeViewConfig stoneCutterRecipeViewConfig;
-    private CauldronRecipeViewConfig cauldronRecipeViewConfig;
-    private BrewingStandRecipeViewConfig brewingStandRecipeViewConfig;
+    private final ConfigFile<BlastFurnaceRecipeViewConfig> blastFurnaceRecipeViewConfig;
+    private final ConfigFile<CampfireRecipeViewConfig> campfireRecipeViewConfig;
+    private final ConfigFile<CraftingTableRecipeViewConfig> craftingTableRecipeViewConfig;
+    private final ConfigFile<FurnaceRecipeViewConfig> furnaceRecipeViewConfig;
+    private final ConfigFile<SmithingRecipeViewConfig> smithingRecipeViewConfig;
+    private final ConfigFile<SmokerRecipeViewConfig> smokerRecipeViewConfig;
+    private final ConfigFile<StoneCutterRecipeViewConfig> stoneCutterRecipeViewConfig;
+    private final ConfigFile<CauldronRecipeViewConfig> cauldronRecipeViewConfig;
+    private final ConfigFile<BrewingStandRecipeViewConfig> brewingStandRecipeViewConfig;
 
-    private List<CraftingRecipesConfig> customRecipes;
-    private List<CraftingRecipesConfig> craftingTableRecipes;
+    @Getter
+    private volatile List<WorkbenchConfig> workbenchConfig;
 
-    private List<CookingRecipesConfig.RecipeConfig> blastingRecipes;
-    private List<CauldronRecipesConfig.RecipeConfig> cauldronRecipes;
-    private List<CookingRecipesConfig.RecipeConfig> smokingRecipes;
-    private List<CookingRecipesConfig.RecipeConfig> furnaceRecipes;
-    private List<CookingRecipesConfig.RecipeConfig> campfireRecipes;
-    private List<SmithingRecipesConfig.RecipeConfig> smithingRecipes;
-    private List<StoneCutterRecipesConfig.RecipeConfig> stoneCutterRecipes;
-    private List<BrewingRecipesConfig.RecipeConfig> brewingStandRecipes;
+    @Getter
+    private volatile List<CraftingRecipesConfig> customRecipes;
+    @Getter
+    private volatile List<CraftingRecipesConfig> craftingTableRecipes;
+
+    @Getter
+    private volatile List<CookingRecipesConfig.RecipeConfig> blastingRecipes;
+    @Getter
+    private volatile List<CauldronRecipesConfig.RecipeConfig> cauldronRecipes;
+    @Getter
+    private volatile List<CookingRecipesConfig.RecipeConfig> smokingRecipes;
+    @Getter
+    private volatile List<CookingRecipesConfig.RecipeConfig> furnaceRecipes;
+    @Getter
+    private volatile List<CookingRecipesConfig.RecipeConfig> campfireRecipes;
+    @Getter
+    private volatile List<SmithingRecipesConfig.RecipeConfig> smithingRecipes;
+    @Getter
+    private volatile List<StoneCutterRecipesConfig.RecipeConfig> stoneCutterRecipes;
+    @Getter
+    private volatile List<BrewingRecipesConfig.RecipeConfig> brewingStandRecipes;
 
     public ConfigManager(AuroraCrafting plugin) {
         this.plugin = plugin;
+        config = ConfigFile.builder(plugin, "config.yml", Config.class).migrations(Config.migrations()).build();
+        recipeBookConfig = ConfigFile.builder(plugin, "recipe_book.yml", RecipeBookConfig.class).bundled(null).build();
+        merchantsConfig = ConfigFile.builder(plugin, "merchants.yml", MerchantsConfig.class).bundled(null).build();
+        disabledRecipesConfig = ConfigFile.builder(plugin, "disabled_recipes.yml", DisabledRecipesConfig.class).bundled(null)
+                .migrations(DisabledRecipesConfig.migrations()).build();
+        recipeBookMenuConfig = ConfigFile.builder(plugin, "menus/recipe_book.yml", RecipeBookMenuConfig.class).build();
+        recipeBookCategoryConfig = ConfigFile.builder(plugin, "menus/recipe_book_category.yml", RecipeBookCategoryConfig.class).build();
+        merchantsMenuConfig = ConfigFile.builder(plugin, "menus/merchants.yml", MerchantsMenuConfig.class).build();
+        workbenchDefaultConfig = ConfigFile.builder(plugin, "menus/workbench_defaults.yml", WorkbenchDefaultConfig.class)
+                .migrations(WorkbenchDefaultConfig.migrations()).build();
+        bundledWorkbenchDefaults = bundledYaml("menus/workbench_defaults.yml");
+        blastFurnaceRecipeViewConfig = view("blast_furnace.yml", BlastFurnaceRecipeViewConfig.class, BlastFurnaceRecipeViewConfig.migrations());
+        campfireRecipeViewConfig = view("campfire.yml", CampfireRecipeViewConfig.class, CampfireRecipeViewConfig.migrations());
+        craftingTableRecipeViewConfig = view("crafting_table.yml", CraftingTableRecipeViewConfig.class, CraftingTableRecipeViewConfig.migrations());
+        furnaceRecipeViewConfig = view("furnace.yml", FurnaceRecipeViewConfig.class, FurnaceRecipeViewConfig.migrations());
+        smithingRecipeViewConfig = view("smithing_table.yml", SmithingRecipeViewConfig.class, SmithingRecipeViewConfig.migrations());
+        smokerRecipeViewConfig = view("smoker.yml", SmokerRecipeViewConfig.class, SmokerRecipeViewConfig.migrations());
+        stoneCutterRecipeViewConfig = view("stone_cutter.yml", StoneCutterRecipeViewConfig.class, StoneCutterRecipeViewConfig.migrations());
+        cauldronRecipeViewConfig = view("cauldron.yml", CauldronRecipeViewConfig.class, CauldronRecipeViewConfig.migrations());
+        brewingStandRecipeViewConfig = view("brewing_stand.yml", BrewingStandRecipeViewConfig.class, BrewingStandRecipeViewConfig.migrations());
     }
 
+    private <T> ConfigFile<T> view(String name, Class<T> type, List<Consumer<YamlConfiguration>> migrations) {
+        return ConfigFile.builder(plugin, VANILLA_RECIPE_VIEW_PATH + "/" + name, type).migrations(migrations).build();
+    }
+
+    /**
+     * Reads every file again. A file that's broken keeps the config it had before (the defaults on the first load).
+     */
     public void reload() {
-        Config.saveDefault(plugin);
-        config = new Config(plugin);
-        config.load();
+        config.reload();
+        loadMessages();
+        saveExample("merchants.yml");
+        merchantsConfig.reload();
+        saveExample("disabled_recipes.yml");
+        disabledRecipesConfig.reload();
+        saveExample("recipe_book.yml");
+        recipeBookConfig.reload();
 
-        MessageConfig.saveDefault(plugin, config.getLanguage());
-        messageConfig = new MessageConfig(plugin, config.getLanguage());
-        messageConfig.load();
+        recipeBookMenuConfig.reload();
+        recipeBookCategoryConfig.reload();
+        merchantsMenuConfig.reload();
+        workbenchDefaultConfig.reload();
 
-        MerchantsConfig.saveDefault(plugin);
-        merchantsConfig = new MerchantsConfig(plugin);
-        merchantsConfig.load();
+        blastFurnaceRecipeViewConfig.reload();
+        campfireRecipeViewConfig.reload();
+        craftingTableRecipeViewConfig.reload();
+        furnaceRecipeViewConfig.reload();
+        smithingRecipeViewConfig.reload();
+        smokerRecipeViewConfig.reload();
+        stoneCutterRecipeViewConfig.reload();
+        cauldronRecipeViewConfig.reload();
+        brewingStandRecipeViewConfig.reload();
 
-        DisabledRecipesConfig.saveDefault(plugin);
-        disabledRecipesConfig = new DisabledRecipesConfig(plugin);
-        disabledRecipesConfig.load();
+        // For workbenches added through the API
+        MenuOptions.setDefaultSupplier(getWorkbenchDefaultConfig());
 
-        RecipeBookConfig.saveDefault(plugin);
-        recipeBookConfig = new RecipeBookConfig(plugin);
-        recipeBookConfig.load();
+        workbenchConfig = loadWorkbenches();
 
-        RecipeBookMenuConfig.saveDefault(plugin);
-        recipeBookMenuConfig = new RecipeBookMenuConfig(plugin);
-        recipeBookMenuConfig.load();
+        customRecipes = loadRecipes("blueprints/aurora", file -> CraftingRecipesConfig.load(file, false));
+        craftingTableRecipes = loadRecipes("blueprints/vanilla/crafting_table", file -> CraftingRecipesConfig.load(file, true));
 
-        RecipeBookCategoryConfig.saveDefault(plugin);
-        recipeBookCategoryConfig = new RecipeBookCategoryConfig(plugin);
-        recipeBookCategoryConfig.load();
+        blastingRecipes = flatten(loadRecipes("blueprints/vanilla/blast_furnace", CookingRecipesConfig::load), CookingRecipesConfig::getRecipes);
+        cauldronRecipes = flatten(loadRecipes("blueprints/vanilla/cauldron", CauldronRecipesConfig::load), CauldronRecipesConfig::getRecipes);
+        smokingRecipes = flatten(loadRecipes("blueprints/vanilla/smoker", CookingRecipesConfig::load), CookingRecipesConfig::getRecipes);
+        furnaceRecipes = flatten(loadRecipes("blueprints/vanilla/furnace", CookingRecipesConfig::load), CookingRecipesConfig::getRecipes);
+        campfireRecipes = flatten(loadRecipes("blueprints/vanilla/campfire", CookingRecipesConfig::load), CookingRecipesConfig::getRecipes);
+        smithingRecipes = flatten(loadRecipes("blueprints/vanilla/smithing_table", SmithingRecipesConfig::load), SmithingRecipesConfig::getRecipes);
+        stoneCutterRecipes = flatten(loadRecipes("blueprints/vanilla/stone_cutter", StoneCutterRecipesConfig::load), StoneCutterRecipesConfig::getRecipes);
+        brewingStandRecipes = flatten(loadRecipes("blueprints/vanilla/brewing_stand", BrewingRecipesConfig::load), BrewingRecipesConfig::getRecipes);
 
-        MerchantsMenuConfig.saveDefault(plugin);
-        merchantsMenuConfig = new MerchantsMenuConfig(plugin);
-        merchantsMenuConfig.load();
-
-        WorkbenchDefaultConfig.saveDefault(plugin);
-        workbenchDefaultConfig = new WorkbenchDefaultConfig(plugin);
-        workbenchDefaultConfig.load();
-
-
-        // recipe views
-        BlastFurnaceRecipeViewConfig.saveDefault(plugin);
-        blastFurnaceRecipeViewConfig = new BlastFurnaceRecipeViewConfig(plugin);
-        blastFurnaceRecipeViewConfig.load();
-
-        CampfireRecipeViewConfig.saveDefault(plugin);
-        campfireRecipeViewConfig = new CampfireRecipeViewConfig(plugin);
-        campfireRecipeViewConfig.load();
-
-        CraftingTableRecipeViewConfig.saveDefault(plugin);
-        craftingTableRecipeViewConfig = new CraftingTableRecipeViewConfig(plugin);
-        craftingTableRecipeViewConfig.load();
-
-        FurnaceRecipeViewConfig.saveDefault(plugin);
-        furnaceRecipeViewConfig = new FurnaceRecipeViewConfig(plugin);
-        furnaceRecipeViewConfig.load();
-
-        SmithingRecipeViewConfig.saveDefault(plugin);
-        smithingRecipeViewConfig = new SmithingRecipeViewConfig(plugin);
-        smithingRecipeViewConfig.load();
-
-        SmokerRecipeViewConfig.saveDefault(plugin);
-        smokerRecipeViewConfig = new SmokerRecipeViewConfig(plugin);
-        smokerRecipeViewConfig.load();
-
-        StoneCutterRecipeViewConfig.saveDefault(plugin);
-        stoneCutterRecipeViewConfig = new StoneCutterRecipeViewConfig(plugin);
-        stoneCutterRecipeViewConfig.load();
-
-        CauldronRecipeViewConfig.saveDefault(plugin);
-        cauldronRecipeViewConfig = new CauldronRecipeViewConfig(plugin);
-        cauldronRecipeViewConfig.load();
-
-        BrewingStandRecipeViewConfig.saveDefault(plugin);
-        brewingStandRecipeViewConfig = new BrewingStandRecipeViewConfig(plugin);
-        brewingStandRecipeViewConfig.load();
-
-        MenuOptions.setDefaultSupplier(workbenchDefaultConfig);
-
-        workbenchConfig = loadWorkBenches();
-
-        customRecipes = getCraftingRecipesConfigs("blueprints/aurora", false);
-        craftingTableRecipes = getCraftingRecipesConfigs("blueprints/vanilla/crafting_table", true);
-
-        blastingRecipes = getCookingRecipesConfigs("blueprints/vanilla/blast_furnace").stream()
-                .flatMap(recipesConfig -> recipesConfig.getRecipes().stream())
-                .collect(Collectors.toList());
-
-        cauldronRecipes = getCauldronRecipesConfigs("blueprints/vanilla/cauldron").stream()
-                .flatMap(recipesConfig -> recipesConfig.getRecipes().stream())
-                .collect(Collectors.toList());
-
-        smokingRecipes = getCookingRecipesConfigs("blueprints/vanilla/smoker").stream()
-                .flatMap(recipesConfig -> recipesConfig.getRecipes().stream())
-                .collect(Collectors.toList());
-
-        furnaceRecipes = getCookingRecipesConfigs("blueprints/vanilla/furnace").stream()
-                .flatMap(recipesConfig -> recipesConfig.getRecipes().stream())
-                .collect(Collectors.toList());
-
-        campfireRecipes = getCookingRecipesConfigs("blueprints/vanilla/campfire").stream()
-                .flatMap(recipesConfig -> recipesConfig.getRecipes().stream())
-                .collect(Collectors.toList());
-
-        smithingRecipes = getSmithingRecipesConfigs().stream()
-                .flatMap(recipesConfig -> recipesConfig.getRecipes().stream())
-                .collect(Collectors.toList());
-
-        stoneCutterRecipes = getStoneCutterRecipesConfigs().stream()
-                .flatMap(recipesConfig -> recipesConfig.getRecipes().stream())
-                .collect(Collectors.toList());
-
-        brewingStandRecipes = getBrewingStandRecipesConfigs().stream()
-                .flatMap(recipesConfig -> recipesConfig.getRecipes().stream())
-                .collect(Collectors.toList());
-
+        // Its contents were moved into the workbench files by their migrations
         var oldRecipeViewConfigFile = new File(plugin.getDataFolder() + "/menus", "recipe_view.yml");
         if (oldRecipeViewConfigFile.exists()) {
             oldRecipeViewConfigFile.delete();
         }
     }
 
-    @SneakyThrows
-    private List<WorkbenchConfig> loadWorkBenches() {
-        if (!new File(plugin.getDataFolder() + "workbenches").exists()) {
-            if (new File(plugin.getDataFolder() + "/menus", "workbench.yml").exists()) {
-                Files.createDirectories(Path.of(plugin.getDataFolder().getPath(), "workbenches"));
-                Files.move(Path.of(plugin.getDataFolder().getPath(), "menus", "workbench.yml"), Path.of(plugin.getDataFolder().getPath(), "workbenches", "default.yml"));
-            } else {
-                if (!Files.exists(Path.of(plugin.getDataFolder().getPath(), "workbenches"))) {
-                    plugin.saveResource("workbenches/default.yml", false);
-                }
+    private void loadMessages() {
+        var language = getConfig().getLanguage();
+        var existing = messageConfigs.get(language);
+        if (existing != null) {
+            existing.reload();
+        } else {
+            var name = "messages_" + language + ".yml";
+            if (!hasResource(name) && !new File(plugin.getDataFolder(), name).exists()) {
+                AuroraCrafting.logger().warning("Internal message file for language: " + language + " not found! Creating a new one from english...");
+            }
+            var file = ConfigFile.builder(plugin, name, MessageConfig.class)
+                    .bundled(hasResource(name) ? name : "messages_en.yml")
+                    .migrations(MessageConfig.migrations(language))
+                    .build();
+            file.get();
+            messageConfigs.put(language, file);
+        }
+        this.language = language;
+    }
 
+    private boolean hasResource(String name) {
+        try (var in = plugin.getResource(name)) {
+            return in != null;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private YamlConfiguration bundledYaml(String name) {
+        try (var in = plugin.getResource(name)) {
+            if (in == null) return new YamlConfiguration();
+            return YamlConfiguration.loadConfiguration(new InputStreamReader(in, StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            return new YamlConfiguration();
+        }
+    }
+
+    private void saveExample(String name) {
+        if (!new File(plugin.getDataFolder(), name).exists()) {
+            plugin.saveResource(name, false);
+        }
+    }
+
+    /**
+     * Each workbench file, with the workbench defaults under it: whatever a workbench doesn't set, including single
+     * keys of an item, comes from workbench_defaults.yml.
+     */
+    @SneakyThrows
+    private List<WorkbenchConfig> loadWorkbenches() {
+        var folder = Path.of(plugin.getDataFolder().getPath(), "workbenches");
+        if (!Files.exists(folder)) {
+            if (new File(plugin.getDataFolder() + "/menus", "workbench.yml").exists()) {
+                Files.createDirectories(folder);
+                Files.move(Path.of(plugin.getDataFolder().getPath(), "menus", "workbench.yml"), folder.resolve("default.yml"));
+            } else {
+                plugin.saveResource("workbenches/default.yml", false);
             }
         }
 
-        var map = new ArrayList<WorkbenchConfig>();
-
-        try (Stream<Path> paths = Files.walk(Path.of(plugin.getDataFolder().getPath(), "workbenches"), 1)) {
+        var workbenches = new ArrayList<WorkbenchConfig>();
+        var ids = new HashSet<String>();
+        try (Stream<Path> paths = Files.walk(folder, 1)) {
             var fileList = paths
                     .filter(Files::isRegularFile)
                     .filter(path -> path.toString().endsWith(".yml"))
@@ -209,96 +232,39 @@ public class ConfigManager {
                     .toList();
 
             for (var file : fileList) {
-                map.add(getWorkbenchConfig(file));
+                var id = file.getName().replace(".yml", "");
+                var workbench = workbenchFiles.computeIfAbsent(id, k -> ConfigFile.builder(plugin, "workbenches/" + file.getName(), WorkbenchConfig.class)
+                        .bundled(null)
+                        .migrations(WorkbenchConfig.migrations())
+                        .defaults(() -> bundledWorkbenchDefaults)
+                        .defaults(() -> workbenchDefaultConfig.getYaml())
+                        .build()).reload();
+                workbench.setId(id);
+                workbenches.add(workbench);
+                ids.add(id);
             }
-
-            return map;
         }
+        workbenchFiles.keySet().retainAll(ids);
+        return workbenches;
     }
 
-    private @NotNull WorkbenchConfig getWorkbenchConfig(File file) {
-        var workbenchConfig = new WorkbenchConfig(file, file.getName().replace(".yml", ""));
-
-        workbenchConfig.load();
-
-        if (workbenchConfig.getTitle() == null) {
-            workbenchConfig.setTitle(workbenchDefaultConfig.getTitle());
-        }
-
-        if (workbenchConfig.getRows() == null) {
-            workbenchConfig.setRows(workbenchDefaultConfig.getRows());
-        }
-
-        if (workbenchConfig.getFiller() == null) {
-            workbenchConfig.setFiller(workbenchDefaultConfig.getFiller());
-        } else {
-            workbenchConfig.setFiller(workbenchDefaultConfig.getFiller().merge(workbenchConfig.getFiller()));
-        }
-
-        if (workbenchConfig.getInvalidResultItem() == null) {
-            workbenchConfig.setInvalidResultItem(workbenchDefaultConfig.getInvalidResultItem());
-        } else {
-            workbenchConfig.setInvalidResultItem(workbenchDefaultConfig.getInvalidResultItem().merge(workbenchConfig.getInvalidResultItem()));
-        }
-
-        if (workbenchConfig.getEmptyQuickCraftItem() == null) {
-            workbenchConfig.setEmptyQuickCraftItem(workbenchDefaultConfig.getEmptyQuickCraftItem());
-        } else {
-            workbenchConfig.setEmptyQuickCraftItem(workbenchDefaultConfig.getEmptyQuickCraftItem().merge(workbenchConfig.getEmptyQuickCraftItem()));
-        }
-
-        if (workbenchConfig.getNoPermissionQuickCraftItem() == null) {
-            workbenchConfig.setNoPermissionQuickCraftItem(workbenchDefaultConfig.getNoPermissionQuickCraftItem());
-        } else {
-            workbenchConfig.setNoPermissionQuickCraftItem(workbenchDefaultConfig.getNoPermissionQuickCraftItem().merge(workbenchConfig.getNoPermissionQuickCraftItem()));
-        }
-
-        if (workbenchConfig.getBlueprintCompletedItem() == null) {
-            workbenchConfig.setBlueprintCompletedItem(workbenchDefaultConfig.getBlueprintCompletedItem());
-        } else {
-            workbenchConfig.setBlueprintCompletedItem(workbenchDefaultConfig.getBlueprintCompletedItem().merge(workbenchConfig.getBlueprintCompletedItem()));
-        }
-
-        if (workbenchConfig.getBlueprintNotCompletedItem() == null) {
-            workbenchConfig.setBlueprintNotCompletedItem(workbenchDefaultConfig.getBlueprintNotCompletedItem());
-        } else {
-            workbenchConfig.setBlueprintNotCompletedItem(workbenchDefaultConfig.getBlueprintNotCompletedItem().merge(workbenchConfig.getBlueprintNotCompletedItem()));
-        }
-
-        if (workbenchConfig.getNextRecipeItem() == null) {
-            workbenchConfig.setNextRecipeItem(workbenchDefaultConfig.getNextRecipeItem());
-        } else {
-            workbenchConfig.setNextRecipeItem(workbenchDefaultConfig.getNextRecipeItem().merge(workbenchConfig.getNextRecipeItem()));
-        }
-
-        if (workbenchConfig.getPreviousRecipeItem() == null) {
-            workbenchConfig.setPreviousRecipeItem(workbenchDefaultConfig.getPreviousRecipeItem());
-        } else {
-            workbenchConfig.setPreviousRecipeItem(workbenchDefaultConfig.getPreviousRecipeItem().merge(workbenchConfig.getPreviousRecipeItem()));
-        }
-
-        if (workbenchConfig.getBackItem() == null) {
-            workbenchConfig.setBackItem(workbenchDefaultConfig.getBackItem());
-        } else {
-            workbenchConfig.setBackItem(workbenchDefaultConfig.getBackItem().merge(workbenchConfig.getBackItem()));
-        }
-
-        return workbenchConfig;
-    }
-
-    private List<CraftingRecipesConfig> getCraftingRecipesConfigs(String basePath, boolean vanilla) {
-        Path recipesFolder = Path.of(plugin.getDataFolder().getPath(), basePath);
+    /**
+     * Every recipe file in a folder (and below it), creating the folder with an example if it doesn't exist. A file
+     * that can't be loaded is skipped.
+     */
+    private <T> List<T> loadRecipes(String folder, Function<File, T> loader) {
+        Path recipesFolder = Path.of(plugin.getDataFolder().getPath(), folder);
 
         if (Files.notExists(recipesFolder)) {
             try {
                 Files.createDirectories(recipesFolder); // Create folder if it doesn't exist
-                plugin.saveResource(basePath + "/_example.yml", false);
+                plugin.saveResource(folder + "/_example.yml", false);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
-        var recipes = new ArrayList<CraftingRecipesConfig>();
+        var recipes = new ArrayList<T>();
 
         try (Stream<Path> paths = Files.walk(recipesFolder, 10)) {
             var fileList = paths
@@ -309,134 +275,105 @@ public class ConfigManager {
 
             for (var file : fileList) {
                 try {
-                    CraftingRecipesConfig recipesConfig = new CraftingRecipesConfig(file, vanilla);
-                    recipesConfig.load();
-                    recipes.add(recipesConfig);
+                    recipes.add(loader.apply(file));
                 } catch (Exception e) {
                     AuroraCrafting.logger().severe("Failed to load recipe file: " + file.getName());
                     e.printStackTrace();
                 }
             }
-
-            return recipes;
         } catch (IOException e) {
             e.printStackTrace();
-            return recipes;
         }
+        return recipes;
     }
 
-    @SneakyThrows
-    private List<CookingRecipesConfig> getCookingRecipesConfigs(String folder) {
-        Path recipesFolder = Path.of(plugin.getDataFolder().getPath(), folder);
-
-        if (Files.notExists(recipesFolder)) {
-            Files.createDirectories(recipesFolder); // Create folder if it doesn't exist
-            plugin.saveResource(folder + "/_example.yml", false);
-        }
-
-        try (Stream<Path> paths = Files.walk(recipesFolder, 10)) {
-            return paths
-                    .filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".yml") || path.toString().endsWith(".yaml"))
-                    .map(Path::toFile)
-                    .map((file) -> {
-                        CookingRecipesConfig recipesConfig = new CookingRecipesConfig(file);
-                        recipesConfig.load();
-                        return recipesConfig;
-                    })
-                    .collect(Collectors.toList());
-        }
+    private static <C, R> List<R> flatten(List<C> configs, Function<C, List<R>> recipes) {
+        return configs.stream().flatMap(config -> recipes.apply(config).stream()).collect(Collectors.toList());
     }
 
-    @SneakyThrows
-    private List<CauldronRecipesConfig> getCauldronRecipesConfigs(String folder) {
-        Path recipesFolder = Path.of(plugin.getDataFolder().getPath(), folder);
-
-        if (Files.notExists(recipesFolder)) {
-            Files.createDirectories(recipesFolder); // Create folder if it doesn't exist
-            plugin.saveResource(folder + "/_example.yml", false);
-        }
-
-        try (Stream<Path> paths = Files.walk(recipesFolder, 10)) {
-            return paths
-                    .filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".yml") || path.toString().endsWith(".yaml"))
-                    .map(Path::toFile)
-                    .map((file) -> {
-                        CauldronRecipesConfig recipesConfig = new CauldronRecipesConfig(file);
-                        recipesConfig.load();
-                        return recipesConfig;
-                    })
-                    .collect(Collectors.toList());
-        }
+    /**
+     * Where a recipe file is under blueprints/, without the extension, like "vanilla/furnace/my_recipes".
+     */
+    static String sourcePath(File file) {
+        var target = "blueprints" + File.separator;
+        var absPath = file.getAbsolutePath();
+        var index = absPath.indexOf(target);
+        return absPath.substring(index + target.length()).replace(".yml", "").replace(File.separator, "/");
     }
 
-    @SneakyThrows
-    private List<SmithingRecipesConfig> getSmithingRecipesConfigs() {
-        Path recipesFolder = Path.of(plugin.getDataFolder().getPath(), "blueprints/vanilla/smithing_table");
-
-        if (Files.notExists(recipesFolder)) {
-            Files.createDirectories(recipesFolder); // Create folder if it doesn't exist
-            plugin.saveResource("blueprints/vanilla/smithing_table/_example.yml", false);
-        }
-
-        try (Stream<Path> paths = Files.walk(recipesFolder, 10)) {
-            return paths
-                    .filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".yml") || path.toString().endsWith(".yaml"))
-                    .map(Path::toFile)
-                    .map((file) -> {
-                        SmithingRecipesConfig recipesConfig = new SmithingRecipesConfig(file);
-                        recipesConfig.load();
-                        return recipesConfig;
-                    })
-                    .collect(Collectors.toList());
-        }
+    public AuroraCrafting getPlugin() {
+        return plugin;
     }
 
-    @SneakyThrows
-    private List<StoneCutterRecipesConfig> getStoneCutterRecipesConfigs() {
-        Path recipesFolder = Path.of(plugin.getDataFolder().getPath(), "blueprints/vanilla/stone_cutter");
-
-        if (Files.notExists(recipesFolder)) {
-            Files.createDirectories(recipesFolder); // Create folder if it doesn't exist
-            plugin.saveResource("blueprints/vanilla/stone_cutter/_example.yml", false);
-        }
-
-        try (Stream<Path> paths = Files.walk(recipesFolder, 10)) {
-            return paths
-                    .filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".yml") || path.toString().endsWith(".yaml"))
-                    .map(Path::toFile)
-                    .map((file) -> {
-                        StoneCutterRecipesConfig recipesConfig = new StoneCutterRecipesConfig(file);
-                        recipesConfig.load();
-                        return recipesConfig;
-                    })
-                    .collect(Collectors.toList());
-        }
+    public Config getConfig() {
+        return config.get();
     }
 
-    @SneakyThrows
-    private List<BrewingRecipesConfig> getBrewingStandRecipesConfigs() {
-        Path recipesFolder = Path.of(plugin.getDataFolder().getPath(), "blueprints/vanilla/brewing_stand");
+    public MessageConfig getMessageConfig() {
+        return messageConfigs.get(language).get();
+    }
 
-        if (Files.notExists(recipesFolder)) {
-            Files.createDirectories(recipesFolder); // Create folder if it doesn't exist
-            plugin.saveResource("blueprints/vanilla/brewing_stand/_example.yml", false);
-        }
+    public RecipeBookConfig getRecipeBookConfig() {
+        return recipeBookConfig.get();
+    }
 
-        try (Stream<Path> paths = Files.walk(recipesFolder, 10)) {
-            return paths
-                    .filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".yml") || path.toString().endsWith(".yaml"))
-                    .map(Path::toFile)
-                    .map((file) -> {
-                        BrewingRecipesConfig recipesConfig = new BrewingRecipesConfig(file);
-                        recipesConfig.load();
-                        return recipesConfig;
-                    })
-                    .collect(Collectors.toList());
-        }
+    public MerchantsConfig getMerchantsConfig() {
+        return merchantsConfig.get();
+    }
+
+    public DisabledRecipesConfig getDisabledRecipesConfig() {
+        return disabledRecipesConfig.get();
+    }
+
+    public RecipeBookMenuConfig getRecipeBookMenuConfig() {
+        return recipeBookMenuConfig.get();
+    }
+
+    public RecipeBookCategoryConfig getRecipeBookCategoryConfig() {
+        return recipeBookCategoryConfig.get();
+    }
+
+    public MerchantsMenuConfig getMerchantsMenuConfig() {
+        return merchantsMenuConfig.get();
+    }
+
+    public WorkbenchDefaultConfig getWorkbenchDefaultConfig() {
+        return workbenchDefaultConfig.get();
+    }
+
+    public BlastFurnaceRecipeViewConfig getBlastFurnaceRecipeViewConfig() {
+        return blastFurnaceRecipeViewConfig.get();
+    }
+
+    public CampfireRecipeViewConfig getCampfireRecipeViewConfig() {
+        return campfireRecipeViewConfig.get();
+    }
+
+    public CraftingTableRecipeViewConfig getCraftingTableRecipeViewConfig() {
+        return craftingTableRecipeViewConfig.get();
+    }
+
+    public FurnaceRecipeViewConfig getFurnaceRecipeViewConfig() {
+        return furnaceRecipeViewConfig.get();
+    }
+
+    public SmithingRecipeViewConfig getSmithingRecipeViewConfig() {
+        return smithingRecipeViewConfig.get();
+    }
+
+    public SmokerRecipeViewConfig getSmokerRecipeViewConfig() {
+        return smokerRecipeViewConfig.get();
+    }
+
+    public StoneCutterRecipeViewConfig getStoneCutterRecipeViewConfig() {
+        return stoneCutterRecipeViewConfig.get();
+    }
+
+    public CauldronRecipeViewConfig getCauldronRecipeViewConfig() {
+        return cauldronRecipeViewConfig.get();
+    }
+
+    public BrewingStandRecipeViewConfig getBrewingStandRecipeViewConfig() {
+        return brewingStandRecipeViewConfig.get();
     }
 }

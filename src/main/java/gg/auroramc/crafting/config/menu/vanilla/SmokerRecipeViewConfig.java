@@ -1,20 +1,15 @@
 package gg.auroramc.crafting.config.menu.vanilla;
 
-import gg.auroramc.aurora.api.config.AuroraConfig;
 import gg.auroramc.aurora.api.config.premade.ItemConfig;
-import gg.auroramc.crafting.AuroraCrafting;
 import lombok.Getter;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static gg.auroramc.crafting.config.ConfigManager.VANILLA_RECIPE_VIEW_PATH;
-
 @Getter
-public class SmokerRecipeViewConfig extends AuroraConfig {
+public class SmokerRecipeViewConfig {
     private String title = "Smoker Recipes";
     private Integer rows = 4;
     private Map<String, ItemConfig> customItems;
@@ -38,22 +33,8 @@ public class SmokerRecipeViewConfig extends AuroraConfig {
         private ItemConfig fuel;
     }
 
-    public SmokerRecipeViewConfig(AuroraCrafting plugin) {
-        super(getFile(plugin));
-    }
-
-    public static File getFile(AuroraCrafting plugin) {
-        return new File(plugin.getDataFolder() + "/" + VANILLA_RECIPE_VIEW_PATH, "smoker.yml");
-    }
-
-    public static void saveDefault(AuroraCrafting plugin) {
-        if (!getFile(plugin).exists()) {
-            plugin.saveResource(VANILLA_RECIPE_VIEW_PATH + "/smoker.yml", false);
-        }
-    }
-
-    @Override
-    protected List<Consumer<YamlConfiguration>> getMigrationSteps() {
+    // Steps by config-version, only ever appended, each sets config-version itself
+    public static List<Consumer<YamlConfiguration>> migrations() {
         return List.of(
                 (yaml) -> {
                     yaml.set("slots.prev-recipe", 34);
