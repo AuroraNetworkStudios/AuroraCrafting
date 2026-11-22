@@ -55,12 +55,10 @@ public class CraftingListener implements Listener {
             return;
         }
 
-        if (!blueprint.hasAccess(player)) {
-            event.getInventory().setResult(null);
-            return;
-        }
-
-        if (blueprint.getTimesCraftable(context) <= 0) {
+        if (!blueprint.hasAccess(player) || blueprint.getTimesCraftable(context) <= 0) {
+            // We can't craft this blueprint here (no permission, or not enough items for its amounts). Such a blueprint
+            // isn't registered if a vanilla recipe uses the same items (see VanillaWorkbench), so if vanilla matched a
+            // recipe of its own here, that result stays (9 iron ingots next to a recipe needing 16 per slot).
             if (isAuroraRecipe) {
                 event.getInventory().setResult(null);
             }
@@ -85,6 +83,11 @@ public class CraftingListener implements Listener {
             return;
         }
 
+        if (!blueprint.hasAccess(player)) {
+            // Not ours to craft: a result here comes from another recipe (see onPrepareCrafting), vanilla crafts it
+            return;
+        }
+
         if (!blueprint.isStacked()) {
             // Vanilla handles the whole craft (possibly multiple times on shift click), so we
             // snapshot the matrix and check how much of it was used up on the next tick
@@ -102,7 +105,8 @@ public class CraftingListener implements Listener {
 
         var timesCraftable = blueprint.getTimesCraftable(context);
         if (timesCraftable == 0) {
-            event.setCancelled(true);
+            // Not enough items for this blueprint's amounts: a result here comes from another recipe with the same
+            // items (see onPrepareCrafting), and vanilla crafts it one item per slot like it always does
             return;
         }
 

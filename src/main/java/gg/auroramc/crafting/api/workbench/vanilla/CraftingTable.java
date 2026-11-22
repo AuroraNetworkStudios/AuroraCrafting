@@ -1,6 +1,9 @@
 package gg.auroramc.crafting.api.workbench.vanilla;
 
 import gg.auroramc.crafting.api.blueprint.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Keyed;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
@@ -43,6 +46,19 @@ public class CraftingTable extends VanillaWorkbench<CraftingBlueprint<?>> {
      */
     public List<Integer> getMatrixSlots(Inventory inventory) {
         return inventory.getType() == InventoryType.CRAFTING ? INVENTORY_GRID_SLOTS : matrixSlots;
+    }
+
+    @Override
+    protected boolean overlapsVanillaRecipe(Blueprint blueprint) {
+        // One item per slot, the way vanilla sees a grid (it doesn't know about amounts)
+        var items = blueprint.getIngredientItems();
+        var matrix = new ItemStack[9];
+        for (int i = 0; i < matrix.length; i++) {
+            var item = i < items.size() ? items.get(i) : null;
+            matrix[i] = item == null || item.isEmpty() ? ItemStack.empty() : item.asOne();
+        }
+        var vanillaRecipe = Bukkit.getCraftingRecipe(matrix, Bukkit.getWorlds().getFirst());
+        return vanillaRecipe instanceof Keyed keyed && keyed.getKey().getNamespace().equals(NamespacedKey.MINECRAFT);
     }
 
     @Override

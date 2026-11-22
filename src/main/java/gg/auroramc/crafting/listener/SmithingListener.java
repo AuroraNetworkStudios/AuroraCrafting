@@ -8,6 +8,7 @@ import gg.auroramc.crafting.api.blueprint.BlueprintType;
 import gg.auroramc.crafting.api.event.RegistryLoadEvent;
 import gg.auroramc.crafting.util.InventoryUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.entity.Player;
@@ -19,7 +20,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.SmithingInventory;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -62,13 +65,13 @@ public class SmithingListener implements Listener {
             return;
         }
 
-        if (!blueprint.hasAccess(player)) {
-            event.setResult(null);
-            return;
-        }
-
-        if (blueprint.getTimesCraftable(context) <= 0) {
-            event.setResult(null);
+        if (!blueprint.hasAccess(player) || blueprint.getTimesCraftable(context) <= 0) {
+            // We can't craft this blueprint here (no permission, or not enough items for its amounts). Such a blueprint
+            // isn't registered if a vanilla recipe uses the same items (see VanillaWorkbench), so if vanilla matched a
+            // recipe of its own here, that result stays (the netherite upgrade next to a recipe needing 4 ingots).
+            if (isAuroraRecipe(event.getInventory().getRecipe())) {
+                event.setResult(null);
+            }
             return;
         }
 
@@ -92,15 +95,17 @@ public class SmithingListener implements Listener {
 
         if (!blueprint.isStacked()) return;
 
+        // Can't craft this blueprint (no permission, or not enough items for its amounts): a result here comes from
+        // another recipe with the same items (see onPrepareSmithing), so let vanilla handle the click
+        var timesCraftable = blueprint.getTimesCraftable(context);
+        if (timesCraftable == 0 || !blueprint.hasAccess(player)) return;
+
         event.setCancelled(true);
 
         // Ignore dumb ways of crafting
         if (event.getClick() != ClickType.SHIFT_LEFT && event.getClick() != ClickType.LEFT) {
             return;
         }
-
-        var timesCraftable = blueprint.getTimesCraftable(context);
-        if (timesCraftable == 0) return;
 
         final var currentItem = event.getCurrentItem() != null ? event.getCurrentItem().clone() : ItemStack.empty();
         final var sound = Registry.SOUNDS.get(smithingSoundKey);
@@ -163,7 +168,8 @@ public class SmithingListener implements Listener {
         var blueprint = workbench.lookupBlueprint(context, BlueprintType.SMITHING);
 
         // Stacked blueprints are crafted by onSmithing (which cancels the event), and runs the actions itself
-        if (blueprint == null || blueprint.isStacked() || blueprint.getCraftActions().isEmpty()) return;
+        // Without access the result came from another recipe (see onPrepareSmithing), not this blueprint
+        if (blueprint == null || blueprint.isStacked() || blueprint.getCraftActions().isEmpty() || !blueprint.hasAccess(player)) return;
 
         // Vanilla takes the result after this event, possibly multiple times (shift click),
         // so we compare the consumed inputs on the next tick to see how many times it was crafted
@@ -190,6 +196,10 @@ public class SmithingListener implements Listener {
                 blueprint.executeCraftActions(player, result, timesCrafted * blueprint.getResult().amount());
             }
         }, null);
+    }
+
+    private static boolean isAuroraRecipe(@Nullable Recipe recipe) {
+        return recipe instanceof Keyed keyed && keyed.getKey().getNamespace().equals("aurora");
     }
 
     private void updateMatrix(Player player, Inventory inventory, ItemStack[] resultingMatrix) {

@@ -42,7 +42,13 @@ public abstract class VanillaWorkbench<T extends Blueprint> extends Workbench {
         if (!shouldRegisterVanillaRecipes()) return;
 
         int count = 0;
+        int overlapping = 0;
         for (var blueprint : getBlueprints(type.getBlueprintTypes())) {
+            if (canBeUncraftable(blueprint) && overlapsVanillaRecipe(blueprint)) {
+                overlapping++;
+                continue;
+            }
+
             var key = registerVanillaRecipe(blueprint);
 
             if (key != null) {
@@ -50,7 +56,27 @@ public abstract class VanillaWorkbench<T extends Blueprint> extends Workbench {
                 count++;
             }
         }
-        AuroraCrafting.logger().info("Registered " + count + " recipes for workbench: " + id);
+        AuroraCrafting.logger().info("Registered " + count + " recipes for workbench: " + id
+                + (overlapping > 0 ? " (" + overlapping + " more are crafted through the vanilla recipe with the same items)" : ""));
+    }
+
+    /**
+     * Vanilla matches our recipes on item ids only, it doesn't know about ingredient amounts or permissions. So a
+     * blueprint with either can be impossible to craft for a grid vanilla matched it for. If a vanilla recipe uses the
+     * same items, vanilla could pick ours there and hide its own result (9 iron ingots next to a recipe needing 16
+     * per slot), so such a blueprint isn't registered: vanilla keeps matching its own recipe, and the listener swaps
+     * in our result when the blueprint can be crafted. Every other blueprint is registered.
+     */
+    private static boolean canBeUncraftable(Blueprint blueprint) {
+        var permission = blueprint.getPermission();
+        return blueprint.isStacked() || (permission != null && !permission.isBlank());
+    }
+
+    /**
+     * Whether a vanilla recipe accepts the blueprint's items, one item per slot like vanilla sees them.
+     */
+    protected boolean overlapsVanillaRecipe(Blueprint blueprint) {
+        return false;
     }
 
     public void discoverRecipesFor(Player player) {
