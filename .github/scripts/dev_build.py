@@ -87,7 +87,7 @@ def upload_to_server():
 
 
 def upload_to_pixeleast():
-    """Publish the JAR to PixelEast as a new dev version of the plugin."""
+    """Publish the JAR to PixelEast as a new version of the plugin, marked as a dev version when it is a SNAPSHOT."""
     token = os.environ["PIXELEAST_TOKEN"]
     if not token:
         fail("PIXELEAST_TOKEN secret is not configured")
@@ -103,8 +103,9 @@ def upload_to_pixeleast():
         "-F", f"name={metadata['plugin_version']}",
         "-F", f"file=@{metadata['artifact_path']}",
         "-F", f"changelog=<{CHANGELOG_FILE}",
-        "-F", "is_dev=true",
     ]
+    if "SNAPSHOT" in metadata["plugin_version"]:
+        args += ["-F", "is_dev=true"]
     for minecraft_version in metadata["supported_minecraft_versions"]:
         args += ["-F", f"selected_versions[]={minecraft_version}"]
 
